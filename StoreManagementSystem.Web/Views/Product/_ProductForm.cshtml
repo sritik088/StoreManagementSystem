@@ -1,0 +1,414 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Product.ProductViewModel
+
+<div class="row">
+
+    <!-- ========================= -->
+    <!-- BASIC INFORMATION -->
+    <!-- ========================= -->
+
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    Basic Information
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Name" class="form-label"></label>
+
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="Enter Product Name" />
+
+                        <span asp-validation-for="Name"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="SKU" class="form-label"></label>
+
+                        <input asp-for="SKU"
+                               class="form-control" />
+
+                        <span asp-validation-for="SKU"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="Barcode" class="form-label"></label>
+
+                        <input asp-for="Barcode"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+
+                        <label asp-for="HSNCode" class="form-label"></label>
+
+                        <input asp-for="HSNCode"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-8 mb-3">
+
+                        <label asp-for="Description"
+                               class="form-label"></label>
+
+                        <textarea asp-for="Description"
+                                  rows="3"
+                                  class="form-control"></textarea>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- CLASSIFICATION -->
+    <!-- ========================= -->
+
+    <div class="col-lg-12">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-success text-white">
+
+                <h5 class="mb-0">
+
+                    Classification
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="CategoryId"></label>
+
+                        <select asp-for="CategoryId"
+                                asp-items="Model.Categories"
+                                class="form-select"
+                                id="CategoryId">
+
+                            <option value="">Select Category</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="SubCategoryId"></label>
+
+                        <select asp-for="SubCategoryId"
+                                asp-items="Model.SubCategories"
+                                class="form-select"
+                                id="SubCategoryId">
+
+                            <option value="">Select SubCategory</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="BrandId"></label>
+
+                        <select asp-for="BrandId"
+                                asp-items="Model.Brands"
+                                class="form-select">
+
+                            <option value="">Select Brand</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="SupplierId"></label>
+
+                        <select asp-for="SupplierId"
+                                asp-items="Model.Suppliers"
+                                class="form-select">
+
+                            <option value="">Select Supplier</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+
+                        <label asp-for="WarehouseId"></label>
+
+                        <select asp-for="WarehouseId"
+                                asp-items="Model.Warehouses"
+                                class="form-select">
+
+                            <option value="">Select Warehouse</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label asp-for="UnitId"></label>
+
+                        <select asp-for="UnitId"
+                                asp-items="Model.Units"
+                                class="form-select">
+
+                            <option value="">Select Unit</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label asp-for="TaxId"></label>
+
+                        <select asp-for="TaxId"
+                                asp-items="Model.Taxes"
+                                class="form-select">
+
+                            <option value="">Select Tax</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- PRICING -->
+    <!-- ========================= -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-warning">
+
+                <h5 class="mb-0">
+
+                    Pricing
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+
+                    <label asp-for="PurchasePrice"></label>
+
+                    <input asp-for="PurchasePrice"
+                           class="form-control" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="SellingPrice"></label>
+
+                    <input asp-for="SellingPrice"
+                           class="form-control" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="DiscountPrice"></label>
+
+                    <input asp-for="DiscountPrice"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- INVENTORY -->
+    <!-- ========================= -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-info text-white">
+
+                <h5 class="mb-0">
+
+                    Inventory
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+
+                    <label asp-for="OpeningStock"></label>
+
+                    <input asp-for="OpeningStock"
+                           class="form-control" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="CurrentStock"></label>
+
+                    <input asp-for="CurrentStock"
+                           class="form-control"
+                           readonly />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="ReorderLevel"></label>
+
+                    <input asp-for="ReorderLevel"
+                           class="form-control" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="MaximumStock"></label>
+
+                    <input asp-for="MaximumStock"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- PRODUCT IMAGE -->
+    <!-- ========================= -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-secondary text-white">
+
+                <h5 class="mb-0">
+
+                    Product Image
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <input asp-for="ImageFile"
+                       type="file"
+                       class="form-control"
+                       id="imageInput"
+                       accept=".jpg,.jpeg,.png,.webp" />
+
+                <div class="mt-3">
+
+                    <img id="previewImage"
+                         src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/no-image.png" : Model.ImageUrl)"
+                         class="img-thumbnail"
+                         style="width:220px;height:220px;object-fit:cover;" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- STATUS -->
+    <!-- ========================= -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-dark text-white">
+
+                <h5 class="mb-0">
+
+                    Status
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-check form-switch">
+
+                    <input asp-for="IsActive"
+                           class="form-check-input" />
+
+                    <label asp-for="IsActive"
+                           class="form-check-label"></label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

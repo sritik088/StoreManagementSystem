@@ -1,0 +1,233 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Category>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="fw-bold mb-0">
+
+            <i class="bi bi-grid-fill text-primary"></i>
+
+            Categories
+
+        </h2>
+
+        <small class="text-muted">
+
+            Manage product categories
+
+        </small>
+
+    </div>
+
+    <a asp-action="Create"
+       class="btn btn-primary">
+
+        <i class="bi bi-plus-circle"></i>
+
+        New Category
+
+    </a>
+
+</div>
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <table class="table table-hover align-middle"
+               id="categoryTable">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th>#</th>
+
+                    <th>Name</th>
+
+                    <th>Description</th>
+
+                    <th>Status</th>
+
+                    <th>Display Order</th>
+
+                    <th width="150">
+
+                        Action
+
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @{
+                    int no = 1;
+                }
+
+                @foreach (var item in Model)
+                {
+
+                    <tr>
+
+                        <td>@no</td>
+
+                        <td>
+
+                            <strong>
+
+                                @item.Name
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            @item.Description
+
+                        </td>
+
+                        <td>
+
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">
+
+                                    Active
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+
+                                    Inactive
+
+                                </span>
+                            }
+
+                        </td>
+
+                        <td>
+
+                            @item.DisplayOrder
+
+                        </td>
+
+                        <td>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@item.Id"
+                               class="btn btn-warning btn-sm">
+
+                                <i class="bi bi-pencil"></i>
+
+                            </a>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@item.Id"
+                                  method="post"
+                                  class="d-inline deleteForm">
+
+                                <button class="btn btn-danger btn-sm">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    no++;
+
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(function(){
+
+        $("#categoryTable").DataTable({
+
+        responsive:true,
+
+        pageLength:10,
+
+        lengthMenu:[10,25,50,100],
+
+        dom:'Bfrtip',
+
+        buttons:[
+
+        'copy',
+
+        'excel',
+
+        'pdf',
+
+        'print'
+
+        ]
+
+        });
+
+        });
+
+        $(".deleteForm").submit(function(e){
+
+        e.preventDefault();
+
+        let form=this;
+
+        Swal.fire({
+
+        title:"Delete Category?",
+
+        text:"You won't be able to recover it!",
+
+        icon:"warning",
+
+        showCancelButton:true,
+
+        confirmButtonColor:"#dc3545",
+
+        confirmButtonText:"Yes, Delete"
+
+        }).then((result)=>{
+
+        if(result.isConfirmed){
+
+        form.submit();
+
+        }
+
+        });
+
+        });
+
+    </script>
+
+}

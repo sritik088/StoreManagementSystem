@@ -1,0 +1,122 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Category.CategoryViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Edit Category";
+}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-lg border-0">
+
+            <div class="card-header bg-warning">
+
+                <h4>
+
+                    <i class="bi bi-pencil-square"></i>
+
+                    Edit Category
+
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <form asp-action="Edit">
+
+                    <input asp-for="Id" hidden />
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label asp-for="Name"></label>
+
+                        <input asp-for="Name"
+                               class="form-control" />
+
+                        <span asp-validation-for="Name"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label asp-for="Description"></label>
+
+<textarea asp-for="Description"
+          class="form-control"
+          rows="4"></textarea>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="DisplayOrder"></label>
+
+                            <input asp-for="DisplayOrder"
+                                   class="form-control" />
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="form-check form-switch mt-4">
+
+                                <input asp-for="IsActive"
+                                       class="form-check-input" />
+
+                                <label asp-for="IsActive"
+                                       class="form-check-label">
+
+                                    Active
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr />
+
+                    <div class="text-end">
+
+                        <a asp-action="Index"
+                           class="btn btn-secondary">
+
+                            Cancel
+
+                        </a>
+
+                        <button class="btn btn-warning">
+
+                            Update Category
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -1,0 +1,512 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Product>
+
+@{
+    ViewData["Title"] = "Product Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+
+                <i class="bi bi-box-seam-fill text-primary"></i>
+
+                Product Management
+
+            </h2>
+
+            <p class="text-muted">
+
+                Manage all products, inventory and pricing.
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+
+                Add Product
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Total Products
+
+                    </small>
+
+                    <h2 class="fw-bold">
+
+                        @Model.Count()
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Active Products
+
+                    </small>
+
+                    <h2 class="fw-bold text-success">
+
+                        @Model.Count(x=>x.IsActive)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Low Stock
+
+                    </small>
+
+                    <h2 class="fw-bold text-danger">
+
+                        @Model.Count(x=>x.CurrentStock<=x.ReorderLevel)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Inactive
+
+                    </small>
+
+                    <h2 class="fw-bold text-secondary">
+
+                        @Model.Count(x=>!x.IsActive)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Product Table -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-light">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-table"></i>
+
+                Product List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="productTable"
+                       class="table table-hover table-bordered align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Image</th>
+
+                            <th>Product</th>
+
+                            <th>SKU</th>
+
+                            <th>Barcode</th>
+
+                            <th>Category</th>
+
+                            <th>Brand</th>
+
+                            <th>Supplier</th>
+
+                            <th>Warehouse</th>
+
+                            <th>Purchase</th>
+
+                            <th>Selling</th>
+
+                            <th>Stock</th>
+
+                            <th>Status</th>
+
+                            <th width="170">
+
+                                Action
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @{
+
+                            int sr = 1;
+
+                        }
+
+                        @foreach (var item in Model)
+                        {
+
+                            <tr>
+
+                                <td>
+
+                                    @sr
+
+                                </td>
+
+                                <td>
+
+                                    @if (string.IsNullOrWhiteSpace(item.ImageUrl))
+                                    {
+                                        <img src="/images/no-image.png"
+                                             width="60"
+                                             height="60"
+                                             class="rounded border"
+                                             style="object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <img src="@item.ImageUrl"
+                                             width="60"
+                                             height="60"
+                                             class="rounded border"
+                                             style="object-fit:cover;" />
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        @item.Name
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    @item.SKU
+
+                                </td>
+
+                                <td>
+
+                                    @item.Barcode
+
+                                </td>
+
+                                <td>
+
+                                    @item.Category?.Name
+
+                                </td>
+
+                                <td>
+
+                                    @item.Brand?.Name
+
+                                </td>
+
+                                <td>
+
+                                    @item.Supplier?.Name
+
+                                </td>
+
+                                <td>
+
+                                    @item.Warehouse?.Name
+
+                                </td>
+
+                                <td>
+
+                                    ₹ @item.PurchasePrice.ToString("N2")
+
+                                </td>
+
+                                <td>
+
+                                    ₹ @item.SellingPrice.ToString("N2")
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.CurrentStock <= item.ReorderLevel)
+                                    {
+                                        <span class="badge bg-danger">
+
+                                            @item.CurrentStock
+
+                                            <br />
+
+                                            Low Stock
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+
+                                            @item.CurrentStock
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Active
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+
+                                            Inactive
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <div class="btn-group">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-info btn-sm">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-warning btn-sm">
+
+                                            <i class="bi bi-pencil-square"></i>
+
+                                        </a>
+
+                                        <form asp-action="Delete"
+                                              asp-route-id="@item.Id"
+                                              method="post"
+                                              class="d-inline deleteForm">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-danger btn-sm">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            sr++;
+
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        $(document).ready(function () {
+
+            $("#productTable").DataTable({
+
+                responsive: true,
+
+                processing: true,
+
+                autoWidth: false,
+
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10,25,50,100,-1],
+                    [10,25,50,100,"All"]
+                ],
+
+                order: [[2,"asc"]],
+
+                scrollX: true,
+
+                fixedHeader: true,
+
+                dom:
+                    "<'row mb-3'<'col-md-6'B><'col-md-6'f>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-3'<'col-md-5'i><'col-md-7'p>>",
+
+                buttons: [
+
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary btn-sm',
+                        text: '<i class="bi bi-copy"></i> Copy'
+                    },
+
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-success btn-sm',
+                        text: '<i class="bi bi-filetype-csv"></i> CSV'
+                    },
+
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success btn-sm',
+                        text: '<i class="bi bi-file-earmark-excel"></i> Excel'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger btn-sm',
+                        text: '<i class="bi bi-file-earmark-pdf"></i> PDF'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn btn-info btn-sm',
+                        text: '<i class="bi bi-printer"></i> Print'
+                    },
+
+                    {
+                        extend: 'colvis',
+                        className: 'btn btn-dark btn-sm',
+                        text: '<i class="bi bi-layout-three-columns"></i> Columns'
+                    }
+
+                ],
+
+                language: {
+
+                    search: "Search Product:",
+
+                    lengthMenu:
+                        "Show _MENU_ Products",
+
+                    info:
+                        "Showing _START_ to _END_ of _TOTAL_ Products",
+
+                    zeroRecords:
+                        "No Products Found",
+
+                    infoEmpty:
+                        "No Records Available"
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+}

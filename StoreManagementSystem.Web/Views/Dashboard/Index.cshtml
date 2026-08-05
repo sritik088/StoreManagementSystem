@@ -1,0 +1,283 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Dashboard.DashboardViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold mb-1">Dashboard</h2>
+        <p class="text-muted mb-0">
+            Welcome back! Here's what's happening in your store today.
+        </p>
+    </div>
+
+    <div>
+        <a asp-controller="Product" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            New Product
+        </a>
+
+        <a asp-controller="PurchaseOrder" asp-action="Create" class="btn btn-success ms-2">
+            <i class="bi bi-cart-plus"></i>
+            New Purchase
+        </a>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <small class="text-muted">Products</small>
+                    <h2 class="fw-bold">@Model.TotalProducts</h2>
+                </div>
+
+                <div class="fs-1 text-primary">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <small class="text-muted">Categories</small>
+                    <h2 class="fw-bold">@Model.TotalCategories</h2>
+                </div>
+
+                <div class="fs-1 text-success">
+                    <i class="bi bi-grid"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <small class="text-muted">Suppliers</small>
+                    <h2 class="fw-bold">@Model.TotalSuppliers</h2>
+                </div>
+
+                <div class="fs-1 text-warning">
+                    <i class="bi bi-truck"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <small class="text-muted">Low Stock</small>
+                    <h2 class="fw-bold text-danger">@Model.LowStockProducts</h2>
+                </div>
+
+                <div class="fs-1 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row mt-4">
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">Today's Sales</h6>
+
+                <h3 class="fw-bold text-success">
+                    $@Model.TodaySales.ToString("N2")
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">Monthly Sales</h6>
+
+                <h3 class="fw-bold text-primary">
+                    $@Model.MonthlySales.ToString("N2")
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">Inventory Value</h6>
+
+                <h3 class="fw-bold text-warning">
+                    $@Model.InventoryValue.ToString("N2")
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row mt-5">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Recent Purchase Orders
+                </h5>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>PO No.</th>
+                            <th>Supplier</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>PO-1001</td>
+                            <td>ABC Traders</td>
+                            <td>29-Jul-2026</td>
+                            <td>$2,450.00</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>PO-1002</td>
+                            <td>XYZ Suppliers</td>
+                            <td>28-Jul-2026</td>
+                            <td>$1,650.00</td>
+                            <td><span class="badge bg-warning text-dark">Pending</span></td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Low Stock Products
+                </h5>
+
+            </div>
+
+            <div class="list-group list-group-flush">
+
+                @if (Model.LowStockItems.Any())
+                {
+                    @foreach (var item in Model.LowStockItems)
+                    {
+                        <div class="list-group-item d-flex justify-content-between">
+
+                            <span>@item.ProductName</span>
+
+                            <span class="badge bg-danger">
+                                @item.Stock
+                            </span>
+
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="list-group-item text-center text-muted">
+                        No low stock items.
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

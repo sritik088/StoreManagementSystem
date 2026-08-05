@@ -1,0 +1,338 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Unit>
+
+@{
+    ViewData["Title"] = "Units";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+                <i class="bi bi-rulers text-primary"></i>
+                Unit Management
+            </h2>
+
+            <p class="text-muted">
+                Manage measurement units used in products.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+
+                Add Unit
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Total Units
+                    </small>
+
+                    <h2 class="fw-bold">
+                        @Model.Count()
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Active Units
+                    </small>
+
+                    <h2 class="fw-bold text-success">
+                        @Model.Count(x => x.IsActive)
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Inactive Units
+                    </small>
+
+                    <h2 class="fw-bold text-danger">
+                        @Model.Count(x => !x.IsActive)
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Table -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-light">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-table"></i>
+
+                Unit List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="unitTable"
+                       class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Unit Name</th>
+
+                            <th>Short Name</th>
+
+                            <th>Description</th>
+
+                            <th>Status</th>
+
+                            <th width="170">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            int sr = 1;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td>@sr</td>
+
+                                <td>
+
+                                    <strong>
+
+                                        @item.Name
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    @item.ShortName
+
+                                </td>
+
+                                <td>
+
+                                    @item.Description
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Active
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+
+                                            Inactive
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-warning btn-sm">
+
+                                        <i class="bi bi-pencil-square"></i>
+
+                                    </a>
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline deleteForm">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            sr++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#unitTable').DataTable({
+
+                responsive: true,
+
+                pageLength: 10,
+
+                order: [[1, 'asc']],
+
+                dom: 'Bfrtip',
+
+                buttons: [
+
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary'
+                    },
+
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn btn-info'
+                    },
+
+                    {
+                        extend: 'colvis',
+                        className: 'btn btn-dark'
+                    }
+
+                ]
+
+            });
+
+        });
+
+        $(".deleteForm").submit(function (e) {
+
+            e.preventDefault();
+
+            var form = this;
+
+            Swal.fire({
+
+                title: 'Delete Unit?',
+
+                text: 'This action cannot be undone.',
+
+                icon: 'warning',
+
+                showCancelButton: true,
+
+                confirmButtonColor: '#dc3545',
+
+                cancelButtonColor: '#6c757d',
+
+                confirmButtonText: 'Delete'
+
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    form.submit();
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+}

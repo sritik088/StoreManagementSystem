@@ -1,0 +1,111 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Warehouse.WarehouseViewModel
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" placeholder="Warehouse Name" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" placeholder="WH001" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="ManagerName" class="form-label"></label>
+        <input asp-for="ManagerName" class="form-control" placeholder="Manager Name" />
+        <span asp-validation-for="ManagerName" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="ContactNumber" class="form-label"></label>
+        <input asp-for="ContactNumber" class="form-control" placeholder="9876543210" />
+        <span asp-validation-for="ContactNumber" class="text-danger"></span>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" placeholder="warehouse@email.com" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="City" class="form-label"></label>
+        <input asp-for="City" class="form-control" placeholder="City" />
+        <span asp-validation-for="City" class="text-danger"></span>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="State" class="form-label"></label>
+        <input asp-for="State" class="form-control" placeholder="State" />
+        <span asp-validation-for="State" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Country" class="form-label"></label>
+        <input asp-for="Country" class="form-control" placeholder="Country" />
+        <span asp-validation-for="Country" class="text-danger"></span>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="PostalCode" class="form-label"></label>
+        <input asp-for="PostalCode" class="form-control" placeholder="411001" />
+        <span asp-validation-for="PostalCode" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 d-flex align-items-center">
+
+        <div class="form-check form-switch mt-4">
+
+            <input asp-for="IsActive" class="form-check-input" />
+
+            <label asp-for="IsActive" class="form-check-label"></label>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label asp-for="Address" class="form-label"></label>
+
+    <textarea asp-for="Address"
+              rows="3"
+              class="form-control"></textarea>
+
+    <span asp-validation-for="Address" class="text-danger"></span>
+
+</div>
+
+<div class="mb-3">
+
+    <label asp-for="Description" class="form-label"></label>
+
+    <textarea asp-for="Description"
+              rows="4"
+              class="form-control"></textarea>
+
+    <span asp-validation-for="Description" class="text-danger"></span>
+
+</div>

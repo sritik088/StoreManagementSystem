@@ -1,0 +1,594 @@
+﻿@model StoreManagementSystem.Web.ViewModels.PurchaseOrder.PurchaseOrderViewModel
+
+@{
+    ViewData["Title"] = "Create Purchase Order";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+
+                <i class="bi bi-cart-plus text-primary"></i>
+
+                Create Purchase Order
+
+            </h2>
+
+            <small class="text-muted">
+
+                Create a new Purchase Order
+
+            </small>
+
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+
+            Back
+
+        </a>
+
+    </div>
+
+    <form asp-action="Create" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+        <!-- Header -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+
+                Purchase Order Information
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="SupplierId"></label>
+
+                        <select asp-for="SupplierId"
+                                asp-items="Model.Suppliers"
+                                class="form-select">
+
+                            <option value="">Select Supplier</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label asp-for="OrderDate"></label>
+
+                        <input asp-for="OrderDate"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label asp-for="ExpectedDate"></label>
+
+                        <input asp-for="ExpectedDate"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card shadow-sm">
+
+            <div class="card-header bg-success text-white">
+
+                Products
+
+            </div>
+
+            <div class="card-body">
+
+                <table class="table table-bordered" id="itemTable">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th width="60">Image</th>
+
+                            <th>Product</th>
+
+                            <th>SKU</th>
+
+                            <th>Unit</th>
+
+                            <th>Stock</th>
+
+                            <th>Qty</th>
+
+                            <th>Price</th>
+
+                            <th>Discount</th>
+
+                            <th>Tax %</th>
+
+                            <th>Total</th>
+
+                            <th></th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+
+                            <tr>
+
+                                <td>
+
+                                    <select asp-for="Items[i].ProductId"
+                                            asp-items="Model.Items[i].Products"
+                                            class="form-select product">
+
+                                        <option value="">Select Product</option>
+
+                                    </select>
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Items[i].Quantity"
+                                           class="form-control qty" />
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Items[i].UnitPrice"
+                                           class="form-control price" />
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Items[i].Discount"
+                                           class="form-control discount" />
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Items[i].TaxAmount"
+                                           class="form-control tax" />
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Items[i].Total"
+                                           class="form-control total"
+                                           readonly />
+
+                                </td>
+
+                                <td>
+
+                                    <button type="button"
+                                            class="btn btn-danger removeRow">
+
+                                        <i class="bi bi-trash"></i>
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        }
+
+                    </tbody>
+
+                </table>
+
+                <button type="button"
+                        id="addRow"
+                        class="btn btn-success">
+
+                    <i class="bi bi-plus-circle"></i>
+
+                    Add Product
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="card shadow-sm mt-4">
+
+            <div class="card-header bg-warning">
+
+                Totals
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <label>Sub Total</label>
+
+                        <input asp-for="SubTotal"
+                               id="SubTotal"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Discount</label>
+
+                        <input asp-for="Discount"
+                               id="Discount"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Tax</label>
+
+                        <input asp-for="TaxAmount"
+                               id="TaxAmount"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Grand Total</label>
+
+                        <input asp-for="GrandTotal"
+                               id="GrandTotal"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <label asp-for="Remarks"></label>
+
+<textarea asp-for="Remarks"
+          class="form-control"
+          rows="3"></textarea>
+
+                </div>
+
+                <hr />
+
+                <button class="btn btn-primary">
+
+                    <i class="bi bi-save"></i>
+
+                    Save Purchase Order
+
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        $(function () {
+
+            calculateTotals();
+
+        });
+
+
+        //==============================
+        // Add Product Row
+        //==============================
+
+        $("#addRow").click(function () {
+
+            let index = $("#itemTable tbody tr").length;
+
+            let row = `
+
+        <tr>
+
+        <td>
+
+        <select name="Items[${index}].ProductId"
+
+        class="form-select product">
+
+        <option value="">Select Product</option>
+
+        @foreach (var p in Model.Items.First().Products)
+        {
+            <text>
+
+            <option value="@p.Value">
+
+            @p.Text
+
+            </option>
+
+            </text>
+        }
+
+        </select>
+
+        </td>
+
+        <td>
+
+        <input type="number"
+
+        name="Items[${index}].Quantity"
+
+        class="form-control qty"
+
+        value="1"/>
+
+        </td>
+
+        <td>
+
+        <input type="number"
+
+        step="0.01"
+
+        name="Items[${index}].UnitPrice"
+
+        class="form-control price"
+
+        value="0"/>
+
+        </td>
+
+        <td>
+
+        <input type="number"
+
+        step="0.01"
+
+        name="Items[${index}].Discount"
+
+        class="form-control discount"
+
+        value="0"/>
+
+        </td>
+
+        <td>
+
+        <input type="number"
+
+        step="0.01"
+
+        name="Items[${index}].TaxAmount"
+
+        class="form-control tax"
+
+        value="0"/>
+
+        </td>
+
+        <td>
+
+        <input type="number"
+
+        step="0.01"
+
+        name="Items[${index}].Total"
+
+        class="form-control total"
+
+        readonly/>
+
+        </td>
+
+        <td>
+
+        <button type="button"
+
+        class="btn btn-danger removeRow">
+
+        <i class="bi bi-trash"></i>
+
+        </button>
+
+        </td>
+
+        </tr>
+
+        `;
+
+            $("#itemTable tbody").append(row);
+
+        });
+
+
+        //==============================
+        // Remove Row
+        //==============================
+
+        $(document).on("click",".removeRow",function(){
+
+            if($("#itemTable tbody tr").length==1){
+
+                toastr.warning("At least one product is required.");
+
+                return;
+
+            }
+
+            $(this).closest("tr").remove();
+
+            calculateTotals();
+
+        });
+
+
+        //==============================
+        // Product Changed
+        //==============================
+
+        $(document).on("change",".product",function(){
+
+            let row=$(this).closest("tr");
+
+            let productId=$(this).val();
+
+            if(productId=="")
+                return;
+
+            $.get("/PurchaseOrder/GetProductPrice",
+
+            { productId:productId },
+
+            function(data){
+
+                row.find(".price").val(data.purchasePrice);
+
+                row.find(".tax").val(0);
+
+                row.find(".qty").val(1);
+
+                calculateRow(row);
+
+            });
+
+        });
+
+
+        //==============================
+        // Qty Price Discount Tax Changed
+        //==============================
+
+        $(document).on(
+
+        "keyup change",
+
+        ".qty,.price,.discount,.tax",
+
+        function(){
+
+            let row=$(this).closest("tr");
+
+            calculateRow(row);
+
+        });
+
+
+        //==============================
+        // Line Total
+        //==============================
+
+        function calculateRow(row){
+
+            let qty=parseFloat(row.find(".qty").val())||0;
+
+            let price=parseFloat(row.find(".price").val())||0;
+
+            let discount=parseFloat(row.find(".discount").val())||0;
+
+            let tax=parseFloat(row.find(".tax").val())||0;
+
+            let total=(qty*price)-discount+tax;
+
+            row.find(".total").val(total.toFixed(2));
+
+            calculateTotals();
+
+        }
+
+
+        //==============================
+        // Grand Total
+        //==============================
+
+        function calculateTotals(){
+
+            let subtotal=0;
+
+            let discount=0;
+
+            let tax=0;
+
+            let grand=0;
+
+            $("#itemTable tbody tr").each(function(){
+
+                subtotal += parseFloat($(this).find(".qty").val()) *
+                            parseFloat($(this).find(".price").val()) || 0;
+
+                discount += parseFloat($(this).find(".discount").val()) || 0;
+
+                tax += parseFloat($(this).find(".tax").val()) || 0;
+
+                grand += parseFloat($(this).find(".total").val()) || 0;
+
+            });
+
+            $("#SubTotal").val(subtotal.toFixed(2));
+
+            $("#Discount").val(discount.toFixed(2));
+
+            $("#TaxAmount").val(tax.toFixed(2));
+
+            $("#GrandTotal").val(grand.toFixed(2));
+
+        }
+
+    </script>
+
+}

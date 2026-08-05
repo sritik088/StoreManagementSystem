@@ -1,0 +1,57 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Warehouse.WarehouseViewModel
+
+@{
+    ViewData["Title"] = "Edit Warehouse";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-warning">
+
+            <h4>Edit Warehouse</h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post">
+
+                <input asp-for="Id" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger"></div>
+
+                <partial name="_WarehouseForm"
+                         model="Model" />
+
+                <hr />
+
+                <button class="btn btn-warning">
+
+                    Update
+
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

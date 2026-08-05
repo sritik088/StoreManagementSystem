@@ -1,0 +1,338 @@
+﻿@model StoreManagementSystem.Web.ViewModels.GoodsReceipt.GoodsReceiptViewModel
+
+@{
+    ViewData["Title"] = "Goods Receipt";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-success text-white">
+
+            <h4 class="mb-0">
+                Goods Receipt Note
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label>Purchase Order</label>
+
+                        <select asp-for="PurchaseOrderId"
+                                asp-items="Model.PurchaseOrders"
+                                class="form-select"
+                                id="PurchaseOrder">
+
+                            <option value="">
+                                Select Purchase Order
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label>Supplier</label>
+
+                        <input asp-for="SupplierName"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label>Receipt Date</label>
+
+                        <input asp-for="ReceiptDate"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+                <div class="table-responsive mt-4">
+
+                    <table class="table table-bordered"
+                           id="itemTable">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>Product</th>
+
+                                <th>SKU</th>
+
+                                <th>Ordered</th>
+
+                                <th>Received</th>
+
+                                <th>Remaining</th>
+
+                                <th>Receive Qty</th>
+
+                                <th>Warehouse</th>
+
+                                <th>Price</th>
+
+                                <th>Tax</th>
+
+                                <th>Total</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+                        </tbody>
+
+                    </table>
+
+                </div>
+                <div class="row mt-4">
+
+                    <div class="col-md-3">
+
+                        <label>Subtotal</label>
+
+                        <input asp-for="SubTotal"
+                               id="SubTotal"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Tax</label>
+
+                        <input asp-for="TaxAmount"
+                               id="TaxAmount"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Discount</label>
+
+                        <input asp-for="Discount"
+                               id="Discount"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Grand Total</label>
+
+                        <input asp-for="GrandTotal"
+                               id="GrandTotal"
+                               class="form-control fw-bold"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <label>Remarks</label>
+
+<textarea asp-for="Remarks"
+          class="form-control"
+          rows="3">
+</textarea>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <button class="btn btn-success">
+
+                        <i class="bi bi-check-circle"></i>
+
+                        Receive Goods
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+                $("#PurchaseOrder").change(function () {
+
+            let id = $(this).val();
+
+            if (id == "")
+                return;
+
+            $.get("/GoodsReceipt/GetPurchaseOrder",
+                { id: id },
+                function (po) {
+
+                    $("#SupplierName").val(po.supplier);
+
+                    $("#itemTable tbody").empty();
+
+                    $.each(po.items, function (index, item) {
+
+                        let row = `
+        <tr>
+
+        <td>${item.product}</td>
+
+        <td>${item.sku}</td>
+
+        <td>${item.orderedQty}</td>
+
+        <td>${item.previouslyReceivedQty ?? 0}</td>
+
+        <td>${item.remainingQty ?? item.orderedQty}</td>
+
+        <td>
+
+        <input type="number"
+
+        class="form-control qty"
+
+        value="${item.remainingQty ?? item.orderedQty}"
+
+        name="Items[${index}].ReceivedQuantity"/>
+
+        <input type="hidden"
+
+        name="Items[${index}].ProductId"
+
+        value="${item.productId}"/>
+
+        <input type="hidden"
+
+        name="Items[${index}].PurchaseOrderItemId"
+
+        value="${item.purchaseOrderItemId}"/>
+
+        </td>
+
+        <td>
+
+        <select class="form-select warehouse"
+
+        name="Items[${index}].WarehouseId">
+
+        </select>
+
+        </td>
+
+        <td>
+
+        <input class="form-control price"
+
+        value="${item.price}"
+
+        readonly/>
+
+        </td>
+
+        <td>
+
+        <input class="form-control tax"
+
+        value="${item.tax}"
+
+        readonly/>
+
+        </td>
+
+        <td>
+
+        <input class="form-control total"
+
+        readonly/>
+
+        </td>
+
+        </tr>
+        `;
+
+                        $("#itemTable tbody").append(row);
+
+                    });
+
+                    loadWarehouses();
+
+                    calculateTotals();
+
+                });
+
+        });
+
+                function calculateTotals() {
+
+            let subtotal = 0;
+            let tax = 0;
+
+            $("#itemTable tbody tr").each(function () {
+
+                let qty = parseFloat($(this).find(".qty").val()) || 0;
+
+                let price = parseFloat($(this).find(".price").val()) || 0;
+
+                let gst = parseFloat($(this).find(".tax").val()) || 0;
+
+                let total = qty * price;
+
+                $(this).find(".total").val(total.toFixed(2));
+
+                subtotal += total;
+
+                tax += gst;
+
+            });
+
+            $("#SubTotal").val(subtotal.toFixed(2));
+
+            $("#TaxAmount").val(tax.toFixed(2));
+
+            $("#GrandTotal").val((subtotal + tax).toFixed(2));
+
+        }
+
+    </script>
+}

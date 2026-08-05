@@ -1,0 +1,48 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Supplier.SupplierViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Edit Supplier";
+}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-warning">
+
+        <h4 class="mb-0">
+            <i class="bi bi-pencil-square"></i>
+            Edit Supplier
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Edit"
+              method="post"
+              enctype="multipart/form-data">
+
+            <input asp-for="Id" type="hidden" />
+
+            <partial name="_SupplierForm" model="Model" />
+
+            <hr />
+
+            <button class="btn btn-warning">
+                Update
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

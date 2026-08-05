@@ -1,0 +1,375 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Supplier>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Suppliers";
+}
+
+<div class="container-fluid">
+
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">
+                <i class="bi bi-truck"></i>
+                Supplier Management
+            </h2>
+
+            <p class="text-muted">
+                Manage all suppliers of your store
+            </p>
+        </div>
+
+        <div>
+
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+
+                Add Supplier
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6>Total Suppliers</h6>
+
+                    <h2>@Model.Count()</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6>Active</h6>
+
+                    <h2>
+
+                        @Model.Count(x => x.IsActive)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6>Inactive</h6>
+
+                    <h2>
+
+                        @Model.Count(x => !x.IsActive)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <h6>Today's Added</h6>
+
+                    <h2>
+
+                        @Model.Count(x => x.CreatedDate.Date == DateTime.Today)
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Table -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                Supplier List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <table id="supplierTable"
+                   class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Supplier</th>
+
+                        <th>Code</th>
+
+                        <th>Contact</th>
+
+                        <th>Phone</th>
+
+                        <th>Email</th>
+
+                        <th>City</th>
+
+                        <th>Status</th>
+
+                        <th width="180">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @{
+
+                        int i = 1;
+
+                    }
+
+                    @foreach (var item in Model)
+
+                    {
+
+                        <tr>
+
+                            <td>@i</td>
+
+                            <td>
+
+                                <strong>
+
+                                    @item.Name
+
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                @item.SupplierCode
+
+                            </td>
+
+                            <td>
+
+                                @item.ContactPerson
+
+                            </td>
+
+                            <td>
+
+                                @item.Phone
+
+                            </td>
+
+                            <td>
+
+                                @item.Email
+
+                            </td>
+
+                            <td>
+
+                                @item.City
+
+                            </td>
+
+                            <td>
+
+                                @if (item.IsActive)
+
+                                {
+
+                                    <span class="badge bg-success">
+
+                                        Active
+
+                                    </span>
+
+                                }
+
+                                else
+
+                                {
+
+                                    <span class="badge bg-danger">
+
+                                        Inactive
+
+                                    </span>
+
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-info btn-sm">
+
+                                    <i class="bi bi-eye"></i>
+
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-warning btn-sm">
+
+                                    <i class="bi bi-pencil-square"></i>
+
+                                </a>
+
+                                <button class="btn btn-danger btn-sm deleteBtn"
+                                        data-id="@item.Id">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        i++;
+
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<form id="deleteForm"
+      asp-action="Delete"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           id="deleteId"
+           name="id" />
+
+</form>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- JQuery -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables -->
+
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- SweetAlert -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#supplierTable').DataTable({
+
+                pageLength:10,
+
+                responsive:true
+
+            });
+
+            $('.deleteBtn').click(function(){
+
+                var id=$(this).data('id');
+
+                Swal.fire({
+
+                    title:'Delete Supplier?',
+
+                    text:'This supplier will be deleted.',
+
+                    icon:'warning',
+
+                    showCancelButton:true,
+
+                    confirmButtonColor:'#d33',
+
+                    confirmButtonText:'Delete'
+
+                }).then((result)=>{
+
+                    if(result.isConfirmed){
+
+                        $('#deleteId').val(id);
+
+                        $('#deleteForm').submit();
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

@@ -1,0 +1,333 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.SubCategory>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Sub Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold">
+            <i class="bi bi-diagram-3-fill text-primary"></i>
+            Sub Categories
+        </h2>
+
+        <small class="text-muted">
+            Manage product sub categories
+        </small>
+    </div>
+
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i>
+        Add Sub Category
+    </a>
+
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+
+        @TempData["Success"]
+
+        <button class="btn-close" data-bs-dismiss="alert"></button>
+
+    </div>
+}
+
+<div class="row mb-4">
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6>Total Sub Categories</h6>
+
+                <h2>@Model.Count()</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6>Active</h6>
+
+                <h2>@Model.Count(x => x.IsActive)</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body text-center">
+
+                <h6>Inactive</h6>
+
+                <h2>@Model.Count(x => !x.IsActive)</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<form method="get">
+
+    <div class="row mb-3">
+
+        <div class="col-md-4">
+
+            <select class="form-select"
+                    name="categoryId"
+                    asp-items="ViewBag.CategoryList">
+
+                <option value="">All Categories</option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button class="btn btn-primary">
+
+                <i class="bi bi-funnel"></i>
+
+                Filter
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <table id="subCategoryTable"
+               class="table table-hover align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th>#</th>
+
+                    <th>Category</th>
+
+                    <th>Sub Category</th>
+
+                    <th>Description</th>
+
+                    <th>Display Order</th>
+
+                    <th>Status</th>
+
+                    <th width="160">
+
+                        Action
+
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @{
+                    int no = 1;
+                }
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+
+                        <td>@no</td>
+
+                        <td>
+
+                            <span class="badge bg-primary">
+
+                                @item.Category.Name
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                @item.Name
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            @item.Description
+
+                        </td>
+
+                        <td>
+
+                            @item.DisplayOrder
+
+                        </td>
+
+                        <td>
+
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">
+
+                                    Active
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+
+                                    Inactive
+
+                                </span>
+                            }
+
+                        </td>
+
+                        <td>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@item.Id"
+                               class="btn btn-warning btn-sm">
+
+                                <i class="bi bi-pencil-square"></i>
+
+                            </a>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@item.Id"
+                                  method="post"
+                                  class="d-inline deleteForm">
+
+                                @Html.AntiForgeryToken()
+
+                                <button class="btn btn-danger btn-sm">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    no++;
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#subCategoryTable').DataTable({
+
+                responsive: true,
+
+                pageLength: 10,
+
+                lengthMenu: [10, 25, 50, 100],
+
+                dom: 'Bfrtip',
+
+                buttons: [
+
+                    'copy',
+
+                    'excel',
+
+                    'pdf',
+
+                    'print'
+
+                ]
+
+            });
+
+        });
+
+        $(".deleteForm").submit(function (e) {
+
+            e.preventDefault();
+
+            let form = this;
+
+            Swal.fire({
+
+                title: "Delete Sub Category?",
+
+                text: "This action cannot be undone.",
+
+                icon: "warning",
+
+                showCancelButton: true,
+
+                confirmButtonColor: "#dc3545",
+
+                cancelButtonColor: "#6c757d",
+
+                confirmButtonText: "Delete"
+
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    form.submit();
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+}

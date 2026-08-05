@@ -1,0 +1,124 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Category.CategoryViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Create Category";
+}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-lg border-0">
+
+            <div class="card-header bg-primary text-white">
+
+                <h4 class="mb-0">
+                    <i class="bi bi-folder-plus"></i>
+                    Create Category
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <form asp-action="Create" method="post">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label asp-for="Name" class="form-label"></label>
+
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="Enter category name" />
+
+                        <span asp-validation-for="Name"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label asp-for="Description"></label>
+
+                        <textarea asp-for="Description"
+                                  rows="4"
+                                  class="form-control"
+                                  placeholder="Enter description">
+                        </textarea>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="DisplayOrder"></label>
+
+                            <input asp-for="DisplayOrder"
+                                   class="form-control" />
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Status
+                            </label>
+
+                            <div class="form-check form-switch mt-2">
+
+                                <input asp-for="IsActive"
+                                       class="form-check-input" />
+
+                                <label asp-for="IsActive"
+                                       class="form-check-label">
+                                    Active
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-end">
+
+                        <a asp-action="Index"
+                           class="btn btn-secondary">
+
+                            Cancel
+
+                        </a>
+
+                        <button class="btn btn-primary ms-2">
+
+                            <i class="bi bi-check-circle"></i>
+
+                            Save Category
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

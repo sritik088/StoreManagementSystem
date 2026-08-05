@@ -1,0 +1,49 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Warehouse.WarehouseViewModel
+
+@{
+    ViewData["Title"] = "Create Warehouse";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4>Create Warehouse</h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <partial name="_WarehouseForm" model="Model" />
+
+                <hr />
+
+                <button class="btn btn-primary">
+                    Save
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}
