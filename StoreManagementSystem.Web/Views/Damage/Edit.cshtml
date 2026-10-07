@@ -1,0 +1,188 @@
+﻿@model StoreManagementSystem.Domain.Entities.Damage
+
+@{
+    ViewData["Title"] = "Edit Damage Type";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    ```
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-pencil-square me-2"></i>
+                Edit Damage Type
+            </h2>
+
+            <p class="text-muted mb-0">
+                Update damage type information
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+
+        </a>
+
+    </div>
+
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <h5 class="fw-bold mb-0">
+                Damage Type Information
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form asp-action="Edit"
+                  asp-route-id="@Model.Id"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       asp-for="Id" />
+
+                <input type="hidden"
+                       asp-for="CreatedDate" />
+
+                <input type="hidden"
+                       asp-for="IsDeleted" />
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="DamageCode"
+                               class="form-label fw-semibold">
+
+                            Damage Code
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <input asp-for="DamageCode"
+                               class="form-control"
+                               maxlength="50" />
+
+                        <span asp-validation-for="DamageCode"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label asp-for="DamageName"
+                               class="form-label fw-semibold">
+
+                            Damage Name
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <input asp-for="DamageName"
+                               class="form-control"
+                               maxlength="100" />
+
+                        <span asp-validation-for="DamageName"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <label asp-for="Description"
+                               class="form-label fw-semibold">
+
+                            Description
+
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <div class="form-check form-switch mt-2">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   type="checkbox" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label fw-semibold">
+
+                                Active
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-check-lg me-1"></i>
+                        Update Damage Type
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+
+@section Scripts {
+
+    
+    <partial name="_ValidationScriptsPartial" />
+    
+
+}

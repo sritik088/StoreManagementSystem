@@ -11,17 +11,41 @@ namespace StoreManagementSystem.Domain.Entities
         [StringLength(30)]
         public string GRNNumber { get; set; } = string.Empty;
 
-        public int PurchaseOrderId { get; set; }
+        // =========================================================
+        // RECEIPT TYPE
+        // =========================================================
 
-        public PurchaseOrder PurchaseOrder { get; set; } = null!;
+        public GoodsReceiptType ReceiptType { get; set; }
+            = GoodsReceiptType.Purchase;
+
+        // =========================================================
+        // PURCHASE ORDER
+        // Nullable because Gift GRN does not have PO
+        // =========================================================
+
+        public int? PurchaseOrderId { get; set; }
+
+        public PurchaseOrder? PurchaseOrder { get; set; }
+
+        // =========================================================
+        // RECEIPT DATE
+        // =========================================================
 
         [Required]
         public DateTime ReceiptDate { get; set; } = DateTime.Now;
+
+        // =========================================================
+        // INVOICE
+        // =========================================================
 
         [StringLength(100)]
         public string? InvoiceNumber { get; set; }
 
         public DateTime? InvoiceDate { get; set; }
+
+        // =========================================================
+        // TRANSPORT
+        // =========================================================
 
         [StringLength(100)]
         public string? VehicleNumber { get; set; }
@@ -29,8 +53,26 @@ namespace StoreManagementSystem.Domain.Entities
         [StringLength(100)]
         public string? TransportName { get; set; }
 
+        // =========================================================
+        // GIFT DETAILS
+        // =========================================================
+
+        [StringLength(200)]
+        public string? DonorName { get; set; }
+
+        [StringLength(500)]
+        public string? GiftReason { get; set; }
+
+        // =========================================================
+        // REMARKS
+        // =========================================================
+
         [StringLength(500)]
         public string? Remarks { get; set; }
+
+        // =========================================================
+        // TOTALS
+        // =========================================================
 
         public decimal SubTotal { get; set; }
 
@@ -40,8 +82,16 @@ namespace StoreManagementSystem.Domain.Entities
 
         public decimal GrandTotal { get; set; }
 
+        // =========================================================
+        // STATUS
+        // =========================================================
+
         public GoodsReceiptStatus Status { get; set; }
             = GoodsReceiptStatus.Received;
+
+        // =========================================================
+        // AUDIT
+        // =========================================================
 
         public bool IsDeleted { get; set; } = false;
 
@@ -50,11 +100,20 @@ namespace StoreManagementSystem.Domain.Entities
 
         public DateTime? UpdatedDate { get; set; }
 
-        public int SupplierId { get; set; }
+        // =========================================================
+        // SUPPLIER
+        // Nullable because Gift GRN may not have supplier
+        // =========================================================
+
+        public int? SupplierId { get; set; }
 
         public Supplier? Supplier { get; set; }
 
-        public ICollection<GoodsReceiptItem> Items
+        // =========================================================
+        // ITEMS
+        // =========================================================
+
+        public ICollection<GoodsReceiptItem> Items { get; set; }
             = new List<GoodsReceiptItem>();
     }
 }

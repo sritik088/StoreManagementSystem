@@ -1,19 +1,26 @@
 ﻿using StoreManagementSystem.Domain.Entities;
 
-namespace StoreManagementSystem.Application.Interfaces
+public interface IWarehouseStockRepository
 {
-    public interface IWarehouseStockRepository
-    {
-        Task<WarehouseStock?> GetAsync(int warehouseId, int productId);
+    Task<WarehouseStock?> GetAsync(
+        int warehouseId,
+        int productId);
 
-        Task<List<WarehouseStock>> GetByProductAsync(int productId);
+    Task<List<WarehouseStock>> GetByProductAsync(
+        int productId);
 
-        Task<List<WarehouseStock>> GetByWarehouseAsync(int warehouseId);
+    Task<List<WarehouseStock>> GetByWarehouseAsync(
+        int warehouseId);
 
-        Task AddAsync(WarehouseStock stock);
+    Task<List<WarehouseStock>> GetAllAsync();
 
-        void Update(WarehouseStock stock);
+    Task AddAsync(
+        WarehouseStock stock);
 
-        Task<bool> ExistsAsync(int warehouseId, int productId);
-    }
+    void Update(
+        WarehouseStock stock);
+
+    Task<bool> ExistsAsync(
+        int warehouseId,
+        int productId);
 }

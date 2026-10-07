@@ -1,0 +1,736 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.GoodsReceipt>
+
+@using StoreManagementSystem.Domain.Enums
+
+@{
+    ViewData["Title"] = "Goods Receipts";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-box-seam me-2"></i>
+                Goods Receipt Notes
+            </h2>
+
+            <p class="text-muted mb-0">
+                Manage purchase receipts and gift receipts.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <!-- PURCHASE GRN -->
+            <a asp-controller="GoodsReceipt"
+               asp-action="Create"
+               class="btn btn-success">
+
+                <i class="bi bi-cart-plus me-1"></i>
+                Purchase GRN
+
+            </a>
+
+            <!-- GIFT GRN -->
+            <a asp-controller="GoodsReceipt"
+               asp-action="Gift"
+               class="btn btn-warning">
+
+                <i class="bi bi-gift me-1"></i>
+                Gift GRN
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUCCESS MESSAGE
+         ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         ERROR MESSAGE
+         ========================================================= -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         RECEIPT TABLE
+         ========================================================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>
+                Goods Receipt List
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            @if (Model == null || !Model.Any())
+            {
+                <!-- =================================================
+                     EMPTY STATE
+                     ================================================= -->
+
+                <div class="text-center py-5">
+
+                    <i class="bi bi-box-seam display-4 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No Goods Receipts Found
+                    </h5>
+
+                    <p class="text-muted">
+                        No Purchase or Gift GRN has been created yet.
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-2">
+
+                        <a asp-controller="GoodsReceipt"
+                           asp-action="Create"
+                           class="btn btn-success">
+
+                            <i class="bi bi-cart-plus me-1"></i>
+                            Purchase GRN
+
+                        </a>
+
+                        <a asp-controller="GoodsReceipt"
+                           asp-action="Gift"
+                           class="btn btn-warning">
+
+                            <i class="bi bi-gift me-1"></i>
+                            Gift GRN
+
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle"
+                           id="goodsReceiptTable">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>#</th>
+
+                                <th>Receipt Type</th>
+
+                                <th>GRN Number</th>
+
+                                <th>Purchase Order</th>
+
+                                <th>Supplier / Donor</th>
+
+                                <th>Receipt Date</th>
+
+                                <th class="text-end">
+                                    Subtotal
+                                </th>
+
+                                <th class="text-end">
+                                    Tax
+                                </th>
+
+                                <th class="text-end">
+                                    Discount
+                                </th>
+
+                                <th class="text-end">
+                                    Grand Total
+                                </th>
+
+                                <th>Status</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @{
+                                var counter = 1;
+                            }
+
+                            @foreach (var receipt in Model)
+                            {
+                                var grnNumber =
+                                string.IsNullOrWhiteSpace(receipt.GRNNumber)
+                                ? $"GRN-{receipt.Id}"
+                                : receipt.GRNNumber;
+
+                                var isDeleted = receipt.IsDeleted;
+
+                                <tr class="@(isDeleted ? "table-danger" : "")">
+
+                                    <!-- =================================================
+                                         NUMBER
+                                         ================================================= -->
+
+                                    <td>
+                                        @counter
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         RECEIPT TYPE
+                                         ================================================= -->
+
+                                    <td>
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="bi bi-gift me-1"></i>
+                                                Gift
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-cart-check me-1"></i>
+                                                Purchase
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         GRN NUMBER
+                                         ================================================= -->
+
+                                    <td>
+
+                                        <strong class="@(isDeleted ? "text-danger text-decoration-line-through" : "")">
+
+                                            @grnNumber
+
+                                        </strong>
+
+                                        @if (isDeleted)
+                                        {
+                                            <br />
+
+                                            <small class="text-danger">
+                                                Reversed
+                                            </small>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         PURCHASE ORDER
+                                         ================================================= -->
+
+                                    <td>
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="text-muted">
+                                                N/A
+                                            </span>
+                                        }
+                                        else if (receipt.PurchaseOrder != null)
+                                        {
+                                            <span>
+                                                @receipt.PurchaseOrder.PONumber
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         SUPPLIER / DONOR
+                                         ================================================= -->
+
+                                    <td>
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            @if (!string.IsNullOrWhiteSpace(receipt.DonorName))
+                                            {
+                                                <span>
+
+                                                    <i class="bi bi-person-heart me-1 text-warning"></i>
+
+                                                    @receipt.DonorName
+
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    -
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @if (receipt.Supplier != null)
+                                            {
+                                                <span>
+                                                    @receipt.Supplier.Name
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    -
+                                                </span>
+                                            }
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         RECEIPT DATE
+                                         ================================================= -->
+
+                                    <td>
+                                        @receipt.ReceiptDate.ToString("dd-MM-yyyy")
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         SUBTOTAL
+                                         ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="text-success">
+                                                ₹0.00
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                ₹@receipt.SubTotal.ToString("N2")
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         TAX
+                                         ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="text-success">
+                                                ₹0.00
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                ₹@receipt.TaxAmount.ToString("N2")
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         DISCOUNT
+                                         ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="text-success">
+                                                ₹0.00
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                ₹@receipt.Discount.ToString("N2")
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         GRAND TOTAL
+                                         ================================================= -->
+
+                                    <td class="text-end fw-bold">
+
+                                        @if (receipt.ReceiptType == GoodsReceiptType.Gift)
+                                        {
+                                            <span class="text-success">
+                                                ₹0.00
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                ₹@receipt.GrandTotal.ToString("N2")
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         STATUS
+                                         ================================================= -->
+
+                                    <td>
+
+                                        @if (isDeleted)
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+
+                                                Deleted / Reversed
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Active
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- =================================================
+                                         ACTIONS
+                                         ================================================= -->
+
+                                    <td>
+
+                                        <div class="btn-group"
+                                             role="group">
+
+                                            @if (!isDeleted)
+                                            {
+                                                <!-- =========================================
+                                                     ACTIVE - DETAILS
+                                                     ========================================= -->
+
+                                                <a asp-controller="GoodsReceipt"
+                                                   asp-action="Details"
+                                                   asp-route-id="@receipt.Id"
+                                                   class="btn btn-sm btn-info text-white"
+                                                   title="View Details">
+
+                                                    <i class="bi bi-eye"></i>
+
+                                                </a>
+
+
+                                                <!-- =========================================
+                                                     ACTIVE - PRINT
+                                                     ========================================= -->
+
+                                                <a asp-controller="GoodsReceipt"
+                                                   asp-action="Print"
+                                                   asp-route-id="@receipt.Id"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-secondary"
+                                                   title="Print">
+
+                                                    <i class="bi bi-printer"></i>
+
+                                                </a>
+
+
+                                                <!-- =========================================
+                                                     ACTIVE - DELETE / REVERSE
+                                                     ========================================= -->
+
+                                                <form asp-controller="GoodsReceipt"
+                                                      asp-action="Delete"
+                                                      asp-route-id="@receipt.Id"
+                                                      method="post"
+                                                      class="d-inline"
+                                                      onsubmit="return confirmGoodsReceiptDelete(
+                                                                      '@grnNumber',
+                                                                      '@receipt.ReceiptType'
+                                                                  );">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-danger"
+                                                            title="Reverse and Delete">
+
+                                                        <i class="bi bi-trash"></i>
+
+                                                    </button>
+
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <!-- =========================================
+                                                     DELETED - DETAILS
+                                                     ========================================= -->
+
+                                                <a asp-controller="GoodsReceipt"
+                                                   asp-action="Details"
+                                                   asp-route-id="@receipt.Id"
+                                                   class="btn btn-sm btn-info text-white"
+                                                   title="View Deleted GRN">
+
+                                                    <i class="bi bi-eye"></i>
+
+                                                </a>
+
+
+                                                <!-- =========================================
+                                                     DELETED - RESTORE
+                                                     ========================================= -->
+
+                                                <form asp-controller="GoodsReceipt"
+                                                      asp-action="Restore"
+                                                      asp-route-id="@receipt.Id"
+                                                      method="post"
+                                                      class="d-inline"
+                                                      onsubmit="return confirmGoodsReceiptRestore(
+                                                                      '@grnNumber'
+                                                                  );">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-success"
+                                                            title="Restore GRN">
+
+                                                        <i class="bi bi-arrow-counterclockwise"></i>
+
+                                                    </button>
+
+                                                </form>
+
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                counter++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        // =========================================================
+        // DATATABLE
+        // =========================================================
+
+        $(document).ready(function () {
+
+            if ($("#goodsReceiptTable").length) {
+
+                $("#goodsReceiptTable").DataTable({
+
+                    responsive: true,
+
+                    pageLength: 10,
+
+                    order: [
+                        [0, "desc"]
+                    ],
+
+                    columnDefs: [
+
+                        {
+                            orderable: false,
+                            targets: 11
+                        }
+
+                    ],
+
+                    language: {
+
+                        search: "Search:",
+
+                        lengthMenu:
+                            "Show _MENU_ receipts",
+
+                        emptyTable:
+                            "No Goods Receipts available."
+
+                    }
+
+                });
+
+            }
+
+        });
+
+
+        // =========================================================
+        // DELETE / REVERSAL CONFIRMATION
+        // =========================================================
+
+        function confirmGoodsReceiptDelete(
+            grnNumber,
+            receiptType
+        ) {
+
+            var typeText =
+                receiptType === "Gift"
+                    ? "Gift GRN"
+                    : "Purchase GRN";
+
+
+            var message =
+                "Delete " +
+                typeText +
+                " " +
+                grnNumber +
+                "?\n\n" +
+
+                "This action will:\n" +
+
+                "• Reverse the received stock.\n" +
+                "• Create a stock reversal ledger entry.\n" +
+                "• Recalculate the related Purchase Order status.\n" +
+                "• Keep the original GRN in the system for restoration.\n\n" +
+
+                "If the received stock has already been sold, " +
+                "transferred, issued, or otherwise consumed, " +
+                "the system will block the deletion.\n\n" +
+
+                "Do you want to continue?";
+
+
+            return confirm(message);
+        }
+
+
+        // =========================================================
+        // RESTORE CONFIRMATION
+        // =========================================================
+
+        function confirmGoodsReceiptRestore(
+            grnNumber
+        ) {
+
+            var message =
+                "Restore GRN " +
+                grnNumber +
+                "?\n\n" +
+
+                "This action will:\n" +
+
+                "• Restore the original GRN.\n" +
+                "• Add the received quantity back to Warehouse Stock.\n" +
+                "• Create a stock restoration ledger entry.\n" +
+                "• Recalculate the related Purchase Order status.\n\n" +
+
+                "Do you want to restore this GRN?";
+
+
+            return confirm(message);
+        }
+
+    </script>
+
+}

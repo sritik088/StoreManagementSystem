@@ -17,5 +17,15 @@ namespace StoreManagementSystem.Application.Interfaces
         Task<bool> ApproveAsync(int id);
 
         Task<bool> CancelAsync(int id);
+
+        Task<decimal> GetLatestUnitPriceAsync(int productId);
+
+        // =====================================================
+        // DELETE DEPENDENCY CHECK
+        // =====================================================
+
+        Task<bool> HasActiveGoodsReceiptsAsync(int purchaseOrderId);
+
+        Task<bool> RestoreAsync(int id);
     }
 }

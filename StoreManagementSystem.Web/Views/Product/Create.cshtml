@@ -7,7 +7,6 @@
 
 <div class="container-fluid">
 
-    <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
@@ -21,27 +20,32 @@
             </small>
         </div>
 
-        <a asp-action="Index" class="btn btn-outline-secondary">
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
             <i class="bi bi-arrow-left"></i>
             Back
+
         </a>
 
     </div>
+
 
     <div class="card shadow border-0">
 
         <div class="card-body">
 
             <form asp-action="Create"
-                  method="post"
-                  enctype="multipart/form-data">
+                  method="post">
 
                 @Html.AntiForgeryToken()
 
                 <div asp-validation-summary="ModelOnly"
-                     class="alert alert-danger"></div>
+                     class="alert alert-danger">
+                </div>
 
-                <partial name="_ProductForm" model="Model" />
+                <partial name="_ProductForm"
+                         model="Model" />
 
                 <hr />
 
@@ -49,7 +53,6 @@
                         class="btn btn-primary">
 
                     <i class="bi bi-save"></i>
-
                     Save Product
 
                 </button>
@@ -69,86 +72,210 @@
 
 </div>
 
+
 @section Scripts {
 
     <partial name="_ValidationScriptsPartial" />
 
     <script>
 
-        // Image Preview
+        document.addEventListener("DOMContentLoaded", function () {
 
-        $("#imageInput").change(function(){
+            console.log("=================================");
+            console.log("PRODUCT DROPDOWN SCRIPT STARTED");
+            console.log("=================================");
 
-            const file=this.files[0];
 
-            if(file){
+            const mainCategory =
+                document.getElementById("MainCategoryId");
 
-                let reader=new FileReader();
+            const category =
+                document.getElementById("CategoryId");
 
-                reader.onload=function(e){
+            const subCategory =
+                document.getElementById("SubCategoryId");
 
-                    $("#previewImage").attr("src",e.target.result);
+
+            if (!mainCategory) {
+                console.error("MainCategoryId NOT FOUND");
+                return;
+            }
+
+            if (!category) {
+                console.error("CategoryId NOT FOUND");
+                return;
+            }
+
+            if (!subCategory) {
+                console.error("SubCategoryId NOT FOUND");
+                return;
+            }
+
+
+            console.log("All dropdowns found");
+
+
+            // =====================================================
+            // MAIN CATEGORY → CATEGORY
+            // =====================================================
+
+            mainCategory.addEventListener("change", async function () {
+
+                const mainCategoryId = this.value;
+
+                console.log(
+                    "Selected Main Category:",
+                    mainCategoryId
+                );
+
+
+                // Reset Category
+                category.innerHTML =
+                    '<option value="">-- Select Category --</option>';
+
+
+                // Reset Sub Category
+                subCategory.innerHTML =
+                    '<option value="">-- Select Sub Category --</option>';
+
+
+                if (!mainCategoryId) {
+                    return;
+                }
+
+
+                try {
+
+                    const response = await fetch(
+                        '@Url.Action("GetCategories", "Product")?mainCategoryId='
+                        + encodeURIComponent(mainCategoryId)
+                    );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "HTTP Error: " + response.status
+                        );
+
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    console.log(
+                        "Categories received:",
+                        data
+                    );
+
+
+                    data.forEach(function (item) {
+
+                        const option =
+                            document.createElement("option");
+
+                        option.value = item.id;
+
+                        option.textContent = item.name;
+
+                        category.appendChild(option);
+
+                    });
+
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Category loading failed:",
+                        error
+                    );
 
                 }
 
-                reader.readAsDataURL(file);
+            });
 
-            }
 
-        });
+            // =====================================================
+            // CATEGORY → SUB CATEGORY
+            // =====================================================
 
-        // Category -> SubCategory
+            category.addEventListener("change", async function () {
 
-        $("#CategoryId").change(function(){
+                const categoryId = this.value;
 
-            let categoryId=$(this).val();
+                console.log(
+                    "Selected Category:",
+                    categoryId
+                );
 
-            $("#SubCategoryId").empty();
 
-            $.get("/Product/GetSubCategories",
-            {
-                categoryId:categoryId
-            },
-            function(data){
+                subCategory.innerHTML =
+                    '<option value="">-- Select Sub Category --</option>';
 
-                $("#SubCategoryId")
-                    .append('<option value="">Select SubCategory</option>');
 
-                $.each(data,function(i,item){
+                if (!categoryId) {
+                    return;
+                }
 
-                    $("#SubCategoryId")
-                    .append('<option value="'+item.id+'">'+item.name+'</option>');
 
-                });
+                try {
+
+                    const response = await fetch(
+                        '@Url.Action("GetSubCategories", "Product")?categoryId='
+                        + encodeURIComponent(categoryId)
+                    );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "HTTP Error: " + response.status
+                        );
+
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    console.log(
+                        "Sub Categories received:",
+                        data
+                    );
+
+
+                    data.forEach(function (item) {
+
+                        const option =
+                            document.createElement("option");
+
+                        option.value = item.id;
+
+                        option.textContent = item.name;
+
+                        subCategory.appendChild(option);
+
+                    });
+
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "SubCategory loading failed:",
+                        error
+                    );
+
+                }
 
             });
 
-        });
-
-                <partial name="_ValidationScriptsPartial"/>
-
-        <script>
-
-        $("#imageInput").change(function(){
-
-        const file=this.files[0];
-
-        if(file){
-
-        let reader=new FileReader();
-
-        reader.onload=function(e){
-
-        $("#previewImage").attr("src",e.target.result);
-
-        }
-
-        reader.readAsDataURL(file);
-
-        }
 
         });
 
     </script>
-    
 }

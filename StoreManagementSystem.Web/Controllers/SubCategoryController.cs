@@ -19,10 +19,11 @@ namespace StoreManagementSystem.Web.Controllers
             _categoryService = categoryService;
         }
 
-        //======================
+        // =========================
         // INDEX
-        //======================
+        // =========================
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var data = await _subCategoryService.GetAllAsync();
@@ -30,9 +31,9 @@ namespace StoreManagementSystem.Web.Controllers
             return View(data);
         }
 
-        //======================
-        // CREATE
-        //======================
+        // =========================
+        // CREATE - GET
+        // =========================
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -42,6 +43,10 @@ namespace StoreManagementSystem.Web.Controllers
             return View();
         }
 
+        // =========================
+        // CREATE - POST
+        // =========================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SubCategoryViewModel model)
@@ -49,101 +54,140 @@ namespace StoreManagementSystem.Web.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadCategories();
+
                 return View(model);
             }
 
             var subCategory = new SubCategory
             {
                 CategoryId = model.CategoryId,
-                Name = model.Name,
-                Description = model.Description,
-                DisplayOrder = model.DisplayOrder,
-                IsActive = model.IsActive
+                Name = model.Name.Trim()
             };
 
-            await _subCategoryService.CreateAsync(subCategory);
+            var result = await _subCategoryService
+                .CreateAsync(subCategory);
 
-            TempData["Success"] = "Sub Category created successfully.";
+            if (!result)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to create Sub Category.");
+
+                await LoadCategories();
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Sub Category created successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        //======================
-        // EDIT
-        //======================
+        // =========================
+        // EDIT - GET
+        // =========================
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var sub = await _subCategoryService.GetByIdAsync(id);
+            var subCategory =
+                await _subCategoryService.GetByIdAsync(id);
 
-            if (sub == null)
+            if (subCategory == null)
                 return NotFound();
 
-            var vm = new SubCategoryViewModel
+            var model = new SubCategoryViewModel
             {
-                Id = sub.Id,
-                CategoryId = sub.CategoryId,
-                Name = sub.Name,
-                Description = sub.Description,
-                DisplayOrder = sub.DisplayOrder,
-                IsActive = sub.IsActive
+                Id = subCategory.Id,
+                CategoryId = subCategory.CategoryId,
+                Name = subCategory.Name
             };
 
             await LoadCategories();
 
-            return View(vm);
+            return View(model);
         }
+
+        // =========================
+        // EDIT - POST
+        // =========================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SubCategoryViewModel model)
+        public async Task<IActionResult> Edit(
+            SubCategoryViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 await LoadCategories();
+
                 return View(model);
             }
 
-            var sub = await _subCategoryService.GetByIdAsync(model.Id);
+            var subCategory =
+                await _subCategoryService
+                    .GetByIdAsync(model.Id);
 
-            if (sub == null)
+            if (subCategory == null)
                 return NotFound();
 
-            sub.CategoryId = model.CategoryId;
-            sub.Name = model.Name;
-            sub.Description = model.Description;
-            sub.DisplayOrder = model.DisplayOrder;
-            sub.IsActive = model.IsActive;
+            subCategory.CategoryId = model.CategoryId;
+            subCategory.Name = model.Name.Trim();
 
-            await _subCategoryService.UpdateAsync(sub);
+            var result = await _subCategoryService
+                .UpdateAsync(subCategory);
 
-            TempData["Success"] = "Sub Category updated successfully.";
+            if (!result)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to update Sub Category.");
+
+                await LoadCategories();
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Sub Category updated successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        //======================
+        // =========================
         // DELETE
-        //======================
+        // =========================
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _subCategoryService.DeleteAsync(id);
+            var result =
+                await _subCategoryService.DeleteAsync(id);
 
-            TempData["Success"] = "Sub Category deleted successfully.";
+            if (!result)
+            {
+                TempData["Error"] =
+                    "Sub Category not found.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["Success"] =
+                "Sub Category deleted successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        //======================
+        // =========================
         // LOAD CATEGORY DROPDOWN
-        //======================
+        // =========================
 
         private async Task LoadCategories()
         {
-            var categories = await _categoryService.GetAllAsync();
+            var categories =
+                await _categoryService.GetAllAsync();
 
             ViewBag.CategoryList = new SelectList(
                 categories,

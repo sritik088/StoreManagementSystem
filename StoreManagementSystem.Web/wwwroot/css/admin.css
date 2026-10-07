@@ -8,17 +8,54 @@ body {
     color: #343a40;
 }
 
-/* Sidebar */
+
+/* ==========================================
+   SIDEBAR
+========================================== */
 
 .sidebar {
     width: 260px;
-    min-height: 100vh;
+    height: 100vh;
     background: #212529;
     color: white;
     position: fixed;
     left: 0;
     top: 0;
+    /* IMPORTANT */
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d transparent;
 }
+
+
+    /* ==========================================
+   SIDEBAR SCROLLBAR - CHROME / EDGE
+========================================== */
+
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: #6c757d;
+        border-radius: 10px;
+    }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #adb5bd;
+        }
+
+
+    /* ==========================================
+   SIDEBAR LOGO
+========================================== */
 
     .sidebar .logo {
         padding: 20px;
@@ -26,7 +63,17 @@ body {
         font-size: 22px;
         font-weight: bold;
         border-bottom: 1px solid #343a40;
+        /* Keeps logo visible while scrolling */
+        position: sticky;
+        top: 0;
+        background: #212529;
+        z-index: 10;
     }
+
+
+    /* ==========================================
+   SIDEBAR NAVIGATION
+========================================== */
 
     .sidebar .nav-link {
         color: #ced4da;
@@ -34,25 +81,33 @@ body {
         transition: .3s;
     }
 
+
         .sidebar .nav-link:hover {
             background: #0d6efd;
             color: white;
             border-radius: 6px;
         }
 
+
         .sidebar .nav-link.active {
             background: #0d6efd;
             color: white;
         }
 
-/* Main */
+
+/* ==========================================
+   MAIN
+========================================== */
 
 .main {
     margin-left: 260px;
     padding: 25px;
 }
 
-/* Navbar */
+
+/* ==========================================
+   NAVBAR
+========================================== */
 
 .navbar {
     background: white;
@@ -60,7 +115,10 @@ body {
     box-shadow: 0 2px 15px rgba(0,0,0,.08);
 }
 
-/* Cards */
+
+/* ==========================================
+   CARDS
+========================================== */
 
 .card {
     border: none;
@@ -74,12 +132,16 @@ body {
         box-shadow: 0 8px 24px rgba(0,0,0,.12);
     }
 
+
 .card-header {
     font-weight: 600;
     border-bottom: none;
 }
 
-/* Buttons */
+
+/* ==========================================
+   BUTTONS
+========================================== */
 
 .btn {
     border-radius: 8px;
@@ -102,7 +164,10 @@ body {
     background: #dc3545;
 }
 
-/* Forms */
+
+/* ==========================================
+   FORMS
+========================================== */
 
 .form-control,
 .form-select {
@@ -115,7 +180,10 @@ body {
         border-color: #0d6efd;
     }
 
-/* Table */
+
+/* ==========================================
+   TABLE
+========================================== */
 
 .table {
     vertical-align: middle;
@@ -129,7 +197,10 @@ body {
         font-weight: 600;
     }
 
-/* DataTable */
+
+/* ==========================================
+   DATATABLE
+========================================== */
 
 .dataTables_wrapper .dataTables_filter input {
     border-radius: 8px;
@@ -149,20 +220,29 @@ body {
     margin-right: 5px !important;
 }
 
-/* Badges */
+
+/* ==========================================
+   BADGES
+========================================== */
 
 .badge {
     padding: .55em .8em;
     border-radius: 20px;
 }
 
-/* Alerts */
+
+/* ==========================================
+   ALERTS
+========================================== */
 
 .alert {
     border-radius: 10px;
 }
 
-/* Footer */
+
+/* ==========================================
+   FOOTER
+========================================== */
 
 .footer {
     margin-top: 30px;
@@ -170,9 +250,12 @@ body {
     color: gray;
 }
 
-/* Responsive */
 
-@media(max-width:991px) {
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 991px) {
 
     .sidebar {
         width: 70px;

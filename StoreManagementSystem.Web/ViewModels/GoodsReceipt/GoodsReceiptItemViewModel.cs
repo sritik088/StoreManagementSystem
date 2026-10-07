@@ -1,40 +1,38 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace StoreManagementSystem.Web.ViewModels.GoodsReceipt
 {
-    public class GoodsReceiptViewModel
+    public class GoodsReceiptItemViewModel
     {
         public int Id { get; set; }
 
-        public string GRNNumber { get; set; } = "";
+        public int? PurchaseOrderItemId { get; set; }
 
         [Required]
-        public int PurchaseOrderId { get; set; }
+        public int ProductId { get; set; }
 
-        public string PONumber { get; set; } = "";
+        public string? ProductName { get; set; }
 
-        public int SupplierId { get; set; }
+        public string? SKU { get; set; }
 
-        public string SupplierName { get; set; } = "";
+        public decimal OrderedQuantity { get; set; }
 
-        public DateTime ReceiptDate { get; set; }
-            = DateTime.Today;
+        public decimal PreviouslyReceivedQuantity { get; set; }
 
-        public decimal SubTotal { get; set; }
+        [Range(0, 999999)]
+        public decimal ReceivedQuantity { get; set; }
+
+        public decimal RemainingQuantity { get; set; }
+
+        [Required]
+        public int WarehouseId { get; set; }
+
+        public decimal UnitPrice { get; set; }
 
         public decimal Discount { get; set; }
 
         public decimal TaxAmount { get; set; }
 
-        public decimal GrandTotal { get; set; }
-
-        public string? Remarks { get; set; }
-
-        public IEnumerable<SelectListItem> PurchaseOrders
-            = Enumerable.Empty<SelectListItem>();
-
-        public List<GoodsReceiptItemViewModel> Items
-            = new();
+        public decimal Total { get; set; }
     }
 }

@@ -1,0 +1,142 @@
+﻿@model StoreManagementSystem.Web.ViewModels.AccountsPayable.SupplierPaymentCancelViewModel
+
+@{
+    ViewData["Title"] = "Cancel Supplier Payment";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    
+    <div class="row justify-content-center">
+
+        <div class="col-xl-6">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-danger text-white py-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Cancel Supplier Payment
+                    </h5>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="alert alert-warning">
+
+                        <strong>Important:</strong>
+
+                        Cancelling this payment will restore
+                        the amount to the supplier's outstanding balance.
+
+                        The payment record will not be deleted.
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label text-muted">
+                            Payment Number
+                        </label>
+
+                        <div class="fw-bold">
+                            @Model.PaymentNumber
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label text-muted">
+                            Supplier
+                        </label>
+
+                        <div class="fw-bold">
+                            @Model.SupplierName
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <label class="form-label text-muted">
+                            Payment Amount
+                        </label>
+
+                        <div class="fs-4 fw-bold text-danger">
+                            ₹@Model.Amount.ToString("N2")
+                        </div>
+
+                    </div>
+
+                    <form method="post"
+                          action="/SupplierPayments/Cancel/@Model.Id">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               asp-for="Id" />
+
+                        <input type="hidden"
+                               asp-for="PaymentNumber" />
+
+                        <input type="hidden"
+                               asp-for="SupplierName" />
+
+                        <input type="hidden"
+                               asp-for="Amount" />
+
+                        <div class="mb-4">
+
+                            <label asp-for="CancellationRemarks"
+                                   class="form-label fw-semibold">
+                                Cancellation Reason
+                            </label>
+
+                            <textarea asp-for="CancellationRemarks"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Enter reason for cancelling this payment..."></textarea>
+
+                            <span asp-validation-for="CancellationRemarks"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+
+                            <a href="/SupplierPayments"
+                               class="btn btn-light">
+                                Go Back
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+
+                                <i class="bi bi-x-circle me-1"></i>
+                                Cancel Payment
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

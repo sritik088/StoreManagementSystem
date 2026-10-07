@@ -1,0 +1,369 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Role.RolePermissionsViewModel
+
+@using StoreManagementSystem.Infrastructure.Identity
+
+@{
+    ViewData["Title"] = "Role Permissions";
+    Layout = "_AdminLayout";
+
+    var groupedPermissions =
+        Model.Permissions
+            .GroupBy(x => x.Module)
+            .OrderBy(x => x.Key);
+
+    bool isSuperAdmin =
+        Model.RoleName ==
+        RoleConstants.SuperAdmin;
+}
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+
+                <i class="bi bi-key me-2"></i>
+
+                Role Permissions
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Manage permissions for
+
+                <strong>@Model.RoleName</strong>
+
+            </p>
+
+        </div>
+
+        <a asp-controller="Role"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back to Roles
+
+        </a>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- SUCCESS ALERT -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            <strong>Success:</strong>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- ERROR ALERT -->
+    <!-- ========================================================= -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            <strong>Error:</strong>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- SUPER ADMIN INFORMATION -->
+    <!-- ========================================================= -->
+    @if (isSuperAdmin)
+    {
+        <div class="alert alert-info">
+
+            <i class="bi bi-info-circle me-2"></i>
+
+            <strong>SuperAdmin</strong> automatically has access
+            to all ERP modules.
+
+            SuperAdmin permissions cannot be changed.
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- PERMISSION FORM -->
+    <!-- ========================================================= -->
+
+    <form asp-controller="Role"
+          asp-action="Permissions"
+          asp-route-id="@Model.RoleId"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="RoleId" />
+
+        <input type="hidden"
+               asp-for="RoleName" />
+
+
+        <div class="row">
+
+            @foreach (var group in groupedPermissions)
+            {
+                <div class="col-xl-6 col-lg-6 col-md-12 mb-4">
+
+                    <div class="card border-0 shadow-sm h-100">
+
+
+                        <!-- ================================================= -->
+                        <!-- MODULE HEADER -->
+                        <!-- ================================================= -->
+
+                        <div class="card-header bg-white
+                                        d-flex
+                                        justify-content-between
+                                        align-items-center">
+
+                            <h5 class="mb-0">
+
+                                <i class="bi bi-folder2-open me-2"></i>
+
+                                @group.Key
+
+                            </h5>
+
+
+                            @if (!isSuperAdmin)
+                            {
+                                <div class="d-flex gap-2">
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary select-module"
+                                            data-module="@group.Key">
+
+                                        Select All
+
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-secondary clear-module"
+                                            data-module="@group.Key">
+
+                                        Clear
+
+                                    </button>
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- PERMISSION LIST -->
+                        <!-- ================================================= -->
+
+                        <div class="card-body">
+
+                            @foreach (var permission in group)
+                            {
+                                var index =
+                                Model.Permissions.IndexOf(
+                                permission);
+
+                                <div class="form-check
+                                                    d-flex
+                                                    align-items-center
+                                                    permission-row
+                                                    mb-3">
+
+
+                                    @if (isSuperAdmin)
+                                    {
+                                        <!-- SuperAdmin -->
+
+                                        <input type="checkbox"
+                                               class="form-check-input me-3"
+                                               checked
+                                               disabled />
+                                    }
+                                    else
+                                    {
+                                        <!-- Normal Role -->
+
+                                        <input class="form-check-input
+                                                                  permission-checkbox
+                                                                  me-3"
+                                               type="checkbox"
+                                               asp-for="Permissions[index].IsSelected"
+                                               data-module="@permission.Module" />
+                                    }
+
+
+                                    <!-- ================================================= -->
+                                    <!-- HIDDEN PERMISSION DATA -->
+                                    <!-- ================================================= -->
+
+                                    <input type="hidden"
+                                           asp-for="Permissions[index].Key" />
+
+                                    <input type="hidden"
+                                           asp-for="Permissions[index].Name" />
+
+                                    <input type="hidden"
+                                           asp-for="Permissions[index].Module" />
+
+
+                                    <!-- ================================================= -->
+                                    <!-- PERMISSION NAME -->
+                                    <!-- ================================================= -->
+
+                                    <label class="form-check-label">
+
+                                        <strong>
+                                            @permission.Name
+                                        </strong>
+
+                                    </label>
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- ========================================================= -->
+        <!-- SAVE BUTTONS -->
+        <!-- ========================================================= -->
+        @if (!isSuperAdmin)
+        {
+            <div class="d-flex justify-content-end gap-2 mt-3">
+
+                <a asp-controller="Role"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    Cancel
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-check-lg me-1"></i>
+
+                    Save Permissions
+
+                </button>
+
+            </div>
+        }
+
+    </form>
+
+</div>
+
+
+@section Scripts
+{
+    <script>
+
+        // =========================================================
+        // SELECT ALL FOR MODULE
+        // =========================================================
+
+        document
+            .querySelectorAll(".select-module")
+            .forEach(function (button) {
+
+                button.addEventListener("click", function () {
+
+                    const module =
+                        this.getAttribute("data-module");
+
+                    document
+                        .querySelectorAll(
+                            '.permission-checkbox[data-module="' +
+                            module +
+                            '"]'
+                        )
+                        .forEach(function (checkbox) {
+
+                            checkbox.checked = true;
+
+                        });
+
+                });
+
+            });
+
+
+        // =========================================================
+        // CLEAR MODULE
+        // =========================================================
+
+        document
+            .querySelectorAll(".clear-module")
+            .forEach(function (button) {
+
+                button.addEventListener("click", function () {
+
+                    const module =
+                        this.getAttribute("data-module");
+
+                    document
+                        .querySelectorAll(
+                            '.permission-checkbox[data-module="' +
+                            module +
+                            '"]'
+                        )
+                        .forEach(function (checkbox) {
+
+                            checkbox.checked = false;
+
+                        });
+
+                });
+
+            });
+
+    </script>
+}

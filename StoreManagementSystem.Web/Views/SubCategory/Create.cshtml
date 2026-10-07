@@ -8,90 +8,70 @@
 <div class="card shadow">
 
     <div class="card-header bg-primary text-white">
-
-        <h4>Create Sub Category</h4>
-
+        <h4 class="mb-0">Create Sub Category</h4>
     </div>
 
     <div class="card-body">
 
-        <form asp-action="Create">
+        <form asp-action="Create" method="post">
 
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+            <!-- Category -->
             <div class="mb-3">
 
-                <label>Category</label>
+                <label asp-for="CategoryId"
+                       class="form-label">
+                    Category
+                </label>
 
                 <select asp-for="CategoryId"
                         asp-items="ViewBag.CategoryList"
                         class="form-select">
 
-                    <option value="">Select Category</option>
+                    <option value="">-- Select Category --</option>
 
                 </select>
 
+                <span asp-validation-for="CategoryId"
+                      class="text-danger">
+                </span>
+
             </div>
 
+            <!-- Sub Category Name -->
             <div class="mb-3">
 
-                <label asp-for="Name"></label>
+                <label asp-for="Name"
+                       class="form-label">
+                    Sub Category Name
+                </label>
 
                 <input asp-for="Name"
-                       class="form-control" />
+                       class="form-control"
+                       placeholder="Enter sub category name" />
 
-            </div>
-
-            <div class="mb-3">
-
-                <label asp-for="Description"></label>
-
-<textarea asp-for="Description"
-          class="form-control"></textarea>
-
-            </div>
-
-            <div class="row">
-
-                <div class="col-md-6">
-
-                    <label>Display Order</label>
-
-                    <input asp-for="DisplayOrder"
-                           class="form-control" />
-
-                </div>
-
-                <div class="col-md-6">
-
-                    <div class="form-check form-switch mt-4">
-
-                        <input asp-for="IsActive"
-                               class="form-check-input" />
-
-                        <label class="form-check-label">
-
-                            Active
-
-                        </label>
-
-                    </div>
-
-                </div>
+                <span asp-validation-for="Name"
+                      class="text-danger">
+                </span>
 
             </div>
 
             <hr />
 
-            <button class="btn btn-primary">
-
+            <button type="submit"
+                    class="btn btn-primary">
+                <i class="bi bi-save"></i>
                 Save
-
             </button>
 
             <a asp-action="Index"
                class="btn btn-secondary">
-
                 Cancel
-
             </a>
 
         </form>
@@ -99,3 +79,9 @@
     </div>
 
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

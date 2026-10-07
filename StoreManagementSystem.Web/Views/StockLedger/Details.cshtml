@@ -1,0 +1,208 @@
+﻿@model StoreManagementSystem.Domain.Entities.StockLedger
+
+@{
+    ViewData["Title"] = "Stock Ledger Details";
+    Layout = "_AdminLayout";
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header">
+
+        <h4 class="mb-0">
+
+            <i class="bi bi-journal-text"></i>
+
+            Stock Ledger Details
+
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <!-- Product -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Product
+                </label>
+
+                <input class="form-control"
+                       value="@Model.Product?.SKU"
+                       readonly />
+
+            </div>
+
+
+            <!-- SKU -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    SKU
+                </label>
+
+                <input class="form-control"
+                       value="@Model.Product?.SKU"
+                       readonly />
+
+            </div>
+
+
+            <!-- Warehouse -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Warehouse
+                </label>
+
+                <input class="form-control"
+                       value="@Model.Warehouse?.Name"
+                       readonly />
+
+            </div>
+
+
+            <!-- Transaction -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Transaction Type
+                </label>
+
+                <input class="form-control"
+                       value="@Model.TransactionType"
+                       readonly />
+
+            </div>
+
+
+            <!-- Quantity -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Quantity
+                </label>
+
+                <input class="form-control"
+                       value="@Model.Quantity"
+                       readonly />
+
+            </div>
+
+
+            <!-- Balance -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Balance After Transaction
+                </label>
+
+                <input class="form-control fw-bold"
+                       value="@Model.BalanceAfterTransaction"
+                       readonly />
+
+            </div>
+
+
+            <!-- Unit Cost -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Unit Cost
+                </label>
+
+                <input class="form-control"
+                       value="₹ @Model.UnitCost.ToString("N2")"
+                       readonly />
+
+            </div>
+
+
+            <!-- Reference -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Reference Number
+                </label>
+
+                <input class="form-control"
+                       value="@Model.ReferenceNo"
+                       readonly />
+
+            </div>
+
+
+            <!-- Date -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Transaction Date
+                </label>
+
+                <input class="form-control"
+                       value="@Model.TransactionDate.ToString("dd-MMM-yyyy HH:mm")"
+                       readonly />
+
+            </div>
+
+
+            <!-- Created By -->
+
+            <div class="col-md-6 mb-3">
+
+                <label class="fw-bold">
+                    Created By
+                </label>
+
+                <input class="form-control"
+                       value="@Model.CreatedBy"
+                       readonly />
+
+            </div>
+
+
+            <!-- Remarks -->
+
+            <div class="col-md-12 mb-3">
+
+                <label class="fw-bold">
+                    Remarks
+                </label>
+
+                <textarea class="form-control"
+                          rows="3"
+                          readonly>@Model.Remarks</textarea>
+
+            </div>
+
+        </div>
+
+
+        <div class="mt-3">
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left"></i>
+
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

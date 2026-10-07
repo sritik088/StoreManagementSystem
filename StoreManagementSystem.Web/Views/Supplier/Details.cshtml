@@ -1,0 +1,536 @@
+﻿@model StoreManagementSystem.Domain.Entities.Supplier
+
+@{
+    ViewData["Title"] = "Supplier Details";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-truck me-2"></i>
+                Supplier Details
+            </h2>
+
+            <p class="text-muted mb-0">
+                View supplier information and business details
+            </p>
+        </div>
+
+        <div>
+
+            <a asp-action="Edit"
+               asp-route-id="@Model.Id"
+               class="btn btn-primary me-2">
+
+                <i class="bi bi-pencil me-1"></i>
+                Edit
+
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="row g-4">
+
+        <!-- SUPPLIER INFORMATION -->
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        Supplier Information
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-4">
+
+                        <!-- NAME -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Supplier Name
+                            </label>
+
+                            <div class="fw-semibold fs-5">
+                                @Model.Name
+                            </div>
+
+                        </div>
+
+
+                        <!-- SUPPLIER CODE -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Supplier Code
+                            </label>
+
+                            <div class="fw-semibold">
+
+                                @(string.IsNullOrWhiteSpace(Model.SupplierCode)
+                                                                ? "-"
+                                                                : Model.SupplierCode)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CONTACT PERSON -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Contact Person
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.ContactPerson)
+                                                                ? "-"
+                                                                : Model.ContactPerson)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PHONE -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Phone
+                            </label>
+
+                            <div>
+
+                                @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                                {
+                                    <a href="tel:@Model.Phone"
+                                       class="text-decoration-none">
+
+                                        <i class="bi bi-telephone me-1"></i>
+                                        @Model.Phone
+
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- EMAIL -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Email
+                            </label>
+
+                            <div>
+
+                                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                                {
+                                    <a href="mailto:@Model.Email"
+                                       class="text-decoration-none">
+
+                                        <i class="bi bi-envelope me-1"></i>
+                                        @Model.Email
+
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- GST -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                GST Number
+                            </label>
+
+                            <div class="fw-semibold">
+
+                                @(string.IsNullOrWhiteSpace(Model.GSTNumber)
+                                                                ? "-"
+                                                                : Model.GSTNumber)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- WEBSITE -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Website
+                            </label>
+
+                            <div>
+
+                                @if (!string.IsNullOrWhiteSpace(Model.Website))
+                                {
+                                    <a href="@Model.Website"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+
+                                        <i class="bi bi-globe me-1"></i>
+                                        @Model.Website
+
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- COUNTRY -->
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Country
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.Country)
+                                                                ? "-"
+                                                                : Model.Country)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ADDRESS -->
+                        <div class="col-md-12">
+
+                            <label class="text-muted small">
+                                Address
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.Address)
+                                                                ? "-"
+                                                                : Model.Address)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CITY -->
+                        <div class="col-md-4">
+
+                            <label class="text-muted small">
+                                City
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.City)
+                                                                ? "-"
+                                                                : Model.City)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- STATE -->
+                        <div class="col-md-4">
+
+                            <label class="text-muted small">
+                                State
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.State)
+                                                                ? "-"
+                                                                : Model.State)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- POSTAL CODE -->
+                        <div class="col-md-4">
+
+                            <label class="text-muted small">
+                                Postal Code
+                            </label>
+
+                            <div>
+
+                                @(string.IsNullOrWhiteSpace(Model.PostalCode)
+                                                                ? "-"
+                                                                : Model.PostalCode)
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- NOTES -->
+                        <div class="col-md-12">
+
+                            <label class="text-muted small">
+                                Notes
+                            </label>
+
+                            <div class="border rounded p-3 bg-light">
+
+                                @(string.IsNullOrWhiteSpace(Model.Notes)
+                                                                ? "No notes available."
+                                                                : Model.Notes)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATUS / META -->
+        <div class="col-lg-4">
+
+            <!-- STATUS CARD -->
+
+            <div class="card shadow-sm mb-4">
+
+                <div class="card-header bg-success text-white">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Supplier Status
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <!-- STATUS -->
+
+                    <div class="mb-4">
+
+                        <label class="text-muted small d-block mb-2">
+                            Status
+                        </label>
+
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success fs-6">
+
+                                <i class="bi bi-check-circle me-1"></i>
+                                Active
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger fs-6">
+
+                                <i class="bi bi-x-circle me-1"></i>
+                                Inactive
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <!-- ID -->
+
+                    <div class="mb-4">
+
+                        <label class="text-muted small d-block">
+                            Supplier ID
+                        </label>
+
+                        <span class="fw-semibold">
+                            #@Model.Id
+                        </span>
+
+                    </div>
+
+
+                    <!-- CREATED -->
+
+                    <div class="mb-4">
+
+                        <label class="text-muted small d-block">
+                            Created Date
+                        </label>
+
+                        <span>
+
+                            @Model.CreatedDate.ToString(
+                            "dd MMM yyyy, hh:mm tt"
+                                                        )
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- UPDATED -->
+
+                    <div>
+
+                        <label class="text-muted small d-block">
+                            Last Updated
+                        </label>
+
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <span>
+
+                                @Model.UpdatedDate.Value.ToString(
+                                "dd MMM yyyy, hh:mm tt"
+                                                        )
+
+                        </span>
+                                                }
+                        else
+                        {
+                            <span class="text-muted">
+                                Never updated
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT COUNT -->
+
+            <div class="card shadow-sm">
+
+                <div class="card-header">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>
+                        Supplier Products
+                    </h5>
+
+                </div>
+
+                <div class="card-body text-center">
+
+                    <div class="display-5 fw-bold text-primary">
+
+                        @(Model.Products?.Count ?? 0)
+
+                    </div>
+
+                    <div class="text-muted">
+                        Products linked to this supplier
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACTIONS -->
+
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-1">
+                        Supplier Actions
+                    </h5>
+
+                    <small class="text-muted">
+                        Manage this supplier
+                    </small>
+
+                </div>
+
+                <div>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.Id"
+                       class="btn btn-primary me-2">
+
+                        <i class="bi bi-pencil-square me-1"></i>
+                        Edit Supplier
+
+                    </a>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-list me-1"></i>
+                        Supplier List
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,7 +1,7 @@
 ﻿@model StoreManagementSystem.Web.ViewModels.GoodsReceipt.GoodsReceiptViewModel
 
 @{
-    ViewData["Title"] = "Goods Receipt";
+    ViewData["Title"] = "Purchase Goods Receipt";
     Layout = "_AdminLayout";
 }
 
@@ -9,174 +9,398 @@
 
     <div class="card shadow-sm">
 
+        <!-- =========================================================
+             HEADER
+             ========================================================= -->
+
         <div class="card-header bg-success text-white">
 
-            <h4 class="mb-0">
-                Goods Receipt Note
-            </h4>
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h4 class="mb-0">
+                    <i class="bi bi-cart-check me-2"></i>
+                    Purchase Goods Receipt Note
+                </h4>
+
+                <span class="badge bg-light text-success">
+                    Purchase GRN
+                </span>
+
+            </div>
 
         </div>
 
+
         <div class="card-body">
 
-            <form asp-action="Create" method="post">
+            <form asp-controller="GoodsReceipt"
+                  asp-action="Create"
+                  method="post"
+                  id="purchaseReceiptForm">
 
                 @Html.AntiForgeryToken()
+
+                <!-- =====================================================
+                     VALIDATION
+                     ===================================================== -->
 
                 <div asp-validation-summary="ModelOnly"
                      class="alert alert-danger">
                 </div>
 
-                <div class="row">
 
-                    <div class="col-md-4">
+                <!-- =====================================================
+                     PURCHASE INFORMATION
+                     ===================================================== -->
 
-                        <label>Purchase Order</label>
+                <div class="row g-3">
+
+                    <!-- PURCHASE ORDER -->
+
+                    <div class="col-md-5">
+
+                        <label asp-for="PurchaseOrderId"
+                               class="form-label fw-semibold">
+
+                            Purchase Order
+
+                            <span class="text-danger">*</span>
+
+                        </label>
 
                         <select asp-for="PurchaseOrderId"
                                 asp-items="Model.PurchaseOrders"
                                 class="form-select"
-                                id="PurchaseOrder">
+                                id="PurchaseOrderId">
 
                             <option value="">
-                                Select Purchase Order
+                                -- Select Purchase Order --
                             </option>
 
                         </select>
 
+                        <span asp-validation-for="PurchaseOrderId"
+                              class="text-danger">
+                        </span>
+
                     </div>
+
+
+                    <!-- SUPPLIER -->
 
                     <div class="col-md-4">
 
-                        <label>Supplier</label>
+                        <label class="form-label fw-semibold">
+                            Supplier
+                        </label>
 
-                        <input asp-for="SupplierName"
+                        <input type="text"
+                               id="SupplierName"
                                class="form-control"
-                               readonly />
+                               value=""
+                               readonly
+                               placeholder="Supplier will appear here" />
 
                     </div>
 
-                    <div class="col-md-4">
 
-                        <label>Receipt Date</label>
+                    <!-- RECEIPT DATE -->
+
+                    <div class="col-md-3">
+
+                        <label asp-for="ReceiptDate"
+                               class="form-label fw-semibold">
+
+                            Receipt Date
+
+                            <span class="text-danger">*</span>
+
+                        </label>
 
                         <input asp-for="ReceiptDate"
-                               class="form-control" />
+                               type="date"
+                               class="form-control"
+                               id="ReceiptDate" />
+
+                        <span asp-validation-for="ReceiptDate"
+                              class="text-danger">
+                        </span>
 
                     </div>
 
                 </div>
 
-                <div class="table-responsive mt-4">
 
-                    <table class="table table-bordered"
-                           id="itemTable">
+                <!-- =====================================================
+                     LOADING
+                     ===================================================== -->
 
-                        <thead class="table-dark">
+                <div id="poLoading"
+                     class="alert alert-info mt-4 d-none">
 
-                            <tr>
+                    <span class="spinner-border spinner-border-sm me-2"></span>
 
-                                <th>Product</th>
-
-                                <th>SKU</th>
-
-                                <th>Ordered</th>
-
-                                <th>Received</th>
-
-                                <th>Remaining</th>
-
-                                <th>Receive Qty</th>
-
-                                <th>Warehouse</th>
-
-                                <th>Price</th>
-
-                                <th>Tax</th>
-
-                                <th>Total</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-                        </tbody>
-
-                    </table>
+                    Loading Purchase Order items...
 
                 </div>
-                <div class="row mt-4">
 
-                    <div class="col-md-3">
 
-                        <label>Subtotal</label>
+                <!-- =====================================================
+                     ERROR
+                     ===================================================== -->
 
-                        <input asp-for="SubTotal"
-                               id="SubTotal"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label>Tax</label>
-
-                        <input asp-for="TaxAmount"
-                               id="TaxAmount"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label>Discount</label>
-
-                        <input asp-for="Discount"
-                               id="Discount"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label>Grand Total</label>
-
-                        <input asp-for="GrandTotal"
-                               id="GrandTotal"
-                               class="form-control fw-bold"
-                               readonly />
-
-                    </div>
-
+                <div id="poError"
+                     class="alert alert-danger mt-4 d-none">
                 </div>
+
+
+                <!-- =====================================================
+                     PURCHASE ITEMS
+                     ===================================================== -->
 
                 <div class="mt-4">
 
-                    <label>Remarks</label>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
 
-<textarea asp-for="Remarks"
-          class="form-control"
-          rows="3">
-</textarea>
+                        <h5 class="mb-0">
+
+                            <i class="bi bi-box-seam me-2"></i>
+
+                            Purchase Order Items
+
+                        </h5>
+
+                        <span class="badge bg-secondary"
+                              id="itemCount">
+
+                            0 Items
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-hover align-middle"
+                               id="purchaseItemTable">
+
+                            <thead class="table-dark">
+
+                                <tr>
+
+                                    <th style="width: 13%;">
+                                        SKU
+                                    </th>
+
+                                    <th style="width: 9%;">
+                                        Ordered
+                                    </th>
+
+                                    <th style="width: 12%;">
+                                        Previously Received
+                                    </th>
+
+                                    <th style="width: 9%;">
+                                        Remaining
+                                    </th>
+
+                                    <th style="width: 13%;">
+                                        Receive Qty
+                                    </th>
+
+                                    <th style="width: 17%;">
+                                        Warehouse
+                                    </th>
+
+                                    <th style="width: 10%;">
+                                        Unit Price
+                                    </th>
+
+                                    <th style="width: 8%;">
+                                        Discount
+                                    </th>
+
+                                    <th style="width: 8%;">
+                                        Tax
+                                    </th>
+
+                                    <th style="width: 10%;">
+                                        Total
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody id="purchaseItemTableBody">
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <!-- EMPTY STATE -->
+
+                    <div id="noPurchaseItems"
+                         class="text-center text-muted py-4 border rounded">
+
+                        <i class="bi bi-info-circle me-1"></i>
+
+                        Select a Purchase Order to load items.
+
+                    </div>
 
                 </div>
 
+
+                <!-- =====================================================
+                     RECEIPT SUMMARY
+                     ===================================================== -->
+
+                <div class="card mt-4">
+
+                    <div class="card-header bg-light">
+
+                        <h5 class="mb-0">
+
+                            <i class="bi bi-calculator me-2"></i>
+
+                            Purchase Receipt Summary
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="row g-3">
+
+                            <!-- SUBTOTAL -->
+
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Subtotal
+                                </label>
+
+                                <input type="text"
+                                       id="SubTotalDisplay"
+                                       class="form-control"
+                                       value="₹0.00"
+                                       readonly />
+
+                            </div>
+
+
+                            <!-- TAX -->
+
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Tax
+                                </label>
+
+                                <input type="text"
+                                       id="TaxAmountDisplay"
+                                       class="form-control"
+                                       value="₹0.00"
+                                       readonly />
+
+                            </div>
+
+
+                            <!-- DISCOUNT -->
+
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Discount
+                                </label>
+
+                                <input type="text"
+                                       id="DiscountDisplay"
+                                       class="form-control"
+                                       value="₹0.00"
+                                       readonly />
+
+                            </div>
+
+
+                            <!-- GRAND TOTAL -->
+
+                            <div class="col-md-3">
+
+                                <label class="form-label fw-bold">
+                                    Grand Total
+                                </label>
+
+                                <input type="text"
+                                       id="GrandTotalDisplay"
+                                       class="form-control fw-bold"
+                                       value="₹0.00"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             REMARKS
+                             ================================================= -->
+
+                        <div class="mt-4">
+
+                            <label asp-for="Remarks"
+                                   class="form-label">
+
+                                Remarks
+
+                            </label>
+
+                            <textarea asp-for="Remarks"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="Enter remarks..."></textarea>
+
+                            <span asp-validation-for="Remarks"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================================
+                     BUTTONS
+                     ===================================================== -->
+
                 <div class="mt-4">
 
-                    <button class="btn btn-success">
+                    <button type="submit"
+                            class="btn btn-success"
+                            id="savePurchaseButton">
 
-                        <i class="bi bi-check-circle"></i>
+                        <i class="bi bi-check-circle me-1"></i>
 
-                        Receive Goods
+                        Save Purchase GRN
 
                     </button>
 
-                    <a asp-action="Index"
+
+                    <a asp-controller="GoodsReceipt"
+                       asp-action="Index"
                        class="btn btn-secondary">
+
+                        <i class="bi bi-x-circle me-1"></i>
 
                         Cancel
 
@@ -192,147 +416,1332 @@
 
 </div>
 
-@section Scripts
-{
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
 
-                $("#PurchaseOrder").change(function () {
+        $(document).ready(function () {
 
-            let id = $(this).val();
+            console.log("Purchase GRN page loaded.");
 
-            if (id == "")
-                return;
+            // =========================================================
+            // WAREHOUSE DATA FROM VIEWMODEL
+            // =========================================================
 
-            $.get("/GoodsReceipt/GetPurchaseOrder",
-                { id: id },
-                function (po) {
+            var warehouses = @Html.Raw(
+                            System.Text.Json.JsonSerializer.Serialize(
+                                    (Model.Warehouses ?? Enumerable.Empty<SelectListItem>())
+                                            .Select(x => new
+                                            {
+                                                    id = x.Value,
+                                                    name = x.Text
+                                            })
+                            )
+                    );
 
-                    $("#SupplierName").val(po.supplier);
 
-                    $("#itemTable tbody").empty();
+        console.log(
+            "Warehouses loaded:",
+            warehouses
+        );
 
-                    $.each(po.items, function (index, item) {
 
-                        let row = `
-        <tr>
+            // =========================================================
+            // PURCHASE ORDER CHANGE
+            // =========================================================
 
-        <td>${item.product}</td>
+            $("#PurchaseOrderId").on("change", function () {
 
-        <td>${item.sku}</td>
+                var purchaseOrderId = $(this).val();
 
-        <td>${item.orderedQty}</td>
+                clearPurchaseItems();
 
-        <td>${item.previouslyReceivedQty ?? 0}</td>
+                $("#SupplierName").val("");
 
-        <td>${item.remainingQty ?? item.orderedQty}</td>
+                $("#poError")
+                    .addClass("d-none")
+                    .text("");
 
-        <td>
+                if (!purchaseOrderId) {
 
-        <input type="number"
+                    return;
 
-        class="form-control qty"
+                }
 
-        value="${item.remainingQty ?? item.orderedQty}"
-
-        name="Items[${index}].ReceivedQuantity"/>
-
-        <input type="hidden"
-
-        name="Items[${index}].ProductId"
-
-        value="${item.productId}"/>
-
-        <input type="hidden"
-
-        name="Items[${index}].PurchaseOrderItemId"
-
-        value="${item.purchaseOrderItemId}"/>
-
-        </td>
-
-        <td>
-
-        <select class="form-select warehouse"
-
-        name="Items[${index}].WarehouseId">
-
-        </select>
-
-        </td>
-
-        <td>
-
-        <input class="form-control price"
-
-        value="${item.price}"
-
-        readonly/>
-
-        </td>
-
-        <td>
-
-        <input class="form-control tax"
-
-        value="${item.tax}"
-
-        readonly/>
-
-        </td>
-
-        <td>
-
-        <input class="form-control total"
-
-        readonly/>
-
-        </td>
-
-        </tr>
-        `;
-
-                        $("#itemTable tbody").append(row);
-
-                    });
-
-                    loadWarehouses();
-
-                    calculateTotals();
-
-                });
-
-        });
-
-                function calculateTotals() {
-
-            let subtotal = 0;
-            let tax = 0;
-
-            $("#itemTable tbody tr").each(function () {
-
-                let qty = parseFloat($(this).find(".qty").val()) || 0;
-
-                let price = parseFloat($(this).find(".price").val()) || 0;
-
-                let gst = parseFloat($(this).find(".tax").val()) || 0;
-
-                let total = qty * price;
-
-                $(this).find(".total").val(total.toFixed(2));
-
-                subtotal += total;
-
-                tax += gst;
+                loadPurchaseOrder(
+                    purchaseOrderId
+                );
 
             });
 
-            $("#SubTotal").val(subtotal.toFixed(2));
 
-            $("#TaxAmount").val(tax.toFixed(2));
+            // =========================================================
+            // LOAD PURCHASE ORDER
+            // =========================================================
 
-            $("#GrandTotal").val((subtotal + tax).toFixed(2));
+            function loadPurchaseOrder(
+                purchaseOrderId
+            ) {
 
-        }
+                $("#poLoading")
+                    .removeClass("d-none");
+
+                $("#poError")
+                    .addClass("d-none")
+                    .text("");
+
+                $("#PurchaseOrderId")
+                    .prop("disabled", true);
+
+
+                $.ajax({
+
+                    url:
+                        '@Url.Action(
+                                                "GetPurchaseOrder",
+                                                "GoodsReceipt"
+                                        )',
+
+                type: "GET",
+
+                    data: {
+                        id: purchaseOrderId
+                    },
+
+                    success: function (response) {
+
+                        console.log(
+                            "Purchase Order:",
+                            response
+                        );
+
+
+                        $("#SupplierName")
+                            .val(
+                                response.supplier || ""
+                            );
+
+
+                        renderPurchaseItems(
+                            response.items || []
+                        );
+
+                    },
+
+                    error: function (xhr) {
+
+                        var message =
+                            "Unable to load Purchase Order.";
+
+
+                        if (
+                            xhr.responseText &&
+                            xhr.responseText.length < 500
+                        ) {
+
+                            message =
+                                xhr.responseText;
+
+                        }
+
+
+                        $("#poError")
+                            .removeClass("d-none")
+                            .text(message);
+
+
+                        clearPurchaseItems();
+
+                    },
+
+                    complete: function () {
+
+                        $("#poLoading")
+                            .addClass("d-none");
+
+                        $("#PurchaseOrderId")
+                            .prop(
+                                "disabled",
+                                false
+                            );
+
+                    }
+
+                });
+
+            }
+
+
+            // =========================================================
+            // RENDER PURCHASE ITEMS
+            // =========================================================
+
+            function renderPurchaseItems(
+                items
+            ) {
+
+                var tbody =
+                    $("#purchaseItemTableBody");
+
+
+                tbody.empty();
+
+
+                if (
+                    !items ||
+                    items.length === 0
+                ) {
+
+                    $("#noPurchaseItems")
+                        .show()
+                        .html(
+                            '<i class="bi bi-check-circle me-1"></i>' +
+                            'All Purchase Order items have already been received.'
+                        );
+
+
+                    updateItemCount();
+
+                    calculateTotals();
+
+                    return;
+
+                }
+
+
+                $("#noPurchaseItems")
+                    .hide();
+
+
+                $.each(
+                    items,
+                    function (index, item) {
+
+                        addPurchaseItemRow(
+                            index,
+                            item
+                        );
+
+                    }
+                );
+
+
+                updateItemCount();
+
+                calculateTotals();
+
+            }
+
+
+            // =========================================================
+            // CREATE WAREHOUSE OPTIONS
+            // =========================================================
+
+            function getWarehouseOptions() {
+
+                var options =
+                    '<option value="">-- Select Warehouse --</option>';
+
+
+                $.each(
+                    warehouses,
+                    function (_, warehouse) {
+
+                        options +=
+                            '<option value="' +
+                            escapeHtml(
+                                warehouse.id
+                            ) +
+                            '">' +
+                            escapeHtml(
+                                warehouse.name
+                            ) +
+                            '</option>';
+
+                    }
+                );
+
+
+                return options;
+
+            }
+
+
+            // =========================================================
+            // ADD PURCHASE ITEM ROW
+            // =========================================================
+
+            function addPurchaseItemRow(
+                index,
+                item
+            ) {
+
+                var purchaseOrderItemId =
+                    item.purchaseOrderItemId || 0;
+
+
+                var productId =
+                    item.productId || 0;
+
+
+                var sku =
+                    item.sku || "";
+
+
+                var orderedQty =
+                    parseFloat(
+                        item.orderedQty
+                    ) || 0;
+
+
+                var previouslyReceivedQty =
+                    parseFloat(
+                        item.previouslyReceivedQty
+                    ) || 0;
+
+
+                var remainingQty =
+                    parseFloat(
+                        item.remainingQty
+                    ) || 0;
+
+
+                var unitPrice =
+                    parseFloat(
+                        item.price
+                    ) || 0;
+
+
+                var tax =
+                    parseFloat(
+                        item.tax
+                    ) || 0;
+
+
+                var discount =
+                    parseFloat(
+                        item.discount
+                    ) || 0;
+
+
+                var warehouseOptions =
+                    getWarehouseOptions();
+
+
+                var row = `
+
+                    <tr>
+
+                        <!-- =================================================
+                             HIDDEN VALUES
+                             ================================================= -->
+
+                        <input type="hidden"
+                               name="Items[${index}].PurchaseOrderItemId"
+                               value="${escapeHtml(
+                                   purchaseOrderItemId
+                               )}" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].ProductId"
+                               value="${escapeHtml(
+                                   productId
+                               )}" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].SKU"
+                               value="${escapeHtml(
+                                   sku
+                               )}" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].OrderedQuantity"
+                               value="${escapeHtml(
+                                   orderedQty
+                               )}" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].UnitPrice"
+                               value="${escapeHtml(
+                                   unitPrice
+                               )}"
+                               class="unitPriceHidden" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].Discount"
+                               value="${escapeHtml(
+                                   discount
+                               )}"
+                               class="discountHidden" />
+
+
+                        <input type="hidden"
+                               name="Items[${index}].TaxAmount"
+                               value="${escapeHtml(
+                                   tax
+                               )}"
+                               class="taxHidden" />
+
+
+                        <!-- =================================================
+                             SKU
+                             ================================================= -->
+
+                        <td>
+
+                            <strong>
+                                ${escapeHtml(sku)}
+                            </strong>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             ORDERED
+                             ================================================= -->
+
+                        <td>
+
+                            ${formatNumber(
+                                orderedQty
+                            )}
+
+                        </td>
+
+
+                        <!-- =================================================
+                             PREVIOUSLY RECEIVED
+                             ================================================= -->
+
+                        <td>
+
+                            ${formatNumber(
+                                previouslyReceivedQty
+                            )}
+
+                        </td>
+
+
+                        <!-- =================================================
+                             REMAINING
+                             ================================================= -->
+
+                        <td>
+
+                            <span class="badge bg-info text-dark remainingQty">
+
+                                ${formatNumber(
+                                    remainingQty
+                                )}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             RECEIVE QTY
+                             ================================================= -->
+
+                        <td>
+
+                            <input type="number"
+                                   class="form-control receiveQuantity"
+                                   name="Items[${index}].ReceivedQuantity"
+                                   value=""
+                                   min="0"
+                                   max="${remainingQty}"
+                                   step="0.01"
+                                   placeholder="0" />
+
+                            <div class="text-danger small quantityError">
+                            </div>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             WAREHOUSE
+                             ================================================= -->
+
+                        <td>
+
+                            <select
+                                class="form-select warehouseSelect"
+                                name="Items[${index}].WarehouseId">
+
+                                ${warehouseOptions}
+
+                            </select>
+
+                            <div class="text-danger small warehouseError">
+                            </div>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             UNIT PRICE
+                             ================================================= -->
+
+                        <td>
+
+                            <span class="unitPriceDisplay">
+
+                                ₹${formatMoney(
+                                    unitPrice
+                                )}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             DISCOUNT
+                             ================================================= -->
+
+                        <td>
+
+                            <span class="discountDisplay">
+
+                                ₹${formatMoney(
+                                    discount
+                                )}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             TAX
+                             ================================================= -->
+
+                        <td>
+
+                            <span class="taxDisplay">
+
+                                ₹${formatMoney(
+                                    tax
+                                )}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =================================================
+                             TOTAL
+                             ================================================= -->
+
+                        <td>
+
+                            <input type="text"
+                                   class="form-control rowTotal"
+                                   value="₹0.00"
+                                   readonly />
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                $("#purchaseItemTableBody")
+                    .append(row);
+
+            }
+
+
+            // =========================================================
+            // RECEIVE QUANTITY CHANGE
+            // =========================================================
+
+            $(document).on(
+                "input",
+                ".receiveQuantity",
+                function () {
+
+                    var input =
+                        $(this);
+
+
+                    var row =
+                        input.closest("tr");
+
+
+                    var quantity =
+                        parseFloat(
+                            input.val()
+                        ) || 0;
+
+
+                    var remaining =
+                        parseFloat(
+                            row.find(
+                                ".remainingQty"
+                            ).text()
+                        ) || 0;
+
+
+                    if (quantity < 0) {
+
+                        input.val("");
+
+                        quantity = 0;
+
+                    }
+
+
+                    if (
+                        quantity > remaining
+                    ) {
+
+                        input.addClass(
+                            "is-invalid"
+                        );
+
+
+                        row.find(
+                            ".quantityError"
+                        )
+                        .text(
+                            "Receive quantity cannot exceed remaining quantity."
+                        );
+
+                    }
+                    else {
+
+                        input.removeClass(
+                            "is-invalid"
+                        );
+
+
+                        row.find(
+                            ".quantityError"
+                        )
+                        .text("");
+
+                    }
+
+
+                    calculateRowTotal(row);
+
+                    calculateTotals();
+
+                }
+            );
+
+
+            // =========================================================
+            // WAREHOUSE CHANGE
+            // =========================================================
+
+            $(document).on(
+                "change",
+                ".warehouseSelect",
+                function () {
+
+                    var select =
+                        $(this);
+
+                    var row =
+                        select.closest("tr");
+
+
+                    if (
+                        select.val()
+                    ) {
+
+                        select.removeClass(
+                            "is-invalid"
+                        );
+
+
+                        row.find(
+                            ".warehouseError"
+                        )
+                        .text("");
+
+                    }
+
+                }
+            );
+
+
+            // =========================================================
+            // CALCULATE ROW TOTAL
+            // =========================================================
+
+            function calculateRowTotal(
+                row
+            ) {
+
+                var quantity =
+                    parseFloat(
+                        row.find(
+                            ".receiveQuantity"
+                        ).val()
+                    ) || 0;
+
+
+                var unitPrice =
+                    parseFloat(
+                        row.find(
+                            ".unitPriceHidden"
+                        ).val()
+                    ) || 0;
+
+
+                var discount =
+                    parseFloat(
+                        row.find(
+                            ".discountHidden"
+                        ).val()
+                    ) || 0;
+
+
+                var tax =
+                    parseFloat(
+                        row.find(
+                            ".taxHidden"
+                        ).val()
+                    ) || 0;
+
+
+                var ordered =
+                    parseFloat(
+                        row.find(
+                            "td:nth-child(2)"
+                        ).text()
+                    ) || 0;
+
+
+                var lineDiscount = 0;
+
+                var lineTax = 0;
+
+
+                if (
+                    ordered > 0
+                ) {
+
+                    lineDiscount =
+                        discount *
+                        (
+                            quantity /
+                            ordered
+                        );
+
+
+                    lineTax =
+                        tax *
+                        (
+                            quantity /
+                            ordered
+                        );
+
+                }
+
+
+                var gross =
+                    quantity *
+                    unitPrice;
+
+
+                var total =
+                    gross -
+                    lineDiscount +
+                    lineTax;
+
+
+                if (
+                    total < 0
+                ) {
+
+                    total = 0;
+
+                }
+
+
+                row.find(
+                    ".rowTotal"
+                )
+                .val(
+                    "₹" +
+                    formatMoney(total)
+                );
+
+            }
+
+
+            // =========================================================
+            // CALCULATE TOTALS
+            // =========================================================
+
+            function calculateTotals() {
+
+                var subtotal = 0;
+
+                var taxAmount = 0;
+
+                var discount = 0;
+
+
+                $("#purchaseItemTableBody tr")
+                    .each(
+                        function () {
+
+                            var row =
+                                $(this);
+
+
+                            var quantity =
+                                parseFloat(
+                                    row.find(
+                                        ".receiveQuantity"
+                                    ).val()
+                                ) || 0;
+
+
+                            var unitPrice =
+                                parseFloat(
+                                    row.find(
+                                        ".unitPriceHidden"
+                                    ).val()
+                                ) || 0;
+
+
+                            var ordered =
+                                parseFloat(
+                                    row.find(
+                                        "td:nth-child(2)"
+                                    ).text()
+                                ) || 0;
+
+
+                            var totalDiscount =
+                                parseFloat(
+                                    row.find(
+                                        ".discountHidden"
+                                    ).val()
+                                ) || 0;
+
+
+                            var totalTax =
+                                parseFloat(
+                                    row.find(
+                                        ".taxHidden"
+                                    ).val()
+                                ) || 0;
+
+
+                            var gross =
+                                quantity *
+                                unitPrice;
+
+
+                            var lineDiscount = 0;
+
+                            var lineTax = 0;
+
+
+                            if (
+                                ordered > 0
+                            ) {
+
+                                lineDiscount =
+                                    totalDiscount *
+                                    (
+                                        quantity /
+                                        ordered
+                                    );
+
+
+                                lineTax =
+                                    totalTax *
+                                    (
+                                        quantity /
+                                        ordered
+                                    );
+
+                            }
+
+
+                            subtotal +=
+                                gross;
+
+
+                            discount +=
+                                lineDiscount;
+
+
+                            taxAmount +=
+                                lineTax;
+
+
+                            calculateRowTotal(
+                                row
+                            );
+
+                        }
+                    );
+
+
+                var grandTotal =
+                    subtotal -
+                    discount +
+                    taxAmount;
+
+
+                if (
+                    grandTotal < 0
+                ) {
+
+                    grandTotal = 0;
+
+                }
+
+
+                $("#SubTotalDisplay")
+                    .val(
+                        "₹" +
+                        formatMoney(
+                            subtotal
+                        )
+                    );
+
+
+                $("#TaxAmountDisplay")
+                    .val(
+                        "₹" +
+                        formatMoney(
+                            taxAmount
+                        )
+                    );
+
+
+                $("#DiscountDisplay")
+                    .val(
+                        "₹" +
+                        formatMoney(
+                            discount
+                        )
+                    );
+
+
+                $("#GrandTotalDisplay")
+                    .val(
+                        "₹" +
+                        formatMoney(
+                            grandTotal
+                        )
+                    );
+
+            }
+
+
+            // =========================================================
+            // CLEAR ITEMS
+            // =========================================================
+
+            function clearPurchaseItems() {
+
+                $("#purchaseItemTableBody")
+                    .empty();
+
+
+                $("#noPurchaseItems")
+                    .show()
+                    .html(
+                        '<i class="bi bi-info-circle me-1"></i>' +
+                        'Select a Purchase Order to load items.'
+                    );
+
+
+                updateItemCount();
+
+                calculateTotals();
+
+            }
+
+
+            // =========================================================
+            // ITEM COUNT
+            // =========================================================
+
+            function updateItemCount() {
+
+                var count =
+                    $("#purchaseItemTableBody tr")
+                        .length;
+
+
+                $("#itemCount")
+                    .text(
+                        count +
+                        (
+                            count === 1
+                                ? " Item"
+                                : " Items"
+                        )
+                    );
+
+            }
+
+
+            // =========================================================
+            // FORM SUBMIT VALIDATION
+            // =========================================================
+
+            $("#purchaseReceiptForm")
+                .on(
+                    "submit",
+                    function (event) {
+
+                        var hasError =
+                            false;
+
+                        var hasReceiveQuantity =
+                            false;
+
+
+                        // -------------------------------------------------
+                        // PURCHASE ORDER
+                        // -------------------------------------------------
+
+                        var purchaseOrderId =
+                            $("#PurchaseOrderId")
+                                .val();
+
+
+                        if (
+                            !purchaseOrderId
+                        ) {
+
+                            hasError = true;
+
+
+                            $("#PurchaseOrderId")
+                                .addClass(
+                                    "is-invalid"
+                                );
+
+                        }
+                        else {
+
+                            $("#PurchaseOrderId")
+                                .removeClass(
+                                    "is-invalid"
+                                );
+
+                        }
+
+
+                        // -------------------------------------------------
+                        // ITEMS
+                        // -------------------------------------------------
+
+                        $("#purchaseItemTableBody tr")
+                            .each(
+                                function () {
+
+                                    var row =
+                                        $(this);
+
+
+                                    var quantityInput =
+                                        row.find(
+                                            ".receiveQuantity"
+                                        );
+
+
+                                    var warehouse =
+                                        row.find(
+                                            ".warehouseSelect"
+                                        );
+
+
+                                    var quantity =
+                                        parseFloat(
+                                            quantityInput.val()
+                                        ) || 0;
+
+
+                                    var remaining =
+                                        parseFloat(
+                                            row.find(
+                                                ".remainingQty"
+                                            ).text()
+                                        ) || 0;
+
+
+                                    // -------------------------------------
+                                    // RECEIVE QUANTITY
+                                    // -------------------------------------
+
+                                    if (
+                                        quantity > 0
+                                    ) {
+
+                                        hasReceiveQuantity =
+                                            true;
+
+                                    }
+
+
+                                    if (
+                                        quantity < 0
+                                    ) {
+
+                                        hasError = true;
+
+
+                                        quantityInput
+                                            .addClass(
+                                                "is-invalid"
+                                            );
+
+
+                                        row.find(
+                                            ".quantityError"
+                                        )
+                                        .text(
+                                            "Quantity cannot be negative."
+                                        );
+
+                                    }
+                                    else if (
+                                        quantity >
+                                        remaining
+                                    ) {
+
+                                        hasError = true;
+
+
+                                        quantityInput
+                                            .addClass(
+                                                "is-invalid"
+                                            );
+
+
+                                        row.find(
+                                            ".quantityError"
+                                        )
+                                        .text(
+                                            "Receive quantity cannot exceed remaining quantity."
+                                        );
+
+                                    }
+                                    else {
+
+                                        quantityInput
+                                            .removeClass(
+                                                "is-invalid"
+                                            );
+
+
+                                        row.find(
+                                            ".quantityError"
+                                        )
+                                        .text("");
+
+                                    }
+
+
+                                    // -------------------------------------
+                                    // WAREHOUSE
+                                    // -------------------------------------
+
+                                    if (
+                                        quantity > 0 &&
+                                        !warehouse.val()
+                                    ) {
+
+                                        hasError = true;
+
+
+                                        warehouse
+                                            .addClass(
+                                                "is-invalid"
+                                            );
+
+
+                                        row.find(
+                                            ".warehouseError"
+                                        )
+                                        .text(
+                                            "Please select a warehouse."
+                                        );
+
+                                    }
+                                    else {
+
+                                        warehouse
+                                            .removeClass(
+                                                "is-invalid"
+                                            );
+
+
+                                        row.find(
+                                            ".warehouseError"
+                                        )
+                                        .text("");
+
+                                    }
+
+                                }
+                            );
+
+
+                        // -------------------------------------------------
+                        // RECEIVE QUANTITY REQUIRED
+                        // -------------------------------------------------
+
+                        if (
+                            !hasReceiveQuantity
+                        ) {
+
+                            hasError = true;
+
+
+                            alert(
+                                "Please enter at least one Receive Quantity."
+                            );
+
+                        }
+
+
+                        // -------------------------------------------------
+                        // STOP SUBMIT
+                        // -------------------------------------------------
+
+                        if (
+                            hasError
+                        ) {
+
+                            event.preventDefault();
+
+                            console.log(
+                                "Purchase GRN submission blocked."
+                            );
+
+                            return false;
+
+                        }
+
+
+                        console.log(
+                            "Purchase GRN validation passed."
+                        );
+
+
+                        return true;
+
+                    }
+                );
+
+
+            // =========================================================
+            // NUMBER FORMAT
+            // =========================================================
+
+            function formatNumber(
+                value
+            ) {
+
+                var number =
+                    parseFloat(value) || 0;
+
+
+                return number.toFixed(2);
+
+            }
+
+
+            // =========================================================
+            // MONEY FORMAT
+            // =========================================================
+
+            function formatMoney(
+                value
+            ) {
+
+                var number =
+                    parseFloat(value) || 0;
+
+
+                return number.toLocaleString(
+                    "en-IN",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                );
+
+            }
+
+
+            // =========================================================
+            // ESCAPE HTML
+            // =========================================================
+
+            function escapeHtml(
+                value
+            ) {
+
+                if (
+                    value === null ||
+                    value === undefined
+                ) {
+
+                    return "";
+
+                }
+
+
+                return String(value)
+                    .replace(
+                        /&/g,
+                        "&amp;"
+                    )
+                    .replace(
+                        /</g,
+                        "&lt;"
+                    )
+                    .replace(
+                        />/g,
+                        "&gt;"
+                    )
+                    .replace(
+                        /"/g,
+                        "&quot;"
+                    )
+                    .replace(
+                        /'/g,
+                        "&#039;"
+                    );
+
+            }
+
+
+            // =========================================================
+            // INITIAL STATE
+            // =========================================================
+
+            clearPurchaseItems();
+
+        });
 
     </script>
 }

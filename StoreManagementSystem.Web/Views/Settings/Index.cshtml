@@ -1,0 +1,884 @@
+﻿@model StoreManagementSystem.Application.ViewModels.SystemSettingViewModel
+
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+
+                <i class="bi bi-gear me-2"></i>
+
+                Settings
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Configure organisation, reports, documents, sales
+                and location settings.
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUCCESS MESSAGE
+         ========================================================= -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         SETTINGS FORM
+         ========================================================= -->
+
+    <form asp-controller="Settings"
+          asp-action="Index"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+
+        <!-- =====================================================
+             ORGANISATION DETAILS
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-1 fw-semibold">
+
+                    <i class="bi bi-building me-2"></i>
+
+                    Organisation Details
+
+                </h5>
+
+                <small class="text-muted">
+
+                    These details can be used in reports, PDFs and
+                    printable business documents.
+
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- ORGANISATION NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="OrganisationName"
+                               class="form-label fw-semibold">
+
+                            Organisation Name
+
+                        </label>
+
+                        <input asp-for="OrganisationName"
+                               class="form-control"
+                               placeholder="Example: ABC Enterprises" />
+
+                        <small class="text-muted">
+
+                            Business or company name.
+
+                        </small>
+
+                        <span asp-validation-for="OrganisationName"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- BRANCH -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Branch"
+                               class="form-label fw-semibold">
+
+                            Branch
+
+                        </label>
+
+                        <input asp-for="Branch"
+                               class="form-control"
+                               placeholder="Example: Nashik Branch" />
+
+                        <small class="text-muted">
+
+                            Branch, outlet or office name.
+
+                        </small>
+
+                        <span asp-validation-for="Branch"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ADDRESS -->
+
+                    <div class="col-12">
+
+                        <label asp-for="Address"
+                               class="form-label fw-semibold">
+
+                            Address
+
+                        </label>
+
+                        <textarea asp-for="Address"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Enter complete business address"></textarea>
+
+                        <span asp-validation-for="Address"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- PHONE -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Phone"
+                               class="form-label fw-semibold">
+
+                            Phone
+
+                        </label>
+
+                        <input asp-for="Phone"
+                               class="form-control"
+                               placeholder="Example: +91 9876543210" />
+
+                        <span asp-validation-for="Phone"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Email"
+                               class="form-label fw-semibold">
+
+                            Email
+
+                        </label>
+
+                        <input asp-for="Email"
+                               type="email"
+                               class="form-control"
+                               placeholder="Example: info@company.com" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- GSTIN -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="GSTIN"
+                               class="form-label fw-semibold">
+
+                            GSTIN
+
+                        </label>
+
+                        <input asp-for="GSTIN"
+                               class="form-control text-uppercase"
+                               placeholder="Example: 27ABCDE1234F1Z5" />
+
+                        <small class="text-muted">
+
+                            GST registration number.
+
+                        </small>
+
+                        <span asp-validation-for="GSTIN"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             REPORT SETTINGS
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-1 fw-semibold">
+
+                    <i class="bi bi-file-earmark-text me-2"></i>
+
+                    Report Settings
+
+                </h5>
+
+                <small class="text-muted">
+
+                    Default information used when generating reports
+                    and PDFs.
+
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- REPORT HEADING -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="ReportHeading"
+                               class="form-label fw-semibold">
+
+                            Default Report Heading
+
+                        </label>
+
+                        <input asp-for="ReportHeading"
+                               class="form-control"
+                               placeholder="Example: Purchase Register" />
+
+                        <small class="text-muted">
+
+                            Example: Purchase Register, Sales Register,
+                            Stock Report.
+
+                        </small>
+
+                        <span asp-validation-for="ReportHeading"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- FROM DATE LABEL -->
+
+                    <div class="col-md-3">
+
+                        <label asp-for="FromDateLabel"
+                               class="form-label fw-semibold">
+
+                            From Date Label
+
+                        </label>
+
+                        <input asp-for="FromDateLabel"
+                               class="form-control"
+                               placeholder="From" />
+
+                        <small class="text-muted">
+
+                            Default: From
+
+                        </small>
+
+                        <span asp-validation-for="FromDateLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- TO DATE LABEL -->
+
+                    <div class="col-md-3">
+
+                        <label asp-for="ToDateLabel"
+                               class="form-label fw-semibold">
+
+                            To Date Label
+
+                        </label>
+
+                        <input asp-for="ToDateLabel"
+                               class="form-control"
+                               placeholder="To" />
+
+                        <small class="text-muted">
+
+                            Default: To
+
+                        </small>
+
+                        <span asp-validation-for="ToDateLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             AUTHORISATION / SIGNATURE
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-1 fw-semibold">
+
+                    <i class="bi bi-pen me-2"></i>
+
+                    Authorisation &amp; Signature
+
+                </h5>
+
+                <small class="text-muted">
+
+                    Used in the authorised signature section of
+                    printable documents.
+
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- AUTHORISED SIGNATORY -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="AuthorisedSignatory"
+                               class="form-label fw-semibold">
+
+                            Authorised Signatory
+
+                        </label>
+
+                        <input asp-for="AuthorisedSignatory"
+                               class="form-control"
+                               placeholder="Example: Hritik Sharma" />
+
+                        <small class="text-muted">
+
+                            Person authorised to sign business documents.
+
+                        </small>
+
+                        <span asp-validation-for="AuthorisedSignatory"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- DESIGNATION -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="AuthorisedDesignation"
+                               class="form-label fw-semibold">
+
+                            Designation
+
+                        </label>
+
+                        <input asp-for="AuthorisedDesignation"
+                               class="form-control"
+                               placeholder="Example: Manager / Director / Proprietor" />
+
+                        <small class="text-muted">
+
+                            Designation printed below the signature.
+
+                        </small>
+
+                        <span asp-validation-for="AuthorisedDesignation"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     SIGNATURE PREVIEW
+                     ================================================= -->
+
+                <div class="border rounded mt-4 p-3 bg-light">
+
+                    <div class="text-muted small mb-3">
+
+                        Signature section preview
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+
+                                For
+
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @Model.OrganisationName
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6 text-md-end">
+
+                            <div class="fw-semibold mt-4">
+
+                                Authorised Signatory
+
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(Model.AuthorisedSignatory))
+                            {
+                                <div>
+
+                                    @Model.AuthorisedSignatory
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(Model.AuthorisedDesignation))
+                            {
+                                <div class="text-muted small">
+
+                                    @Model.AuthorisedDesignation
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SALES SETTINGS
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-1 fw-semibold">
+
+                    <i class="bi bi-cart-check me-2"></i>
+
+                    Sales Settings
+
+                </h5>
+
+                <small class="text-muted">
+
+                    Configure Sales module visibility and terminology.
+
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <!-- SALES ENABLE / DISABLE -->
+
+                <div class="d-flex justify-content-between
+                            align-items-center
+                            border-bottom
+                            pb-3
+                            mb-4">
+
+                    <div>
+
+                        <h6 class="fw-semibold mb-1">
+
+                            Enable Sales
+
+                        </h6>
+
+                        <small class="text-muted">
+
+                            Turn the Sales section ON or OFF in the system.
+
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-check form-switch">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               asp-for="SalesOrderEnabled"
+                               style="width:3rem;height:1.5rem;" />
+
+                    </div>
+
+                </div>
+
+
+                <div class="row g-4">
+
+                    <!-- SALES NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="SalesOrderLabel"
+                               class="form-label fw-semibold">
+
+                            Sales Name
+
+                        </label>
+
+                        <input asp-for="SalesOrderLabel"
+                               class="form-control"
+                               placeholder="Example: Sale" />
+
+                        <small class="text-muted">
+
+                            Singular name. Example: Sale, Order,
+                            Transaction.
+
+                        </small>
+
+                        <span asp-validation-for="SalesOrderLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- SALES PLURAL NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="SalesOrderPluralLabel"
+                               class="form-label fw-semibold">
+
+                            Sales Plural Name
+
+                        </label>
+
+                        <input asp-for="SalesOrderPluralLabel"
+                               class="form-control"
+                               placeholder="Example: Sales" />
+
+                        <small class="text-muted">
+
+                            Plural name used in menus.
+                            Example: Sales, Orders.
+
+                        </small>
+
+                        <span asp-validation-for="SalesOrderPluralLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CUSTOMERS MODULE
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="me-3">
+
+                        <span class="d-inline-flex
+                                     align-items-center
+                                     justify-content-center
+                                     rounded-circle
+                                     bg-primary-subtle
+                                     text-primary"
+                              style="width:42px;height:42px;">
+
+                            <i class="bi bi-people fs-5"></i>
+
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <h5 class="mb-1 fw-bold">
+
+                            Customers Module
+
+                        </h5>
+
+                        <div class="text-muted small">
+
+                            Enable or disable Customers throughout
+                            the system.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="d-flex
+                            justify-content-between
+                            align-items-center">
+
+                    <div>
+
+                        <div class="fw-semibold">
+
+                            Customers
+
+                        </div>
+
+                        <div class="text-muted small">
+
+                            When disabled, Customers will be hidden
+                            and customer pages cannot be accessed.
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-check form-switch">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               role="switch"
+                               asp-for="CustomersEnabled"
+                               style="width:3rem;height:1.5rem;" />
+
+                        <label class="form-check-label fw-semibold ms-2"
+                               asp-for="CustomersEnabled">
+
+                            Enable Customers
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             LOCATION SETTINGS
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-1 fw-semibold">
+
+                    <i class="bi bi-geo-alt me-2"></i>
+
+                    Location Settings
+
+                </h5>
+
+                <small class="text-muted">
+
+                    Configure the terminology used for your stock
+                    locations.
+
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- LOCATION NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="LocationLabel"
+                               class="form-label fw-semibold">
+
+                            Location Name
+
+                        </label>
+
+                        <input asp-for="LocationLabel"
+                               class="form-control"
+                               placeholder="Example: Warehouse" />
+
+                        <small class="text-muted">
+
+                            Singular name. Example: Warehouse,
+                            Store, Outlet.
+
+                        </small>
+
+                        <span asp-validation-for="LocationLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- LOCATION PLURAL NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="LocationPluralLabel"
+                               class="form-label fw-semibold">
+
+                            Location Plural Name
+
+                        </label>
+
+                        <input asp-for="LocationPluralLabel"
+                               class="form-control"
+                               placeholder="Example: Warehouses" />
+
+                        <small class="text-muted">
+
+                            Plural name. Example: Warehouses,
+                            Stores, Outlets.
+
+                        </small>
+
+                        <span asp-validation-for="LocationPluralLabel"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SAVE BUTTON
+             ===================================================== -->
+
+        <div class="d-flex justify-content-end mb-4">
+
+            <button type="submit"
+                    class="btn btn-primary px-4">
+
+                <i class="bi bi-check2-circle me-2"></i>
+
+                Save Settings
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     VALIDATION SCRIPTS
+     ========================================================= -->
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

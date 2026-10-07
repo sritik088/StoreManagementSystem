@@ -1,0 +1,950 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Damage.DamageEntryViewModel
+
+@{
+    ViewData["Title"] = "Create Damage Entry";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    
+    <!-- ============================================================
+         PAGE HEADER
+    ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Create Damage Entry
+            </h2>
+
+            <p class="text-muted mb-0">
+                Record damaged inventory and update warehouse stock
+            </p>
+        </div>
+
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>
+                Back to Damage Entries
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         VALIDATION SUMMARY
+    ============================================================ -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"
+         role="alert"
+         style="display:@(ViewData.ModelState.IsValid ? "none" : "block");">
+    </div>
+
+
+    <form asp-action="Create"
+          method="post"
+          id="damageEntryForm">
+
+        @Html.AntiForgeryToken()
+
+
+        <!-- ========================================================
+             DAMAGE INFORMATION
+        ========================================================= -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 py-3">
+
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Damage Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- Damage Number -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Damage Number
+                        </label>
+
+                        <input asp-for="DamageNumber"
+                               class="form-control bg-light"
+                               readonly />
+
+                    </div>
+
+
+                    <!-- Damage Date -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DamageDate"
+                               class="form-label fw-semibold">
+                            Damage Date <span class="text-danger">*</span>
+                        </label>
+
+                        <input asp-for="DamageDate"
+                               type="datetime-local"
+                               class="form-control" />
+
+                        <span asp-validation-for="DamageDate"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Damage Type -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DamageId"
+                               class="form-label fw-semibold">
+                            Damage Type <span class="text-danger">*</span>
+                        </label>
+
+                        <select asp-for="DamageId"
+                                class="form-select"
+                                id="damageId">
+
+                            <option value="">
+                                -- Select Damage Type --
+                            </option>
+
+                            @if (Model.Damages != null && Model.Damages.Any())
+                            {
+                                @foreach (var item in Model.Damages)
+                                {
+                                    <option value="@item.Id">
+                                        @item.Name
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>
+                                    No active damage types available
+                                </option>
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="DamageId"
+                              class="text-danger small">
+                        </span>
+
+                        @if (Model.Damages == null || !Model.Damages.Any())
+                        {
+                            <small class="text-danger d-block mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                No active Damage Types found. Please create an active Damage Type in Damage Master.
+                            </small>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             STOCK INFORMATION
+        ========================================================= -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 py-3">
+
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Stock Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- Warehouse -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="WarehouseId"
+                               class="form-label fw-semibold">
+                            Warehouse <span class="text-danger">*</span>
+                        </label>
+
+                        <select asp-for="WarehouseId"
+                                class="form-select"
+                                id="warehouseId">
+
+                            <option value="">
+                                -- Select Warehouse --
+                            </option>
+
+                            @if (Model.Warehouses != null && Model.Warehouses.Any())
+                            {
+                                @foreach (var item in Model.Warehouses)
+                                {
+                                    <option value="@item.Id">
+                                        @item.Name
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>
+                                    No active warehouses available
+                                </option>
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="WarehouseId"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Product -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="ProductId"
+                               class="form-label fw-semibold">
+                            Product <span class="text-danger">*</span>
+                        </label>
+
+                        <select asp-for="ProductId"
+                                class="form-select"
+                                id="productId">
+
+                            <option value="">
+                                -- Select Product --
+                            </option>
+
+                            @if (Model.Products != null && Model.Products.Any())
+                            {
+                                @foreach (var item in Model.Products)
+                                {
+                                    <option value="@item.Id">
+                                        @item.SKU
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>
+                                    No products available
+                                </option>
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="ProductId"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Available Stock -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Available Stock
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-boxes"></i>
+                            </span>
+
+                            <input type="text"
+                                   id="availableQuantity"
+                                   class="form-control bg-light fw-semibold"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                        <small id="stockMessage"
+                               class="text-muted">
+                            Select warehouse and product.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             DAMAGE QUANTITY & VALUE
+        ========================================================= -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 py-3">
+
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-calculator me-2"></i>
+                    Damage Quantity & Value
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- Quantity -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Quantity"
+                               class="form-label fw-semibold">
+                            Damaged Quantity
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input asp-for="Quantity"
+                               type="number"
+                               step="0.01"
+                               min="0.01"
+                               class="form-control"
+                               id="quantity"
+                               placeholder="Enter damaged quantity" />
+
+                        <span asp-validation-for="Quantity"
+                              class="text-danger small">
+                        </span>
+
+                        <small class="text-muted">
+                            Quantity cannot exceed available stock.
+                        </small>
+
+                    </div>
+
+
+                    <!-- Unit Cost -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="UnitCost"
+                               class="form-label fw-semibold">
+                            Unit Cost
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input asp-for="UnitCost"
+                                   type="text"
+                                   class="form-control bg-light"
+                                   id="unitCost"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Total Value -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="TotalValue"
+                               class="form-label fw-semibold">
+                            Total Damage Value
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input asp-for="TotalValue"
+                                   type="text"
+                                   class="form-control bg-light fw-bold"
+                                   id="totalValue"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Stock Warning -->
+
+                <div id="stockWarning"
+                     class="alert alert-warning mt-4 mb-0"
+                     style="display:none;">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    <strong>Insufficient Stock</strong>
+
+                    <div class="small mt-1">
+                        Damage quantity cannot be greater than available stock.
+                    </div>
+
+                </div>
+
+
+                <!-- Stock Success -->
+
+                <div id="stockValid"
+                     class="alert alert-success mt-4 mb-0"
+                     style="display:none;">
+
+                    <i class="bi bi-check-circle me-2"></i>
+
+                    Sufficient stock is available for this damage entry.
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             REMARKS
+        ========================================================= -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 py-3">
+
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-chat-left-text me-2"></i>
+                    Remarks
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <label asp-for="Remarks"
+                       class="form-label fw-semibold">
+                    Remarks
+                </label>
+
+                <textarea asp-for="Remarks"
+                          class="form-control"
+                          rows="4"
+                          placeholder="Enter additional information about the damaged stock..."></textarea>
+
+                <span asp-validation-for="Remarks"
+                      class="text-danger small">
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             SUBMIT
+        ========================================================= -->
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                    <div class="text-muted">
+
+                        <i class="bi bi-info-circle me-1"></i>
+
+                        Saving this entry will reduce the available warehouse stock.
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-x-lg me-1"></i>
+                            Cancel
+
+                        </a>
+
+                        <button type="submit"
+                                id="saveButton"
+                                class="btn btn-danger">
+
+                            <i class="bi bi-check-lg me-1"></i>
+
+                            Save Damage Entry
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+    
+
+</div>
+
+@section Scripts {
+
+    
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const warehouseSelect =
+                document.getElementById("warehouseId");
+
+            const productSelect =
+                document.getElementById("productId");
+
+            const damageSelect =
+                document.getElementById("damageId");
+
+            const quantityInput =
+                document.getElementById("quantity");
+
+            const availableQuantityInput =
+                document.getElementById("availableQuantity");
+
+            const unitCostInput =
+                document.getElementById("unitCost");
+
+            const totalValueInput =
+                document.getElementById("totalValue");
+
+            const stockMessage =
+                document.getElementById("stockMessage");
+
+            const stockWarning =
+                document.getElementById("stockWarning");
+
+            const stockValid =
+                document.getElementById("stockValid");
+
+            const form =
+                document.getElementById("damageEntryForm");
+
+            const saveButton =
+                document.getElementById("saveButton");
+
+
+            let availableQuantity = 0;
+            let unitCost = 0;
+
+
+            // ========================================================
+            // LOAD STOCK
+            // ========================================================
+
+            async function loadStock() {
+
+                const warehouseId =
+                    warehouseSelect.value;
+
+                const productId =
+                    productSelect.value;
+
+
+                availableQuantity = 0;
+                unitCost = 0;
+
+                availableQuantityInput.value = "0.00";
+                unitCostInput.value = "0.00";
+
+                stockWarning.style.display = "none";
+                stockValid.style.display = "none";
+
+
+                if (!warehouseId || !productId) {
+
+                    stockMessage.textContent =
+                        "Select warehouse and product.";
+
+                    stockMessage.className =
+                        "text-muted";
+
+                    calculateTotal();
+
+                    return;
+                }
+
+
+                stockMessage.textContent =
+                    "Checking available stock...";
+
+                stockMessage.className =
+                    "text-muted";
+
+
+                try {
+
+                    const url =
+                        '@Url.Action("GetAvailableStock", "DamageEntry")'
+                        + '?productId='
+                        + encodeURIComponent(productId)
+                        + '&warehouseId='
+                        + encodeURIComponent(warehouseId);
+
+
+                    const response =
+                        await fetch(url);
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Unable to load stock."
+                        );
+
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!data.success) {
+
+                        stockMessage.textContent =
+                            data.message ||
+                            "Unable to load stock.";
+
+                        stockMessage.className =
+                            "text-danger";
+
+                        calculateTotal();
+
+                        return;
+                    }
+
+
+                    availableQuantity =
+                        Number(data.availableQuantity || 0);
+
+                    unitCost =
+                        Number(data.unitCost || 0);
+
+
+                    availableQuantityInput.value =
+                        availableQuantity.toFixed(2);
+
+                    unitCostInput.value =
+                        unitCost.toFixed(2);
+
+
+                    if (availableQuantity <= 0) {
+
+                        stockMessage.textContent =
+                            "No available stock.";
+
+                        stockMessage.className =
+                            "text-danger";
+
+                    }
+                    else {
+
+                        stockMessage.textContent =
+                            "Available stock loaded successfully.";
+
+                        stockMessage.className =
+                            "text-success";
+
+                    }
+
+
+                    calculateTotal();
+
+                }
+                catch (error) {
+
+                    console.error(error);
+
+                    stockMessage.textContent =
+                        "Unable to check stock.";
+
+                    stockMessage.className =
+                        "text-danger";
+
+                    calculateTotal();
+
+                }
+
+            }
+
+
+            // ========================================================
+            // CALCULATE TOTAL
+            // ========================================================
+
+            function calculateTotal() {
+
+                const quantity =
+                    Number(quantityInput.value || 0);
+
+
+                const total =
+                    quantity * unitCost;
+
+
+                totalValueInput.value =
+                    total.toFixed(2);
+
+
+                validateQuantity();
+
+            }
+
+
+            // ========================================================
+            // VALIDATE QUANTITY
+            // ========================================================
+
+            function validateQuantity() {
+
+                const quantity =
+                    Number(quantityInput.value || 0);
+
+
+                stockWarning.style.display = "none";
+                stockValid.style.display = "none";
+
+
+                /*
+                 * Do not disable Save button just because the
+                 * quantity is empty. Server-side validation handles it.
+                 */
+
+                if (quantity <= 0) {
+
+                    saveButton.disabled = false;
+
+                    return true;
+                }
+
+
+                if (!warehouseSelect.value ||
+                    !productSelect.value) {
+
+                    saveButton.disabled = false;
+
+                    return true;
+                }
+
+
+                if (availableQuantity <= 0) {
+
+                    stockWarning.style.display = "block";
+
+                    saveButton.disabled = true;
+
+                    return false;
+                }
+
+
+                if (quantity > availableQuantity) {
+
+                    stockWarning.style.display = "block";
+
+                    saveButton.disabled = true;
+
+                    return false;
+                }
+
+
+                stockValid.style.display = "block";
+
+                saveButton.disabled = false;
+
+                return true;
+
+            }
+
+
+            // ========================================================
+            // EVENT HANDLERS
+            // ========================================================
+
+            warehouseSelect.addEventListener(
+                "change",
+                loadStock
+            );
+
+
+            productSelect.addEventListener(
+                "change",
+                loadStock
+            );
+
+
+            quantityInput.addEventListener(
+                "input",
+                calculateTotal
+            );
+
+
+            // ========================================================
+            // FORM SUBMIT VALIDATION
+            // ========================================================
+
+            form.addEventListener("submit", function (event) {
+
+                // Damage Type
+
+                if (!damageSelect.value) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select a damage type."
+                    );
+
+                    damageSelect.focus();
+
+                    return;
+                }
+
+
+                // Warehouse
+
+                if (!warehouseSelect.value) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select a warehouse."
+                    );
+
+                    warehouseSelect.focus();
+
+                    return;
+                }
+
+
+                // Product
+
+                if (!productSelect.value) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select a product."
+                    );
+
+                    productSelect.focus();
+
+                    return;
+                }
+
+
+                // Quantity
+
+                const quantity =
+                    Number(quantityInput.value || 0);
+
+
+                if (quantity <= 0) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please enter a valid damage quantity."
+                    );
+
+                    quantityInput.focus();
+
+                    return;
+                }
+
+
+                // Available Stock
+
+                if (quantity > availableQuantity) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Damage quantity cannot exceed available stock."
+                    );
+
+                    quantityInput.focus();
+
+                    return;
+                }
+
+
+                // Confirmation
+
+                const confirmed =
+                    confirm(
+                        "Are you sure you want to save this damage entry? " +
+                        "The damaged quantity will be removed from warehouse stock."
+                    );
+
+
+                if (!confirmed) {
+
+                    event.preventDefault();
+
+                }
+
+            });
+
+
+            // ========================================================
+            // INITIALIZE
+            // ========================================================
+
+            calculateTotal();
+
+        });
+
+    </script>
+    
+
+}

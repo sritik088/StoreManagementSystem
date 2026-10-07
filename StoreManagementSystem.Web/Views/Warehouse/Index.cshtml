@@ -1,4 +1,5 @@
-﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Warehouse>
+﻿
+@model IEnumerable<StoreManagementSystem.Domain.Entities.Warehouse>
 
 @{
     ViewData["Title"] = "Warehouse Management";
@@ -39,44 +40,21 @@
 
     </div>
 
+
     <!-- Dashboard -->
 
     <div class="row mb-4">
 
-        <div class="col-lg-4">
+        <!-- Active Warehouses -->
+
+        <div class="col-lg-6">
 
             <div class="card shadow-sm border-0">
 
                 <div class="card-body">
 
                     <small class="text-muted">
-
-                        Total Warehouses
-
-                    </small>
-
-                    <h2 class="fw-bold">
-
-                        @Model.Count()
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-4">
-
-            <div class="card shadow-sm border-0">
-
-                <div class="card-body">
-
-                    <small class="text-muted">
-
                         Active
-
                     </small>
 
                     <h2 class="fw-bold text-success">
@@ -91,16 +69,17 @@
 
         </div>
 
-        <div class="col-lg-4">
+
+        <!-- Inactive Warehouses -->
+
+        <div class="col-lg-6">
 
             <div class="card shadow-sm border-0">
 
                 <div class="card-body">
 
                     <small class="text-muted">
-
                         Inactive
-
                     </small>
 
                     <h2 class="fw-bold text-danger">
@@ -117,6 +96,7 @@
 
     </div>
 
+
     <!-- Table -->
 
     <div class="card shadow border-0">
@@ -132,6 +112,7 @@
             </h5>
 
         </div>
+
 
         <div class="card-body">
 
@@ -164,6 +145,7 @@
 
                     </thead>
 
+
                     <tbody>
 
                         @{
@@ -175,58 +157,57 @@
 
                             <tr>
 
-                                <td>@sr</td>
+                                <td>
+                                    @sr
+                                </td>
+
 
                                 <td>
 
-                                    <strong>@item.Name</strong>
+                                    <strong>
+                                        @item.Name
+                                    </strong>
 
                                 </td>
 
-                                <td>
 
+                                <td>
                                     @item.Code
-
                                 </td>
 
-                                <td>
 
+                                <td>
                                     @item.ManagerName
-
                                 </td>
 
-                                <td>
 
+                                <td>
                                     @item.ContactNumber
-
                                 </td>
+
 
                                 <td>
-
                                     @item.City
-
                                 </td>
+
 
                                 <td>
 
                                     @if (item.IsActive)
                                     {
                                         <span class="badge bg-success">
-
                                             Active
-
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge bg-danger">
-
                                             Inactive
-
                                         </span>
                                     }
 
                                 </td>
+
 
                                 <td>
 
@@ -238,6 +219,7 @@
 
                                     </a>
 
+
                                     <form asp-action="Delete"
                                           asp-route-id="@item.Id"
                                           method="post"
@@ -245,7 +227,8 @@
 
                                         @Html.AntiForgeryToken()
 
-                                        <button class="btn btn-danger btn-sm">
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
 
                                             <i class="bi bi-trash"></i>
 
@@ -273,110 +256,116 @@
 
 </div>
 
+
 @section Scripts
 {
 
     <partial name="_ValidationScriptsPartial" />
 
+
     <script>
 
         $(document).ready(function () {
 
-        $('#warehouseTable').DataTable({
+            $('#warehouseTable').DataTable({
 
-        responsive:true,
+                responsive: true,
 
-        pageLength:10,
+                pageLength: 10,
 
-        order:[[1,'asc']],
+                order: [[1, 'asc']],
 
-        dom:'Bfrtip',
+                dom: 'Bfrtip',
 
-        buttons:[
+                buttons: [
 
-        {
-        extend:'copy',
-        className:'btn btn-secondary'
-        },
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary'
+                    },
 
-        {
-        extend:'excel',
-        className:'btn btn-success'
-        },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success'
+                    },
 
-        {
-        extend:'pdf',
-        className:'btn btn-danger'
-        },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger'
+                    },
 
-        {
-        extend:'print',
-        className:'btn btn-info'
-        },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-info'
+                    },
 
-        {
-        extend:'colvis',
-        className:'btn btn-dark'
-        }
+                    {
+                        extend: 'colvis',
+                        className: 'btn btn-dark'
+                    }
 
-        ]
+                ]
+
+            });
+
+
+            $(".deleteForm").submit(function (e) {
+
+                e.preventDefault();
+
+                let form = this;
+
+                Swal.fire({
+
+                    title: "Delete Warehouse?",
+
+                    text: "This action cannot be undone.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Delete"
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        form.submit();
+
+                    }
+
+                });
+
+            });
+
+
+            @if (TempData["Success"] != null)
+            {
+                    <text>
+
+                        toastr.success('@TempData["Success"]');
+
+                    </text>
+            }
+
+
+            @if (TempData["Error"] != null)
+            {
+                    <text>
+
+                        toastr.error('@TempData["Error"]');
+
+                    </text>
+            }
 
         });
-
-        });
-
-        $(".deleteForm").submit(function(e){
-
-        e.preventDefault();
-
-        let form=this;
-
-        Swal.fire({
-
-        title:"Delete Warehouse?",
-
-        text:"This action cannot be undone.",
-
-        icon:"warning",
-
-        showCancelButton:true,
-
-        confirmButtonColor:"#dc3545",
-
-        cancelButtonColor:"#6c757d",
-
-        confirmButtonText:"Delete"
-
-        }).then((result)=>{
-
-        if(result.isConfirmed){
-
-        form.submit();
-
-        }
-
-        });
-
-        });
-
-        @if (TempData["Success"] != null)
-        {
-            <text>
-
-            toastr.success('@TempData["Success"]');
-
-            </text>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <text>
-
-            toastr.error('@TempData["Error"]');
-
-            </text>
-        }
 
     </script>
 
 }
+

@@ -1,0 +1,539 @@
+﻿@model StoreManagementSystem.Web.ViewModels.AccountsPayable.AccountsPayableDashboardViewModel
+
+@{
+    ViewData["Title"] = "Supplier Payables Summary";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-wallet2 me-2"></i>
+                Supplier Payables Summary
+            </h3>
+
+            <div class="text-muted">
+                Purchase orders, goods receipts, payments and outstanding supplier balances
+            </div>
+        </div>
+
+        <a asp-controller="AccountsPayable"
+           asp-action="Index"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-circle me-1"></i>
+            Supplier Payment
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         ALERTS
+         ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-circle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         MAIN SUMMARY CARDS
+         ========================================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- PURCHASE ORDER VALUE -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Purchase Order Value
+                    </div>
+
+                    <div class="fs-3 fw-bold text-primary">
+                        ₹@Model.PurchaseOrderValue.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Active purchase orders
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PENDING PO VALUE -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Pending PO Value
+                    </div>
+
+                    <div class="fs-3 fw-bold text-warning">
+                        ₹@Model.PendingPOValue.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Goods still expected from suppliers
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GOODS RECEIVED -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Goods Received
+                    </div>
+
+                    <div class="fs-3 fw-bold text-info">
+                        ₹@Model.GoodsReceivedValue.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Received through purchase GRNs
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENTS MADE -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Payments Made
+                    </div>
+
+                    <div class="fs-3 fw-bold text-success">
+                        ₹@Model.PaymentsMade.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Payments made to suppliers
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         OUTSTANDING + SUPPLIER COUNT
+         ========================================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- OUTSTANDING PAYABLE -->
+
+        <div class="col-xl-6 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Outstanding Payable
+                    </div>
+
+                    <div class="fs-2 fw-bold text-danger">
+                        ₹@Model.OutstandingPayable.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Goods received value − payments made
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUPPLIERS WITH OUTSTANDING -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Suppliers with Outstanding
+                    </div>
+
+                    <div class="fs-2 fw-bold text-warning">
+                        @Model.SuppliersWithOutstanding
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Suppliers with payable balance
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVE SUPPLIERS -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Active Suppliers
+                    </div>
+
+                    <div class="fs-2 fw-bold text-secondary">
+                        @Model.ActiveSuppliers
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Suppliers with AP activity
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUPPLIER SUMMARY
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-0 fw-bold">
+                        Supplier Payables
+                    </h5>
+
+                    <small class="text-muted">
+                        Purchase orders, received goods, payments and outstanding balances
+                    </small>
+
+                </div>
+
+                <a asp-controller="AccountsPayable"
+                   asp-action="SupplierOutstanding"
+                   class="btn btn-outline-primary btn-sm">
+
+                    <i class="bi bi-eye me-1"></i>
+                    View Outstanding
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>Sr. No.</th>
+
+                        <th>Supplier Name</th>
+
+                        <th>Supplier Code</th>
+
+                        <th class="text-end">
+                            PO Value
+                        </th>
+
+                        <th class="text-end">
+                            Pending PO Value
+                        </th>
+
+                        <th class="text-end">
+                            Goods Received
+                        </th>
+
+                        <th class="text-end">
+                            Payments Made
+                        </th>
+
+                        <th class="text-end">
+                            Outstanding Payable
+                        </th>
+
+                        <th>
+                            Last Receipt Date
+                        </th>
+
+                        <th>
+                            Last Payment Date
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (Model.SupplierSummaries == null ||
+                                        !Model.SupplierSummaries.Any())
+                    {
+                        <tr>
+
+                            <td colspan="10"
+                                class="text-center py-5 text-muted">
+
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+
+                                No supplier payable data available.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        var index = 1;
+
+                        foreach (var item in Model.SupplierSummaries)
+                        {
+                            <tr>
+
+                                <!-- =====================================================
+                                     SR NO
+                                     ===================================================== -->
+
+                                <td>
+                                    @index
+                                </td>
+
+
+                                <!-- =====================================================
+                                     SUPPLIER NAME - CLICKABLE
+                                     ===================================================== -->
+
+                                <td>
+
+                                    <a asp-controller="AccountsPayable"
+                                       asp-action="SupplierLedger"
+                                       asp-route-supplierId="@item.SupplierId"
+                                       class="fw-semibold text-decoration-none">
+
+                                        @item.SupplierName
+
+                                    </a>
+
+                                </td>
+
+
+                                <!-- =====================================================
+                                     SUPPLIER CODE
+                                     ===================================================== -->
+
+                                <td>
+                                    @(item.SupplierCode ?? "-")
+                                </td>
+
+
+                                <!-- =====================================================
+                                     PO VALUE
+                                     ===================================================== -->
+
+                                <td class="text-end">
+
+                                    ₹@item.PurchaseOrderValue.ToString("N2")
+
+                                </td>
+
+
+                                <!-- =====================================================
+                                     PENDING PO VALUE
+                                     ===================================================== -->
+
+                                <td class="text-end">
+
+                                    <span class="fw-semibold @(item.PendingPOValue > 0
+                                                                                                            ? "text-warning"
+                                                                                                            : "text-success")">
+
+                                ₹@item.PendingPOValue.ToString("N2")
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- =====================================================
+                                     GOODS RECEIVED
+                                     ===================================================== -->
+
+                                <td class="text-end">
+
+                                    <span class="text-info fw-semibold">
+
+                                        ₹@item.GoodsReceivedValue.ToString("N2")
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- =====================================================
+                                     PAYMENTS MADE
+                                     ===================================================== -->
+
+                                <td class="text-end">
+
+                                    <span class="text-success fw-semibold">
+
+                                        ₹@item.PaymentsMade.ToString("N2")
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- =====================================================
+                                     OUTSTANDING PAYABLE
+                                     ===================================================== -->
+
+                                <td class="text-end">
+
+                                    <span class="fw-bold @(item.OutstandingPayable > 0
+                                                                                                ? "text-danger"
+                                                                                                : "text-success")">
+
+                                ₹@item.OutstandingPayable.ToString("N2")
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =====================================================
+                             LAST RECEIPT
+                             ===================================================== -->
+
+                        <td>
+
+                            @(item.LastReceiptDate.HasValue
+                                                        ? item.LastReceiptDate.Value.ToString("dd-MMM-yyyy")
+                                                        : "-")
+
+                        </td>
+
+
+                        <!-- =====================================================
+                             LAST PAYMENT
+                             ===================================================== -->
+
+                        <td>
+
+                            @(item.LastPaymentDate.HasValue
+                                                        ? item.LastPaymentDate.Value.ToString("dd-MMM-yyyy")
+                                                        : "-")
+
+                        </td>
+
+                                        </tr>
+
+                                        index++;
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

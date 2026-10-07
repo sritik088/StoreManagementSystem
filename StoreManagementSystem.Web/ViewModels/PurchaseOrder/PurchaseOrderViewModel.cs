@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using StoreManagementSystem.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
 {
@@ -7,21 +8,59 @@ namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
     {
         public int Id { get; set; }
 
-        public string PONumber { get; set; } = string.Empty;
+        // ============================================================
+        // PURCHASE ORDER
+        // ============================================================
 
-        [Required]
-        [Display(Name = "Supplier")]
+        public string? PONumber { get; set; }
+
+        // ============================================================
+        // SUPPLIER
+        // ============================================================
+
+        [Required(ErrorMessage = "Please select a supplier.")]
         public int SupplierId { get; set; }
 
-        [Required]
-        [Display(Name = "Order Date")]
-        [DataType(DataType.Date)]
-        public DateTime OrderDate { get; set; } = DateTime.Today;
+        public List<SelectListItem> Suppliers { get; set; }
+            = new List<SelectListItem>();
+
+        // ============================================================
+        // PRODUCTS
+        // ============================================================
+
+        public List<SelectListItem> Products { get; set; }
+            = new List<SelectListItem>();
+
+        // ============================================================
+        // DATES
+        // ============================================================
 
         [Required]
-        [Display(Name = "Expected Date")]
         [DataType(DataType.Date)]
-        public DateTime ExpectedDate { get; set; } = DateTime.Today.AddDays(7);
+        public DateTime OrderDate { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime ExpectedDate { get; set; }
+
+        // ============================================================
+        // STATUS
+        // ============================================================
+
+        public string Status { get; set; }
+            = PurchaseOrderStatus.Draft.ToString();
+
+        // ============================================================
+        // ITEMS
+        // ============================================================
+
+        [MinLength(1, ErrorMessage = "At least one product is required.")]
+        public List<PurchaseOrderItemViewModel> Items { get; set; }
+            = new List<PurchaseOrderItemViewModel>();
+
+        // ============================================================
+        // TOTALS
+        // ============================================================
 
         public decimal SubTotal { get; set; }
 
@@ -31,17 +70,10 @@ namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
 
         public decimal GrandTotal { get; set; }
 
-        [StringLength(500)]
+        // ============================================================
+        // REMARKS
+        // ============================================================
+
         public string? Remarks { get; set; }
-
-        public string Status { get; set; } = "Draft";
-
-        // Dropdown
-        public IEnumerable<SelectListItem> Suppliers { get; set; }
-            = Enumerable.Empty<SelectListItem>();
-
-        // Detail Grid
-        public List<PurchaseOrderItemViewModel> Items { get; set; }
-            = new();
     }
 }

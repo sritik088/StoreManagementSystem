@@ -1,0 +1,574 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Delivery.DeliveryViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Create Delivery";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+
+            <h4 class="mb-0">
+                <i class="bi bi-truck"></i>
+                Create Delivery
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create"
+                  method="post"
+                  id="deliveryForm">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <!-- SALES ORDER -->
+
+                <div class="row mb-4">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="SalesOrderId"
+                               class="form-label">
+
+                            Sales Order
+
+                        </label>
+
+                        <select asp-for="SalesOrderId"
+                                asp-items="Model.SalesOrders"
+                                id="SalesOrderId"
+                                class="form-select">
+
+                            <option value="">
+                                Select Sales Order
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="SalesOrderId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label asp-for="WarehouseId"
+                               class="form-label">
+
+                            Warehouse
+
+                        </label>
+
+                        <select asp-for="WarehouseId"
+                                asp-items="Model.Warehouses"
+                                id="WarehouseId"
+                                class="form-select">
+
+                            <option value="">
+                                Select Warehouse
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="WarehouseId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- DATE -->
+
+                <div class="row mb-4">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DeliveryDate"
+                               class="form-label">
+
+                            Delivery Date
+
+                        </label>
+
+                        <input asp-for="DeliveryDate"
+                               type="date"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-8">
+
+                        <label asp-for="Remarks"
+                               class="form-label">
+
+                            Remarks
+
+                        </label>
+
+                        <input asp-for="Remarks"
+                               class="form-control"
+                               placeholder="Optional remarks" />
+
+                    </div>
+
+                </div>
+
+                <!-- ITEMS -->
+
+                <h5 class="mb-3">
+                    Delivery Items
+                </h5>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered"
+                           id="deliveryTable">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Product</th>
+
+                                <th>Ordered</th>
+
+                                <th>Already Delivered</th>
+
+                                <th>Remaining</th>
+
+                                <th>Available Stock</th>
+
+                                <th>Delivery Qty</th>
+
+                                <th>Unit Price</th>
+
+                                <th>Total</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="deliveryItems">
+
+                            @if (Model.Items.Any())
+                            {
+                                for (int i = 0;
+                                i < Model.Items.Count;
+                                i++)
+                                {
+                                    <tr>
+
+                                        <td>
+
+                                            @Model.Items[i].SKU
+                                            <br />
+                                            <small>
+                                                @Model.Items[i].ProductName
+                                            </small>
+
+                                            <input type="hidden"
+                                                   name="Items[@i].SalesOrderItemId"
+                                                   value="@Model.Items[i].SalesOrderItemId" />
+
+                                            <input type="hidden"
+                                                   name="Items[@i].ProductId"
+                                                   value="@Model.Items[i].ProductId" />
+
+                                        </td>
+
+                                        <td>
+                                            @Model.Items[i].OrderedQuantity
+                                        </td>
+
+                                        <td>
+                                            @Model.Items[i].AlreadyDeliveredQuantity
+                                        </td>
+
+                                        <td>
+                                            @Model.Items[i].RemainingQuantity
+                                        </td>
+
+                                        <td>
+                                            @Model.Items[i].AvailableStock
+                                        </td>
+
+                                        <td>
+
+                                            <input type="number"
+                                                   name="Items[@i].DeliveryQuantity"
+                                                   class="form-control deliveryQty"
+                                                   min="0"
+                                                   max="@Math.Min(Model.Items[i].RemainingQuantity, Model.Items[i].AvailableStock)"
+                                                   step="0.01"
+                                                   value="0" />
+
+                                        </td>
+
+                                        <td>
+
+                                            <input type="number"
+                                                   name="Items[@i].UnitPrice"
+                                                   class="form-control unitPrice"
+                                                   value="@Model.Items[i].UnitPrice"
+                                                   readonly />
+
+                                        </td>
+
+                                        <td>
+
+                                            <input type="text"
+                                                   class="form-control lineTotal"
+                                                   value="0.00"
+                                                   readonly />
+
+                                        </td>
+
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- TOTAL -->
+
+                <div class="row justify-content-end">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-bold">
+                            Total Amount
+                        </label>
+
+                        <input type="text"
+                               id="GrandTotal"
+                               class="form-control fw-bold"
+                               value="0.00"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+                <!-- BUTTONS -->
+
+                <div class="mt-4">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check-circle"></i>
+                        Create Delivery
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        // =========================================================
+        // SALES ORDER CHANGE
+        // =========================================================
+
+        $("#SalesOrderId").change(function () {
+
+            let salesOrderId =
+                $(this).val();
+
+            $("#deliveryItems").empty();
+
+            if (!salesOrderId) {
+                return;
+            }
+
+            $.ajax({
+
+                url:
+                    '@Url.Action("GetSalesOrderItems", "Delivery")',
+
+                type: "GET",
+
+                data: {
+                    salesOrderId: salesOrderId
+                },
+
+                success: function (items) {
+
+                    if (!items || items.length === 0) {
+
+                        $("#deliveryItems").html(`
+                            <tr>
+                                <td colspan="8"
+                                    class="text-center text-danger">
+                                    No remaining items available for delivery.
+                                </td>
+                            </tr>
+                        `);
+
+                        return;
+                    }
+
+                    $.each(items, function (index, item) {
+
+                        let maxQty =
+                            Math.min(
+                                item.remainingQuantity,
+                                item.availableStock
+                            );
+
+                        let row = `
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+                                        ${item.sku}
+                                    </strong>
+
+                                    <br />
+
+                                    <small>
+                                        ${item.productName ?? ""}
+                                    </small>
+
+                                    <input type="hidden"
+                                           name="Items[${index}].SalesOrderItemId"
+                                           value="${item.salesOrderItemId}" />
+
+                                    <input type="hidden"
+                                           name="Items[${index}].ProductId"
+                                           value="${item.productId}" />
+
+                                </td>
+
+                                <td>
+                                    ${item.orderedQuantity}
+                                </td>
+
+                                <td>
+                                    ${item.alreadyDeliveredQuantity}
+                                </td>
+
+                                <td>
+                                    ${item.remainingQuantity}
+                                </td>
+
+                                <td>
+                                    ${item.availableStock}
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           name="Items[${index}].DeliveryQuantity"
+                                           class="form-control deliveryQty"
+                                           min="0"
+                                           max="${maxQty}"
+                                           step="0.01"
+                                           value="0" />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           name="Items[${index}].UnitPrice"
+                                           class="form-control unitPrice"
+                                           value="${item.unitPrice}"
+                                           readonly />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="text"
+                                           class="form-control lineTotal"
+                                           value="0.00"
+                                           readonly />
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                        $("#deliveryItems")
+                            .append(row);
+
+                    });
+
+                },
+
+                error: function () {
+
+                    alert(
+                        "Unable to load Sales Order items."
+                    );
+
+                }
+
+            });
+
+        });
+
+
+        // =========================================================
+        // QUANTITY CHANGE
+        // =========================================================
+
+        $(document).on(
+            "input",
+            ".deliveryQty",
+            function () {
+
+                let row =
+                    $(this).closest("tr");
+
+                let qty =
+                    parseFloat(
+                        $(this).val()
+                    ) || 0;
+
+                let max =
+                    parseFloat(
+                        $(this).attr("max")
+                    ) || 0;
+
+                if (qty > max) {
+
+                    $(this).val(max);
+
+                    qty = max;
+
+                }
+
+                let price =
+                    parseFloat(
+                        row.find(".unitPrice").val()
+                    ) || 0;
+
+                let total =
+                    qty * price;
+
+                row.find(".lineTotal")
+                   .val(
+                       total.toFixed(2)
+                   );
+
+                calculateGrandTotal();
+
+            }
+        );
+
+
+        // =========================================================
+        // GRAND TOTAL
+        // =========================================================
+
+        function calculateGrandTotal() {
+
+            let total = 0;
+
+            $(".lineTotal").each(function () {
+
+                total +=
+                    parseFloat(
+                        $(this).val()
+                    ) || 0;
+
+            });
+
+            $("#GrandTotal")
+                .val(
+                    total.toFixed(2)
+                );
+        }
+
+
+        // =========================================================
+        // FORM VALIDATION
+        // =========================================================
+
+        $("#deliveryForm").submit(function (event) {
+
+            let rows =
+                $("#deliveryItems tr");
+
+            if (rows.length === 0) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please select a Sales Order with remaining items."
+                );
+
+                return false;
+            }
+
+            let valid = false;
+
+            $(".deliveryQty").each(function () {
+
+                let qty =
+                    parseFloat(
+                        $(this).val()
+                    ) || 0;
+
+                if (qty > 0) {
+                    valid = true;
+                }
+
+            });
+
+            if (!valid) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please enter at least one delivery quantity."
+                );
+
+                return false;
+            }
+
+            return true;
+
+        });
+
+    </script>
+
+}

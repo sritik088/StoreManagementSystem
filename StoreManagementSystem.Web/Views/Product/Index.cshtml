@@ -3,68 +3,68 @@
 @{
     ViewData["Title"] = "Product Management";
     Layout = "_AdminLayout";
+
+    var products = Model.ToList();
 }
 
 <div class="container-fluid">
 
-    <!-- Page Header -->
-
+    <!-- PAGE HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-
             <h2 class="fw-bold">
-
                 <i class="bi bi-box-seam-fill text-primary"></i>
-
                 Product Management
-
             </h2>
 
-            <p class="text-muted">
-
-                Manage all products, inventory and pricing.
-
+            <p class="text-muted mb-0">
+                Manage products and their classification.
             </p>
-
         </div>
 
         <div>
-
             <a asp-action="Create"
                class="btn btn-primary">
 
                 <i class="bi bi-plus-circle"></i>
-
                 Add Product
 
             </a>
-
         </div>
 
     </div>
 
-    <!-- Dashboard -->
 
+    <!-- SUMMARY CARDS -->
     <div class="row mb-4">
 
-        <div class="col-lg-3">
+        <!-- Total Products -->
+        <div class="col-lg-3 col-md-6 mb-3">
 
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0 h-100">
 
                 <div class="card-body">
 
-                    <small class="text-muted">
+                    <div class="d-flex justify-content-between">
 
-                        Total Products
+                        <div>
 
-                    </small>
+                            <small class="text-muted">
+                                Total Products
+                            </small>
 
-                    <h2 class="fw-bold">
+                            <h2 class="fw-bold mb-0">
+                                @products.Count
+                            </h2>
 
-                        @Model.Count()
+                        </div>
 
-                    </h2>
+                        <div class="text-primary fs-2">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -72,71 +72,36 @@
 
         </div>
 
-        <div class="col-lg-3">
 
-            <div class="card shadow-sm border-0">
+        <!-- Products with Barcode -->
+        <div class="col-lg-3 col-md-6 mb-3">
 
-                <div class="card-body">
-
-                    <small class="text-muted">
-
-                        Active Products
-
-                    </small>
-
-                    <h2 class="fw-bold text-success">
-
-                        @Model.Count(x=>x.IsActive)
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-3">
-
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0 h-100">
 
                 <div class="card-body">
 
-                    <small class="text-muted">
+                    <div class="d-flex justify-content-between">
 
-                        Low Stock
+                        <div>
 
-                    </small>
+                            <small class="text-muted">
+                                With Barcode
+                            </small>
 
-                    <h2 class="fw-bold text-danger">
+                            <h2 class="fw-bold text-success mb-0">
 
-                        @Model.Count(x=>x.CurrentStock<=x.ReorderLevel)
+                                @products.Count(x =>
+                                !string.IsNullOrWhiteSpace(x.Barcode))
 
-                    </h2>
+                            </h2>
 
-                </div>
+                        </div>
 
-            </div>
+                        <div class="text-success fs-2">
+                            <i class="bi bi-upc-scan"></i>
+                        </div>
 
-        </div>
-
-        <div class="col-lg-3">
-
-            <div class="card shadow-sm border-0">
-
-                <div class="card-body">
-
-                    <small class="text-muted">
-
-                        Inactive
-
-                    </small>
-
-                    <h2 class="fw-bold text-secondary">
-
-                        @Model.Count(x=>!x.IsActive)
-
-                    </h2>
+                    </div>
 
                 </div>
 
@@ -146,8 +111,8 @@
 
     </div>
 
-    <!-- Product Table -->
 
+    <!-- PRODUCT TABLE -->
     <div class="card shadow border-0">
 
         <div class="card-header bg-light">
@@ -155,12 +120,12 @@
             <h5 class="mb-0">
 
                 <i class="bi bi-table"></i>
-
                 Product List
 
             </h5>
 
         </div>
+
 
         <div class="card-body">
 
@@ -175,203 +140,88 @@
 
                             <th>#</th>
 
-                            <th>Image</th>
-
-                            <th>Product</th>
+                            <th>Main Category</th>
 
                             <th>SKU</th>
 
-                            <th>Barcode</th>
-
-                            <th>Category</th>
-
-                            <th>Brand</th>
-
-                            <th>Supplier</th>
-
-                            <th>Warehouse</th>
-
-                            <th>Purchase</th>
-
-                            <th>Selling</th>
-
-                            <th>Stock</th>
-
-                            <th>Status</th>
-
-                            <th width="170">
-
+                            <th width="150">
                                 Action
-
                             </th>
 
                         </tr>
 
                     </thead>
 
+
                     <tbody>
 
                         @{
-
                             int sr = 1;
-
                         }
 
                         @foreach (var item in Model)
                         {
-
                             <tr>
 
+                                <!-- Serial Number -->
                                 <td>
-
                                     @sr
-
                                 </td>
 
+
+                                <!-- Main Category -->
                                 <td>
 
-                                    @if (string.IsNullOrWhiteSpace(item.ImageUrl))
+                                    @if (item.MainCategory != null)
                                     {
-                                        <img src="/images/no-image.png"
-                                             width="60"
-                                             height="60"
-                                             class="rounded border"
-                                             style="object-fit:cover;" />
-                                    }
-                                    else
-                                    {
-                                        <img src="@item.ImageUrl"
-                                             width="60"
-                                             height="60"
-                                             class="rounded border"
-                                             style="object-fit:cover;" />
-                                    }
-
-                                </td>
-
-                                <td>
-
-                                    <strong>
-
-                                        @item.Name
-
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    @item.SKU
-
-                                </td>
-
-                                <td>
-
-                                    @item.Barcode
-
-                                </td>
-
-                                <td>
-
-                                    @item.Category?.Name
-
-                                </td>
-
-                                <td>
-
-                                    @item.Brand?.Name
-
-                                </td>
-
-                                <td>
-
-                                    @item.Supplier?.Name
-
-                                </td>
-
-                                <td>
-
-                                    @item.Warehouse?.Name
-
-                                </td>
-
-                                <td>
-
-                                    ₹ @item.PurchasePrice.ToString("N2")
-
-                                </td>
-
-                                <td>
-
-                                    ₹ @item.SellingPrice.ToString("N2")
-
-                                </td>
-
-                                <td>
-
-                                    @if (item.CurrentStock <= item.ReorderLevel)
-                                    {
-                                        <span class="badge bg-danger">
-
-                                            @item.CurrentStock
-
-                                            <br />
-
-                                            Low Stock
-
+                                        <span class="badge bg-primary">
+                                            @item.MainCategory.Name
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success">
-
-                                            @item.CurrentStock
-
+                                        <span class="text-muted">
+                                            -
                                         </span>
                                     }
 
                                 </td>
 
+
+                                <!-- SKU -->
                                 <td>
 
-                                    @if (item.IsActive)
-                                    {
-                                        <span class="badge bg-success">
-
-                                            Active
-
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">
-
-                                            Inactive
-
-                                        </span>
-                                    }
+                                    <span class="badge bg-dark">
+                                        @item.SKU
+                                    </span>
 
                                 </td>
 
+
+                                <!-- Actions -->
                                 <td>
 
                                     <div class="btn-group">
 
                                         <a asp-action="Details"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-info btn-sm">
+                                           class="btn btn-info btn-sm"
+                                           title="Details">
 
                                             <i class="bi bi-eye"></i>
 
                                         </a>
 
+
                                         <a asp-action="Edit"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-warning btn-sm">
+                                           class="btn btn-warning btn-sm"
+                                           title="Edit">
 
                                             <i class="bi bi-pencil-square"></i>
 
                                         </a>
+
 
                                         <form asp-action="Delete"
                                               asp-route-id="@item.Id"
@@ -381,7 +231,8 @@
                                             @Html.AntiForgeryToken()
 
                                             <button type="submit"
-                                                    class="btn btn-danger btn-sm">
+                                                    class="btn btn-danger btn-sm"
+                                                    title="Delete">
 
                                                 <i class="bi bi-trash"></i>
 
@@ -396,7 +247,6 @@
                             </tr>
 
                             sr++;
-
                         }
 
                     </tbody>
@@ -411,9 +261,8 @@
 
 </div>
 
-@section Scripts {
 
-    <partial name="_ValidationScriptsPartial" />
+@section Scripts {
 
     <script>
 
@@ -430,15 +279,11 @@
                 pageLength: 10,
 
                 lengthMenu: [
-                    [10,25,50,100,-1],
-                    [10,25,50,100,"All"]
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
                 ],
 
-                order: [[2,"asc"]],
-
-                scrollX: true,
-
-                fixedHeader: true,
+                order: [[1, "asc"]],
 
                 dom:
                     "<'row mb-3'<'col-md-6'B><'col-md-6'f>>" +
@@ -508,5 +353,4 @@
         });
 
     </script>
-
 }

@@ -1,280 +1,1544 @@
 ﻿@model StoreManagementSystem.Web.ViewModels.Dashboard.DashboardViewModel
 
+@using StoreManagementSystem.Application.Interfaces
+@inject ISystemSettingService SystemSettingService
+
 @{
-    Layout = "_AdminLayout";
     ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
+
+    // =========================================================
+    // DYNAMIC LOCATION TERMINOLOGY
+    // =========================================================
+
+    var locationLabel =
+        await SystemSettingService.GetLocationLabelAsync();
+
+    var locationPluralLabel =
+        await SystemSettingService.GetLocationPluralLabelAsync();
+
+    if (string.IsNullOrWhiteSpace(locationLabel))
+    {
+        locationLabel = "Warehouse";
+    }
+
+    if (string.IsNullOrWhiteSpace(locationPluralLabel))
+    {
+        locationPluralLabel = "Warehouses";
+    }
+
+    var locationLabelLower =
+        locationLabel.ToLowerInvariant();
+
+
+    // =========================================================
+    // DYNAMIC SALES ORDER SETTINGS
+    // =========================================================
+
+    var salesOrderEnabled =
+        await SystemSettingService.IsSalesOrderEnabledAsync();
+
+    var salesOrderLabel =
+        await SystemSettingService.GetSalesOrderLabelAsync();
+
+    var salesOrderPluralLabel =
+        await SystemSettingService.GetSalesOrderPluralLabelAsync();
+
+    if (string.IsNullOrWhiteSpace(salesOrderLabel))
+    {
+        salesOrderLabel = "Sales Order";
+    }
+
+    if (string.IsNullOrWhiteSpace(salesOrderPluralLabel))
+    {
+        salesOrderPluralLabel = "Sales Orders";
+    }
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
 
-    <div>
-        <h2 class="fw-bold mb-1">Dashboard</h2>
-        <p class="text-muted mb-0">
-            Welcome back! Here's what's happening in your store today.
-        </p>
+    .dashboard-click-card {
+        transition: all 0.2s ease;
+    }
+
+        .dashboard-click-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .dashboard-anchor {
+        scroll-margin-top: 90px;
+    }
+</style>
+
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-speedometer2 me-2"></i>
+
+                Dashboard
+
+            </h2>
+
+            <p class="text-muted mb-0">
+                Business overview and inventory analytics
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <a asp-controller="Analytics"
+               asp-action="Index"
+               class="btn btn-primary">
+
+                <i class="bi bi-bar-chart-line me-1"></i>
+
+                View Analytics
+
+            </a>
+
+        </div>
+
     </div>
 
-    <div>
-        <a asp-controller="Product" asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i>
-            New Product
-        </a>
 
-        <a asp-controller="PurchaseOrder" asp-action="Create" class="btn btn-success ms-2">
-            <i class="bi bi-cart-plus"></i>
-            New Purchase
-        </a>
+    <!-- =========================================================
+         FILTERS
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form asp-controller="Dashboard"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- MAIN CATEGORY -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Main Category
+                        </label>
+
+                        <select name="mainCategoryId"
+                                class="form-select">
+
+                            <option value="">
+                                All Main Categories
+                            </option>
+
+                            @foreach (var item in Model.MainCategories)
+                            {
+                                if (Model.MainCategoryFilterId == item.Id)
+                                {
+                                    <option value="@item.Id" selected>
+                                        @item.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Id">
+                                        @item.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PURCHASE ORDER STATUS -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Purchase Order
+                        </label>
+
+                        <select name="purchaseOrderStatus"
+                                class="form-select">
+
+                            <option value="">
+                                All Purchase Orders
+                            </option>
+
+                            @foreach (var item in Model.PurchaseOrderStatuses)
+                            {
+                                if (Model.PurchaseOrderStatusFilter == item.Value)
+                                {
+                                    <option value="@item.Value" selected>
+                                        @item.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">
+                                        @item.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div class="col-md-4">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-funnel me-1"></i>
+
+                                Apply Filter
+
+                            </button>
+
+
+                            <a asp-controller="Dashboard"
+                               asp-action="Index"
+                               class="btn btn-outline-secondary">
+
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+
+                                Reset
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 
-</div>
 
-<div class="row g-4">
+    <!-- =========================================================
+         TOP STAT CARDS
+    ========================================================== -->
 
-    <div class="col-lg-3 col-md-6">
+    <div class="row g-4 mb-4">
 
-        <div class="card shadow-sm border-0">
 
-            <div class="card-body d-flex justify-content-between align-items-center">
+        <!-- =====================================================
+             TOTAL PRODUCTS
+        ====================================================== -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total Products
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalProducts
+                            </h3>
+
+                        </div>
+
+                        <div class="fs-2 text-primary">
+
+                            <i class="bi bi-box-seam"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SALES ORDERS
+             ONLY SHOW WHEN SALES ORDER IS ENABLED
+        ====================================================== -->
+        @if (salesOrderEnabled)
+        {
+            <div class="col-xl-3 col-md-6">
+
+                <a href="#salesOrderSummary"
+                   class="text-decoration-none d-block h-100">
+
+                    <div class="card border-0 shadow-sm h-100 dashboard-click-card">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between">
+
+                                <div>
+
+                                    <div class="text-muted small">
+                                        @salesOrderPluralLabel
+                                    </div>
+
+                                    <h3 class="fw-bold mb-0 text-dark">
+                                        @Model.TotalSalesOrders
+                                    </h3>
+
+                                </div>
+
+                                <div class="fs-2 text-success">
+
+                                    <i class="bi bi-cart-check"></i>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            </div>
+        }
+
+
+        <!-- =====================================================
+             PURCHASE ORDERS
+        ====================================================== -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <a href="#purchaseOrderSummary"
+               class="text-decoration-none d-block h-100">
+
+                <div class="card border-0 shadow-sm h-100 dashboard-click-card">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+
+                                <div class="text-muted small">
+                                    Purchase Orders
+                                </div>
+
+                                <h3 class="fw-bold mb-0 text-dark">
+                                    @Model.TotalPurchaseOrders
+                                </h3>
+
+                            </div>
+
+                            <div class="fs-2 text-warning">
+
+                                <i class="bi bi-bag-check"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             DYNAMIC LOCATION
+        ====================================================== -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                @locationPluralLabel
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalWarehouses
+                            </h3>
+
+                        </div>
+
+                        <div class="fs-2 text-info">
+
+                            <i class="bi bi-buildings"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SALES / INVENTORY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- SALES -->
+        @if (salesOrderEnabled)
+        {
+            <div class="col-xl-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <h5 class="fw-bold mb-0">
+
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+
+                            @salesOrderPluralLabel Overview
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body px-4">
+
+                        <div class="row g-3">
+
+
+                            <div class="col-md-4">
+
+                                <div class="p-3 bg-light rounded">
+
+                                    <small class="text-muted">
+                                        Today Sales
+                                    </small>
+
+                                    <h5 class="fw-bold mb-0 mt-1">
+                                        ₹@Model.TodaySales.ToString("N2")
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="p-3 bg-light rounded">
+
+                                    <small class="text-muted">
+                                        Monthly Sales
+                                    </small>
+
+                                    <h5 class="fw-bold mb-0 mt-1">
+                                        ₹@Model.MonthlySales.ToString("N2")
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="p-3 bg-light rounded">
+
+                                    <small class="text-muted">
+                                        Total Revenue
+                                    </small>
+
+                                    <h5 class="fw-bold mb-0 mt-1">
+                                        ₹@Model.TotalRevenue.ToString("N2")
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+
+        <!-- INVENTORY -->
+
+        <div class="@(salesOrderEnabled ? "col-xl-6" : "col-xl-12")">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <h5 class="fw-bold mb-0">
+
+                        <i class="bi bi-boxes me-2"></i>
+
+                        Live Inventory
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body px-4">
+
+                    <div class="row g-3">
+
+
+                        <div class="col-md-4">
+
+                            <div class="p-3 bg-light rounded">
+
+                                <small class="text-muted">
+                                    Stock Quantity
+                                </small>
+
+                                <h5 class="fw-bold mb-0 mt-1">
+                                    @Model.TotalStockQuantity.ToString("N2")
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="p-3 bg-light rounded">
+
+                                <small class="text-muted">
+                                    Available
+                                </small>
+
+                                <h5 class="fw-bold mb-0 mt-1">
+                                    @Model.AvailableStockQuantity.ToString("N2")
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="p-3 bg-light rounded">
+
+                                <small class="text-muted">
+                                    Inventory Value
+                                </small>
+
+                                <h5 class="fw-bold mb-0 mt-1">
+                                    ₹@Model.InventoryValue.ToString("N2")
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MAIN CATEGORY BUSINESS ANALYTICS
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-header bg-white border-0 pt-4 px-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
 
                 <div>
-                    <small class="text-muted">Products</small>
-                    <h2 class="fw-bold">@Model.TotalProducts</h2>
+
+                    <h5 class="fw-bold mb-1">
+
+                        <i class="bi bi-bar-chart-fill me-2"></i>
+
+                        Main Category Business Analytics
+
+                    </h5>
+
+                    <small class="text-muted">
+                        Opening + Purchase − Sale − Damage = Calculated Closing
+                    </small>
+
                 </div>
 
-                <div class="fs-1 text-primary">
-                    <i class="bi bi-box-seam"></i>
-                </div>
+
+                <a asp-controller="Analytics"
+                   asp-action="Index"
+                   class="btn btn-sm btn-primary">
+
+                    <i class="bi bi-bar-chart-line me-1"></i>
+
+                    View Analytics
+
+                </a>
 
             </div>
 
         </div>
 
-    </div>
 
-    <div class="col-lg-3 col-md-6">
+        <div class="card-body px-4 pb-4">
 
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body d-flex justify-content-between align-items-center">
-
-                <div>
-                    <small class="text-muted">Categories</small>
-                    <h2 class="fw-bold">@Model.TotalCategories</h2>
-                </div>
-
-                <div class="fs-1 text-success">
-                    <i class="bi bi-grid"></i>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body d-flex justify-content-between align-items-center">
-
-                <div>
-                    <small class="text-muted">Suppliers</small>
-                    <h2 class="fw-bold">@Model.TotalSuppliers</h2>
-                </div>
-
-                <div class="fs-1 text-warning">
-                    <i class="bi bi-truck"></i>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body d-flex justify-content-between align-items-center">
-
-                <div>
-                    <small class="text-muted">Low Stock</small>
-                    <h2 class="fw-bold text-danger">@Model.LowStockProducts</h2>
-                </div>
-
-                <div class="fs-1 text-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<div class="row mt-4">
-
-    <div class="col-lg-4">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body text-center">
-
-                <h6 class="text-muted">Today's Sales</h6>
-
-                <h3 class="fw-bold text-success">
-                    $@Model.TodaySales.ToString("N2")
-                </h3>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-4">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body text-center">
-
-                <h6 class="text-muted">Monthly Sales</h6>
-
-                <h3 class="fw-bold text-primary">
-                    $@Model.MonthlySales.ToString("N2")
-                </h3>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-4">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body text-center">
-
-                <h6 class="text-muted">Inventory Value</h6>
-
-                <h3 class="fw-bold text-warning">
-                    $@Model.InventoryValue.ToString("N2")
-                </h3>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<div class="row mt-5">
-
-    <div class="col-lg-8">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-header bg-white">
-
-                <h5 class="mb-0">
-                    Recent Purchase Orders
-                </h5>
-
-            </div>
-
-            <div class="table-responsive">
-
-                <table class="table table-hover align-middle mb-0">
-
-                    <thead class="table-light">
-
-                        <tr>
-
-                            <th>PO No.</th>
-                            <th>Supplier</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td>PO-1001</td>
-                            <td>ABC Traders</td>
-                            <td>29-Jul-2026</td>
-                            <td>$2,450.00</td>
-                            <td><span class="badge bg-success">Completed</span></td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>PO-1002</td>
-                            <td>XYZ Suppliers</td>
-                            <td>28-Jul-2026</td>
-                            <td>$1,650.00</td>
-                            <td><span class="badge bg-warning text-dark">Pending</span></td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-4">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-header bg-white">
-
-                <h5 class="mb-0">
-                    Low Stock Products
-                </h5>
-
-            </div>
-
-            <div class="list-group list-group-flush">
-
-                @if (Model.LowStockItems.Any())
+            @if (Model.MainCategoryAnalytics.Any())
+            {
+                foreach (var category in Model.MainCategoryAnalytics)
                 {
-                    @foreach (var item in Model.LowStockItems)
-                    {
-                        <div class="list-group-item d-flex justify-content-between">
+                    var openingWidth =
+                    category.CalculatedClosingBalance > 0
+                    ? Math.Max(
+                    8,
+                    (double)(
+                    category.OpeningBalance /
+                    Math.Max(
+                    category.TotalAvailableBeforeOutflow,
+                    1) *
+                    100))
+                    : 8;
 
-                            <span>@item.ProductName</span>
 
-                            <span class="badge bg-danger">
-                                @item.Stock
+                    var purchaseWidth =
+                    category.CalculatedClosingBalance > 0
+                    ? Math.Max(
+                    8,
+                    (double)(
+                    category.PurchaseBalance /
+                    Math.Max(
+                    category.TotalAvailableBeforeOutflow,
+                    1) *
+                    100))
+                    : 8;
+
+
+                    var saleWidth =
+                    category.TotalAvailableBeforeOutflow > 0
+                    ? Math.Min(
+                    100,
+                    (double)(
+                    category.SaleBalance /
+                    category.TotalAvailableBeforeOutflow *
+                    100))
+                    : 0;
+
+
+                    var damageWidth =
+                    category.TotalAvailableBeforeOutflow > 0
+                    ? Math.Min(
+                    100,
+                    (double)(
+                    category.Damage /
+                    category.TotalAvailableBeforeOutflow *
+                    100))
+                    : 0;
+
+
+                    var closingWidth =
+                    category.TotalAvailableBeforeOutflow > 0
+                    ? Math.Max(
+                    5,
+                    100 -
+                    saleWidth -
+                    damageWidth)
+                    : 5;
+
+
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+
+                            <div>
+
+                                <strong>
+                                    @category.MainCategoryName
+                                </strong>
+
+                                <span class="text-muted ms-2">
+                                    @category.StockBalance.ToString("N2")
+                                    current stock
+                                </span>
+
+                            </div>
+
+                            <div class="text-muted small">
+                                @category.PercentageOfTotal.ToString("N1")%
+                            </div>
+
+                        </div>
+
+
+                        <!-- ONE BUSINESS BAR -->
+
+                        <div class="progress"
+                             style="height:42px;">
+
+                            @if (category.OpeningBalance > 0)
+                            {
+                                <div class="progress-bar text-dark"
+                                     style="width:@openingWidth%; background:#fff3cd;"
+                                     title="Opening: @category.OpeningBalance.ToString("N2")">
+
+                                    @category.OpeningBalance.ToString("N2")
+
+                                </div>
+                            }
+
+
+                            @if (category.PurchaseBalance > 0)
+                            {
+                                <div class="progress-bar text-dark"
+                                     style="width:@purchaseWidth%; background:#d1e7dd;"
+                                     title="Purchase: @category.PurchaseBalance.ToString("N2")">
+
+                                    @category.PurchaseBalance.ToString("N2")
+
+                                </div>
+                            }
+
+
+                            @if (category.SaleBalance > 0)
+                            {
+                                <div class="progress-bar text-dark"
+                                     style="width:@saleWidth%; background:#cfe2ff;"
+                                     title="Sale: @category.SaleBalance.ToString("N2")">
+
+                                    @category.SaleBalance.ToString("N2")
+
+                                </div>
+                            }
+
+
+                            @if (category.Damage > 0)
+                            {
+                                <div class="progress-bar text-dark"
+                                     style="width:@damageWidth%; background:#f8d7da;"
+                                     title="Damage: @category.Damage.ToString("N2")">
+
+                                    @category.Damage.ToString("N2")
+
+                                </div>
+                            }
+
+
+                            <div class="progress-bar text-dark"
+                                 style="width:@closingWidth%; background:#e2e3e5;"
+                                 title="Calculated Closing: @category.CalculatedClosingBalance.ToString("N2")">
+
+                                @category.CalculatedClosingBalance.ToString("N2")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- LEGEND -->
+
+                        <div class="d-flex flex-wrap gap-3 mt-2 small text-muted">
+
+                            <span>
+
+                                <span class="badge"
+                                      style="background:#fff3cd;">
+                                    &nbsp;
+                                </span>
+
+                                Opening
+
+                            </span>
+
+
+                            <span>
+
+                                <span class="badge"
+                                      style="background:#d1e7dd;">
+                                    &nbsp;
+                                </span>
+
+                                Purchase
+
+                            </span>
+
+
+                            <span>
+
+                                <span class="badge"
+                                      style="background:#cfe2ff;">
+                                    &nbsp;
+                                </span>
+
+                                Sale
+
+                            </span>
+
+
+                            <span>
+
+                                <span class="badge"
+                                      style="background:#f8d7da;">
+                                    &nbsp;
+                                </span>
+
+                                Damage
+
+                            </span>
+
+
+                            <span>
+
+                                <span class="badge"
+                                      style="background:#e2e3e5;">
+                                    &nbsp;
+                                </span>
+
+                                Closing
+
                             </span>
 
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="list-group-item text-center text-muted">
-                        No low stock items.
+
+
+                        <!-- DETAILS -->
+
+                        <div class="row g-2 mt-2">
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Opening
+                                </small>
+
+                                <strong>
+                                    @category.OpeningBalance.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Purchase
+                                </small>
+
+                                <strong>
+                                    @category.PurchaseBalance.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Sale
+                                </small>
+
+                                <strong>
+                                    @category.SaleBalance.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Damage
+                                </small>
+
+                                <strong>
+                                    @category.Damage.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Calculated Closing
+                                </small>
+
+                                <strong>
+                                    @category.CalculatedClosingBalance.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <small class="text-muted d-block">
+                                    Actual Stock
+                                </small>
+
+                                <strong>
+                                    @category.StockBalance.ToString("N2")
+                                </strong>
+
+                            </div>
+
+                        </div>
+
                     </div>
                 }
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+
+                    <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+
+                    No main category analytics available.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SALES ORDER SUMMARY
+         ONLY SHOW WHEN SALES ORDER IS ENABLED
+    ========================================================== -->
+    @if (salesOrderEnabled)
+    {
+        <div id="salesOrderSummary"
+             class="dashboard-anchor card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 pt-4 px-4">
+
+                <h5 class="fw-bold mb-1">
+
+                    <i class="bi bi-cart-check me-2"></i>
+
+                    @salesOrderPluralLabel Summary
+
+                </h5>
+
+                <small class="text-muted">
+                    @salesOrderLabel overview
+                </small>
 
             </div>
+
+
+            <div class="card-body px-4">
+
+                <div class="row g-3">
+
+
+                    <!-- TOTAL SALES ORDERS -->
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted d-block">
+                                Total @salesOrderPluralLabel
+                            </small>
+
+                            <h4 class="fw-bold mb-0 mt-1">
+                                @Model.TotalSalesOrders
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TOTAL SALES VALUE -->
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted d-block">
+                                Total Sales Value
+                            </small>
+
+                            <h4 class="fw-bold mb-0 mt-1">
+                                ₹@Model.TotalRevenue.ToString("N2")
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- AVERAGE ORDER VALUE -->
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted d-block">
+                                Average @salesOrderLabel Value
+                            </small>
+
+                            <h4 class="fw-bold mb-0 mt-1">
+
+                                @if (Model.TotalSalesOrders > 0)
+                                {
+                                    @((Model.TotalRevenue / Model.TotalSalesOrders).ToString("N2"))
+                                }
+                                else
+                                {
+                                    @("0.00")
+                                }
+
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         PURCHASE ORDER + STOCK TRANSFER
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- =====================================================
+             PURCHASE ORDERS
+        ====================================================== -->
+
+        <div class="col-xl-6">
+
+            <div id="purchaseOrderSummary"
+                 class="dashboard-anchor card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+
+                                <i class="bi bi-bag-check me-2"></i>
+
+                                Purchase Orders
+
+                            </h5>
+
+                            <small class="text-muted">
+                                Purchase order status summary
+                            </small>
+
+                        </div>
+
+
+                        <a asp-controller="Reports"
+                           asp-action="Purchases"
+                           class="btn btn-sm btn-outline-primary">
+
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i>
+
+                            View Report
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body px-4">
+
+                    <div class="row g-3">
+
+
+                        <!-- DRAFT -->
+
+                        <div class="col-6">
+
+                            <div class="border rounded p-3">
+
+                                <small class="text-muted">
+                                    Draft
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.DraftPurchaseOrders
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- APPROVED -->
+
+                        <div class="col-6">
+
+                            <div class="border rounded p-3">
+
+                                <small class="text-muted">
+                                    Approved
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.ApprovedPurchaseOrders
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PARTIALLY RECEIVED -->
+
+                        <div class="col-6">
+
+                            <div class="border rounded p-3">
+
+                                <small class="text-muted">
+                                    Partially Received
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.PartiallyReceivedPurchaseOrders
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- FULLY RECEIVED -->
+
+                        <div class="col-6">
+
+                            <div class="border rounded p-3">
+
+                                <small class="text-muted">
+                                    Fully Received
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.FullyReceivedPurchaseOrders
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="text-muted">
+                            Purchase Order Value
+                        </span>
+
+                        <strong>
+                            ₹@Model.TotalPurchaseOrderValue.ToString("N2")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mt-2">
+
+                        <span class="text-muted">
+                            Pending Value
+                        </span>
+
+                        <strong>
+                            ₹@Model.PendingPurchaseOrderValue.ToString("N2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             STOCK TRANSFERS
+        ====================================================== -->
+
+        <div class="col-xl-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+
+                                <i class="bi bi-arrow-left-right me-2"></i>
+
+                                Stock Transfers
+
+                            </h5>
+
+                            <small class="text-muted">
+                                @locationLabel stock movement summary
+                            </small>
+
+                        </div>
+
+
+                        <a asp-controller="Reports"
+                           asp-action="StockTransfer"
+                           class="btn btn-sm btn-outline-primary">
+
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i>
+
+                            View Report
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body px-4">
+
+                    <div class="row g-3">
+
+
+                        <!-- TRANSFERS -->
+
+                        <div class="col-4">
+
+                            <div class="border rounded p-3 text-center">
+
+                                <small class="text-muted d-block">
+                                    Transfers
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.TotalStockTransfers
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TRANSFER IN -->
+
+                        <div class="col-4">
+
+                            <div class="border rounded p-3 text-center">
+
+                                <small class="text-muted d-block">
+                                    Transfer In
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.TransferInQuantity.ToString("N2")
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TRANSFER OUT -->
+
+                        <div class="col-4">
+
+                            <div class="border rounded p-3 text-center">
+
+                                <small class="text-muted d-block">
+                                    Transfer Out
+                                </small>
+
+                                <h5 class="fw-bold mb-0">
+                                    @Model.TransferOutQuantity.ToString("N2")
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="text-muted">
+                            Total Transferred Quantity
+                        </span>
+
+                        <strong>
+                            @Model.TotalTransferredQuantity.ToString("N2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         LIVE STOCK TABLE
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 pt-4 px-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+
+                        <i class="bi bi-boxes me-2"></i>
+
+                        Live Stock
+
+                    </h5>
+
+                    <small class="text-muted">
+                        Current @locationLabelLower stock
+                    </small>
+
+                </div>
+
+
+                <a asp-controller="Reports"
+                   asp-action="Stock"
+                   class="btn btn-sm btn-outline-primary">
+
+                    <i class="bi bi-file-earmark-bar-graph me-1"></i>
+
+                    Stock Report
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model.LiveStock.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    SKU
+                                </th>
+
+                                <th>
+                                    Barcode
+                                </th>
+
+                                <th>
+                                    Main Category
+                                </th>
+
+                                <th>
+                                    Category
+                                </th>
+
+                                <th>
+                                    @locationLabel
+                                </th>
+
+                                <th class="text-end">
+                                    Stock
+                                </th>
+
+                                <th class="text-end">
+                                    Available
+                                </th>
+
+                                <th class="text-end">
+                                    Reserved
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model.LiveStock)
+                            {
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold">
+                                        @item.SKU
+                                    </td>
+
+                                    <td>
+                                        @item.Barcode
+                                    </td>
+
+                                    <td>
+                                        @item.MainCategoryName
+                                    </td>
+
+                                    <td>
+                                        @item.CategoryName
+                                    </td>
+
+                                    <td>
+                                        @item.WarehouseName
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.QuantityOnHand.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.AvailableQuantity.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.ReservedQuantity.ToString("N2")
+                                    </td>
+
+                                    <td>
+
+                                        @if (item.Status == "OutOfStock")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Out of Stock
+                                            </span>
+                                        }
+                                        else if (item.Status == "LowStock")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Low Stock
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                In Stock
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+
+                    <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+
+                    No stock records found.
+
+                </div>
+            }
 
         </div>
 

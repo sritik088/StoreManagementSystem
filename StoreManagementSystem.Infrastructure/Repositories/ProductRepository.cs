@@ -14,89 +14,145 @@ namespace StoreManagementSystem.Infrastructure.Repositories
             _context = context;
         }
 
+        // =========================
+        // GET ALL PRODUCTS
+        // =========================
+
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products
+                .AsNoTracking()
+                .Include(x => x.MainCategory)
                 .Include(x => x.Category)
                 .Include(x => x.SubCategory)
-                .Include(x => x.Brand)
                 .Include(x => x.Supplier)
-                .Include(x => x.Unit)
-                .Include(x => x.Tax)
                 .Include(x => x.Warehouse)
                 .Where(x => !x.IsDeleted)
-                .OrderBy(x => x.Name)
-                .AsNoTracking()
+                .OrderByDescending(x => x.Id)
                 .ToListAsync();
         }
+
+        // =========================
+        // GET BY ID
+        // =========================
 
         public async Task<Product?> GetByIdAsync(int id)
         {
             return await _context.Products
+                .Include(x => x.MainCategory)
                 .Include(x => x.Category)
                 .Include(x => x.SubCategory)
-                .Include(x => x.Brand)
                 .Include(x => x.Supplier)
-                .Include(x => x.Unit)
-                .Include(x => x.Tax)
                 .Include(x => x.Warehouse)
                 .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         }
 
-        public async Task<bool> ExistsByNameAsync(string name)
-        {
-            return await _context.Products
-                .AnyAsync(x => x.Name == name && !x.IsDeleted);
-        }
-
-        public async Task<bool> ExistsByNameAsync(string name, int id)
-        {
-            return await _context.Products
-                .AnyAsync(x =>
-                    x.Name == name &&
-                    x.Id != id &&
-                    !x.IsDeleted);
-        }
+        // =========================
+        // CHECK DUPLICATE SKU
+        // =========================
 
         public async Task<bool> ExistsBySkuAsync(string sku)
         {
+            if (string.IsNullOrWhiteSpace(sku))
+                return false;
+
+            sku = sku.Trim();
+
             return await _context.Products
-                .AnyAsync(x => x.SKU == sku && !x.IsDeleted);
+                .AnyAsync(x => x.SKU == sku);
         }
 
-        public async Task<bool> ExistsBySkuAsync(string sku, int id)
+        // =========================
+        // CHECK DUPLICATE SKU
+        // EXCLUDE CURRENT PRODUCT
+        // =========================
+
+        public async Task<bool> ExistsBySkuAsync(
+            string sku,
+            int id)
         {
+            if (string.IsNullOrWhiteSpace(sku))
+                return false;
+
+            sku = sku.Trim();
+
             return await _context.Products
                 .AnyAsync(x =>
                     x.SKU == sku &&
-                    x.Id != id &&
-                    !x.IsDeleted);
+                    x.Id != id);
         }
+
+        // =========================
+        // CHECK DUPLICATE BARCODE
+        // =========================
+
+        public async Task<bool> ExistsByBarcodeAsync(
+            string barcode)
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+                return false;
+
+            barcode = barcode.Trim();
+
+            return await _context.Products
+                .AnyAsync(x => x.Barcode == barcode);
+        }
+
+        // =========================
+        // CHECK DUPLICATE BARCODE
+        // EXCLUDE CURRENT PRODUCT
+        // =========================
+
+        public async Task<bool> ExistsByBarcodeAsync(
+            string barcode,
+            int id)
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+                return false;
+
+            barcode = barcode.Trim();
+
+            return await _context.Products
+                .AnyAsync(x =>
+                    x.Barcode == barcode &&
+                    x.Id != id);
+        }
+
+        // =========================
+        // ADD PRODUCT
+        // =========================
 
         public async Task AddAsync(Product product)
         {
             await _context.Products.AddAsync(product);
+
             await _context.SaveChangesAsync();
         }
 
-        public Task UpdateAsync(Product product)
+        // =========================
+        // UPDATE PRODUCT
+        // =========================
+
+        public async Task UpdateAsync(Product product)
         {
             _context.Products.Update(product);
 
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync();
         }
+
+        // =========================
+        // DELETE PRODUCT
+        // =========================
 
         public async Task DeleteAsync(int id)
         {
-            var product = await GetByIdAsync(id);
+            var product = await _context.Products
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (product == null)
                 return;
 
             product.IsDeleted = true;
-            product.UpdatedDate = DateTime.Now;
-
-            _context.Products.Update(product);
 
             await _context.SaveChangesAsync();
         }

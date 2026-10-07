@@ -14,18 +14,34 @@ namespace StoreManagementSystem.Infrastructure.Repositories
             _context = context;
         }
 
+        // =========================
+        // GET ALL
+        // =========================
+
         public async Task<IEnumerable<Category>> GetAllAsync()
         {
             return await _context.Categories
-                .OrderBy(c => c.DisplayOrder)
+                .Where(x => !x.IsDeleted)
+                .Include(x => x.MainCategory)
+                .OrderBy(x => x.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
+
+        // =========================
+        // GET BY ID
+        // =========================
 
         public async Task<Category?> GetByIdAsync(int id)
         {
             return await _context.Categories
+                .Include(c => c.MainCategory)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+
+        // =========================
+        // CHECK DUPLICATE
+        // =========================
 
         public async Task<bool> ExistsAsync(string name)
         {
@@ -33,27 +49,41 @@ namespace StoreManagementSystem.Infrastructure.Repositories
                 .AnyAsync(c => c.Name == name);
         }
 
+        // =========================
+        // ADD
+        // =========================
+
         public async Task AddAsync(Category category)
         {
             await _context.Categories.AddAsync(category);
+
             await _context.SaveChangesAsync();
         }
 
-        public Task UpdateAsync(Category category)
+        // =========================
+        // UPDATE
+        // =========================
+
+        public async Task UpdateAsync(Category category)
         {
             _context.Categories.Update(category);
-            return Task.CompletedTask;
 
+            await _context.SaveChangesAsync();
         }
+
+        // =========================
+        // DELETE
+        // =========================
 
         public async Task DeleteAsync(int id)
         {
-            var category = await GetByIdAsync(id);
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (category == null)
                 return;
 
-            _context.Categories.Remove(category);
+            category.IsDeleted = true;
 
             await _context.SaveChangesAsync();
         }

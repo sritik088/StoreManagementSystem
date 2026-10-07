@@ -1,0 +1,619 @@
+﻿@model StoreManagementSystem.Web.ViewModels.ProductStatement.ProductStatementViewModel
+
+@{
+    ViewData["Title"] = "Product Statement";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ========================================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                Product Statement
+            </h3>
+
+            <p class="text-muted mb-0">
+                Purchase, sales, damage and stock balance statement
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- FILTER -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <h5 class="mb-0 fw-semibold">
+
+                <i class="bi bi-funnel me-2"></i>
+
+                Filter
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-controller="ProductStatement"
+                  asp-action="Index">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- FROM DATE -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            From Date
+                        </label>
+
+                        <input type="date"
+                               name="fromDate"
+                               class="form-control"
+                               value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+
+                    </div>
+
+
+                    <!-- TO DATE -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            To Date
+                        </label>
+
+                        <input type="date"
+                               name="toDate"
+                               class="form-control"
+                               value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div class="col-md-4">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-search me-1"></i>
+
+                                Filter
+
+                            </button>
+
+
+                            <a asp-controller="ProductStatement"
+                               asp-action="Index"
+                               class="btn btn-outline-secondary">
+
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+
+                                Reset
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- VALIDATION MESSAGE -->
+    <!-- ========================================================= -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <div asp-validation-summary="All"></div>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- STATEMENT TABLE -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <!-- TABLE HEADER -->
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-1 fw-semibold">
+
+                        <i class="bi bi-file-earmark-text me-2"></i>
+
+                        Statement Details
+
+                    </h5>
+
+                    <small class="text-muted">
+                        Opening balance followed by purchase, sales and damage transactions
+                    </small>
+
+                </div>
+
+
+                <span class="badge bg-light text-dark px-3 py-2">
+
+                    @Model.Rows.Count Records
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================= -->
+        <!-- TABLE -->
+        <!-- ========================================================= -->
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <!-- DATE -->
+
+                            <th class="text-center text-nowrap">
+                                Date
+                            </th>
+
+
+                            <!-- REFERENCE -->
+
+                            <th class="text-nowrap">
+                                Reference No.
+                            </th>
+
+
+                            <!-- SUBCATEGORY -->
+
+                            <th class="text-nowrap">
+                                Subcategory
+                            </th>
+
+
+                            <!-- PURCHASE -->
+
+                            <th class="text-end text-nowrap">
+                                Purchase Qty
+                            </th>
+
+                            <th class="text-end text-nowrap">
+                                Purchase Rate
+                            </th>
+
+
+                            <!-- SALE -->
+
+                            <th class="text-end text-nowrap">
+                                Sale Qty
+                            </th>
+
+                            <th class="text-end text-nowrap">
+                                Sale Rate
+                            </th>
+
+
+                            <!-- DAMAGE -->
+
+                            <th class="text-end text-nowrap">
+                                Damage Qty
+                            </th>
+
+                            <th class="text-end text-nowrap">
+                                Damage Rate
+                            </th>
+
+
+                            <!-- BALANCE -->
+
+                            <th class="text-end text-nowrap">
+                                Balance Qty
+                            </th>
+
+                            <th class="text-end text-nowrap">
+                                Balance Rate
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model.Rows != null &&
+                                                Model.Rows.Any())
+                        {
+                            foreach (var item in Model.Rows)
+                            {
+                                bool isOpening =
+                                item.GRNNumber == "Opening";
+
+                                bool isDamage =
+                                item.DamageQuantity > 0;
+
+                                <tr class="@(isOpening
+                                                                        ? "table-primary fw-semibold"
+                                                                        : isDamage
+                                                                            ? "table-warning"
+                                                                            : "")">
+
+                            <!-- ================================================= -->
+                            <!-- DATE -->
+                            <!-- ================================================= -->
+
+                                    <td class="text-center text-nowrap">
+
+                                @if (isOpening)
+                                        {
+                                            <span class="fw-bold">
+                                                @item.Date.ToString("dd-MM-yyyy")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @item.Date.ToString("dd-MM-yyyy")
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- REFERENCE NUMBER -->
+                                    <!-- ================================================= -->
+
+                                    <td>
+
+                                        @if (isOpening)
+                                        {
+                                            <span class="badge bg-primary">
+
+                                                <i class="bi bi-box-arrow-in-down me-1"></i>
+
+                                                Opening
+
+                                            </span>
+                                        }
+                                        else if (isDamage)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+
+                                                @item.GRNNumber
+
+                                            </span>
+                                        }
+                                        else if (item.GRNNumber != "-")
+                                        {
+                                            <span class="fw-semibold">
+
+                                                @item.GRNNumber
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- SUBCATEGORY -->
+                                    <!-- ================================================= -->
+
+                                    <td>
+
+                                        @if (isOpening)
+                                        {
+                                            <span class="text-muted">
+                                                Opening Balance
+                                            </span>
+                                        }
+                                        else if (isDamage)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                Damage
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">
+
+                                                @item.Subcategory
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- PURCHASE QUANTITY -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.PurchaseQuantity > 0)
+                                        {
+                                            @item.PurchaseQuantity.ToString("0.##")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- PURCHASE RATE -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.PurchaseRate > 0)
+                                        {
+                                            <span>
+                                                ₹@item.PurchaseRate.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- SALE QUANTITY -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.SaleQuantity > 0)
+                                        {
+                                            @item.SaleQuantity.ToString("0.##")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- SALE RATE -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.SaleRate > 0)
+                                        {
+                                            <span>
+                                                ₹@item.SaleRate.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- DAMAGE QUANTITY -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.DamageQuantity > 0)
+                                        {
+                                            <span class="fw-semibold text-danger">
+                                                @item.DamageQuantity.ToString("0.##")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- DAMAGE RATE -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end">
+
+                                        @if (item.DamageRate > 0)
+                                        {
+                                            <span class="fw-semibold text-danger">
+                                                ₹@item.DamageRate.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- BALANCE QUANTITY -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        @item.BalanceQuantity.ToString("0.##")
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- BALANCE RATE -->
+                                    <!-- ================================================= -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        ₹@item.BalanceRate.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <!-- ===================================================== -->
+                            <!-- NO RECORDS -->
+                            <!-- ===================================================== -->
+
+                            <tr>
+
+                                <td colspan="11"
+                                    class="text-center py-5">
+
+                                    <div class="text-muted">
+
+                                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+
+                                        <div class="fw-semibold fs-5">
+
+                                            No statement records found
+
+                                        </div>
+
+                                        <small>
+
+                                            Select a date range and click Filter.
+
+                                        </small>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+
+                    <!-- ========================================================= -->
+                    <!-- FOOTER -->
+                    <!-- ========================================================= -->
+                    @if (Model.Rows != null &&
+                                        Model.Rows.Any())
+                    {
+                        var lastRow =
+                        Model.Rows.Last();
+
+                        <tfoot class="table-light">
+
+                            <tr>
+
+                                <td colspan="9"
+                                    class="text-end fw-bold">
+
+                                    Closing Balance
+
+                                </td>
+
+
+                                <td class="text-end fw-bold">
+
+                                    @lastRow.BalanceQuantity.ToString("0.##")
+
+                                </td>
+
+
+                                <td class="text-end fw-bold">
+
+                                    ₹@lastRow.BalanceRate.ToString("N2")
+
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+                    }
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,2127 @@
+﻿@model StoreManagementSystem.Web.ViewModels.StockTransfer.StockTransferViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Create Stock Transfer";
+}
+
+<div class="container-fluid">
+
+    
+    <div class="card shadow-sm">
+
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
+
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="bi bi-arrow-left-right"></i>
+                Stock Transfer
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create"
+                  method="post"
+                  id="stockTransferForm">
+
+                @Html.AntiForgeryToken()
+
+                <!-- ================================================= -->
+                <!-- VALIDATION -->
+                <!-- ================================================= -->
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- WAREHOUSES -->
+                <!-- ================================================= -->
+
+                <div class="row mb-4">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="FromWarehouseId"
+                               class="form-label fw-semibold">
+                            From Warehouse
+                        </label>
+
+                        <select asp-for="FromWarehouseId"
+                                asp-items="Model.Warehouses"
+                                id="FromWarehouse"
+                                class="form-select">
+
+                            <option value="">
+                                Select Source Warehouse
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="FromWarehouseId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label asp-for="ToWarehouseId"
+                               class="form-label fw-semibold">
+                            To Warehouse
+                        </label>
+
+                        <select asp-for="ToWarehouseId"
+                                asp-items="Model.Warehouses"
+                                id="ToWarehouse"
+                                class="form-select">
+
+                            <option value="">
+                                Select Destination Warehouse
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="ToWarehouseId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- DATE + REMARKS -->
+                <!-- ================================================= -->
+
+                <div class="row mb-4">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="TransferDate"
+                               class="form-label fw-semibold">
+                            Transfer Date
+                        </label>
+
+                        <input asp-for="TransferDate"
+                               type="date"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <div class="col-md-8">
+
+                        <label asp-for="Remarks"
+                               class="form-label fw-semibold">
+                            Remarks
+                        </label>
+
+                        <input asp-for="Remarks"
+                               class="form-control"
+                               placeholder="Optional remarks" />
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- TRANSFER ITEMS HEADER -->
+                <!-- ================================================= -->
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam"></i>
+                        Transfer Items
+                    </h5>
+
+                    <button type="button"
+                            id="btnAddRow"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-plus-circle"></i>
+                        Add Product
+
+                    </button>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- PRODUCT SEARCH -->
+                <!-- ================================================= -->
+
+                <div id="productSearchBox"
+                     class="card border mb-3"
+                     style="display:none;">
+
+                    <div class="card-body">
+
+                        <label class="form-label fw-semibold">
+                            Search Product
+                        </label>
+
+                        <input type="text"
+                               id="productSearch"
+                               class="form-control"
+                               placeholder="Search by SKU, barcode or subcategory..."
+                               autocomplete="off" />
+
+                        <div id="productSearchResults"
+                             class="list-group mt-2"
+                             style="max-height:250px; overflow-y:auto;">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- SELECTED PRODUCT STOCK SUMMARY -->
+                <!-- ================================================= -->
+
+                <div id="stockSummary"
+                     class="card border shadow-sm mb-4"
+                     style="display:none;">
+
+                    <div class="card-header bg-light">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="bi bi-boxes"></i>
+                                Selected Product Stock Summary
+                            </h6>
+
+                            <span id="summaryProduct"
+                                  class="badge bg-primary">
+                                -
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row g-3">
+
+                            <!-- FROM WAREHOUSE -->
+
+                            <div class="col-md-3">
+
+                                <div class="border rounded p-3 h-100">
+
+                                    <div class="text-muted small mb-1">
+                                        From Warehouse
+                                    </div>
+
+                                    <div class="fw-semibold"
+                                         id="summaryFromWarehouse">
+                                        -
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="text-muted small">
+                                        Available Stock
+                                    </div>
+
+                                    <div class="fs-4 fw-bold"
+                                         id="summaryFromAvailable">
+                                        0.00
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- TO WAREHOUSE -->
+
+                            <div class="col-md-3">
+
+                                <div class="border rounded p-3 h-100">
+
+                                    <div class="text-muted small mb-1">
+                                        To Warehouse
+                                    </div>
+
+                                    <div class="fw-semibold"
+                                         id="summaryToWarehouse">
+                                        -
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="text-muted small">
+                                        Current Stock
+                                    </div>
+
+                                    <div class="fs-4 fw-bold"
+                                         id="summaryToAvailable">
+                                        0.00
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- TRANSFERRING -->
+
+                            <div class="col-md-3">
+
+                                <div class="border rounded p-3 h-100">
+
+                                    <div class="text-muted small mb-1">
+                                        Transferring
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Quantity
+                                    </div>
+
+                                    <div class="fs-4 fw-bold"
+                                         id="summaryTransferQuantity">
+                                        0.00
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- AFTER TRANSFER -->
+
+                            <div class="col-md-3">
+
+                                <div class="border rounded p-3 h-100">
+
+                                    <div class="text-muted small mb-1">
+                                        After Transfer
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+
+                                        <span class="small">
+                                            From:
+                                        </span>
+
+                                        <strong id="summaryFromAfter">
+                                            0.00
+                                        </strong>
+
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-2">
+
+                                        <span class="small">
+                                            To:
+                                        </span>
+
+                                        <strong id="summaryToAfter">
+                                            0.00
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- UNIT COST -->
+
+                        <div class="row mt-3">
+
+                            <div class="col-md-4">
+
+                                <div class="alert alert-info mb-0">
+
+                                    <div class="d-flex justify-content-between align-items-center">
+
+                                        <span>
+                                            <i class="bi bi-currency-rupee"></i>
+                                            Purchase Unit Cost
+                                        </span>
+
+                                        <strong id="summaryUnitCost">
+                                            ₹0.00
+                                        </strong>
+
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Automatically loaded from the latest Purchase Order.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- ITEMS TABLE -->
+                <!-- ================================================= -->
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle"
+                           id="itemTable">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th style="min-width:180px;">
+                                    Product
+                                </th>
+
+                                <th style="min-width:180px;">
+                                    Subcategory
+                                </th>
+
+                                <th style="min-width:130px;">
+                                    Quantity
+                                </th>
+
+                                <th style="min-width:140px;">
+                                    Unit Cost
+                                </th>
+
+                                <th style="min-width:150px;">
+                                    Total
+                                </th>
+
+                                <th style="width:80px;">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="itemBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- NO ITEMS MESSAGE -->
+                <!-- ================================================= -->
+
+                <div id="noItemsMessage"
+                     class="text-center text-muted py-4 border rounded">
+
+                    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+
+                    No products added yet.
+
+                    Click
+                    <strong>Add Product</strong>
+                    to add items.
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- GRAND TOTAL -->
+                <!-- ================================================= -->
+
+                <div class="row justify-content-end mt-4">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-bold">
+                            Grand Total
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input type="text"
+                                   id="GrandTotal"
+                                   class="form-control fw-bold"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- BUTTONS -->
+                <!-- ================================================= -->
+
+                <div class="mt-4">
+
+                    <button type="submit"
+                            class="btn btn-success"
+                            id="btnTransfer">
+
+                        <i class="bi bi-check-circle"></i>
+                        Transfer Stock
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-x-circle"></i>
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+
+@section Scripts {
+
+    ```
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        // =========================================================
+        // GLOBAL VARIABLES
+        // =========================================================
+
+        let products = [];
+
+        let rowIndex = 0;
+
+        let selectedSummaryRow = null;
+
+
+        // =========================================================
+        // PAGE LOAD
+        // =========================================================
+
+        $(document).ready(function () {
+
+            loadProducts();
+
+            updateNoItemsMessage();
+
+        });
+
+
+        // =========================================================
+        // LOAD PRODUCTS
+        // =========================================================
+
+        function loadProducts() {
+
+            $.ajax({
+
+                url: '@Url.Action("GetProducts", "StockTransfer")',
+
+                type: "GET",
+
+                success: function (data) {
+
+                    products = data || [];
+
+                    console.log(
+                        "Products loaded:",
+                        products
+                    );
+
+                },
+
+                error: function (xhr) {
+
+                    console.error(xhr);
+
+                    alert(
+                        "Unable to load products."
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        // =========================================================
+        // ADD PRODUCT BUTTON
+        // =========================================================
+
+        $("#btnAddRow").on(
+            "click",
+            function () {
+
+                const fromWarehouse =
+                    $("#FromWarehouse").val();
+
+                const toWarehouse =
+                    $("#ToWarehouse").val();
+
+
+                if (!fromWarehouse) {
+
+                    alert(
+                        "Please select From Warehouse first."
+                    );
+
+                    $("#FromWarehouse").focus();
+
+                    return;
+
+                }
+
+
+                if (!toWarehouse) {
+
+                    alert(
+                        "Please select To Warehouse first."
+                    );
+
+                    $("#ToWarehouse").focus();
+
+                    return;
+
+                }
+
+
+                if (fromWarehouse === toWarehouse) {
+
+                    alert(
+                        "From Warehouse and To Warehouse cannot be the same."
+                    );
+
+                    return;
+
+                }
+
+
+                if (!products ||
+                    products.length === 0) {
+
+                    alert(
+                        "No products available."
+                    );
+
+                    return;
+
+                }
+
+
+                $("#productSearchBox")
+                    .slideDown(150);
+
+                $("#productSearch")
+                    .val("")
+                    .focus();
+
+                showProductSearchResults(
+                    products
+                );
+
+            }
+        );
+
+
+        // =========================================================
+        // PRODUCT SEARCH
+        // =========================================================
+
+        $("#productSearch").on(
+            "input",
+            function () {
+
+                const searchText =
+                    ($(this).val() || "")
+                        .toString()
+                        .trim()
+                        .toLowerCase();
+
+
+                if (!searchText) {
+
+                    showProductSearchResults(
+                        products
+                    );
+
+                    return;
+
+                }
+
+
+                const filteredProducts =
+                    products.filter(
+                        function (product) {
+
+                            const sku =
+                                (product.sku || "")
+                                    .toString()
+                                    .toLowerCase();
+
+                            const barcode =
+                                (product.barcode || "")
+                                    .toString()
+                                    .toLowerCase();
+
+                            const subCategory =
+                                (product.subCategoryName || "")
+                                    .toString()
+                                    .toLowerCase();
+
+
+                            return sku.includes(searchText)
+                                || barcode.includes(searchText)
+                                || subCategory.includes(searchText);
+
+                        }
+                    );
+
+
+                showProductSearchResults(
+                    filteredProducts
+                );
+
+            }
+        );
+
+
+        // =========================================================
+        // DISPLAY PRODUCT SEARCH RESULTS
+        // =========================================================
+
+        function showProductSearchResults(list) {
+
+            const container =
+                $("#productSearchResults");
+
+            container.empty();
+
+
+            if (!list ||
+                list.length === 0) {
+
+                container.append(`
+
+                    <div class="list-group-item text-muted">
+
+                        <i class="bi bi-search"></i>
+                        No products found.
+
+                    </div>
+
+                `);
+
+                return;
+
+            }
+
+
+            $.each(
+                list,
+                function (i, product) {
+
+                    const productName =
+                        product.sku ||
+                        "Unknown Product";
+
+                    const subCategory =
+                        product.subCategoryName ||
+                        "N/A";
+
+                    const barcode =
+                        product.barcode ||
+                        "";
+
+
+                    const result = `
+
+                        <button type="button"
+                                class="list-group-item list-group-item-action product-result"
+                                data-product-id="${product.id}">
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <div class="fw-semibold">
+
+                                        ${escapeHtml(productName)}
+
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        Subcategory:
+                                        ${escapeHtml(subCategory)}
+
+                                        ${
+                                            barcode
+                                                ? " | Barcode: " +
+                                                  escapeHtml(barcode)
+                                                : ""
+                                        }
+
+                                    </small>
+
+                                </div>
+
+                                <i class="bi bi-plus-circle text-primary"></i>
+
+                            </div>
+
+                        </button>
+
+                    `;
+
+
+                    container.append(result);
+
+                }
+            );
+
+        }
+
+
+        // =========================================================
+        // PRODUCT CLICK
+        // =========================================================
+
+        $(document).on(
+            "click",
+            ".product-result",
+            function () {
+
+                const productId =
+                    parseInt(
+                        $(this).data("product-id")
+                    );
+
+
+                const product =
+                    products.find(
+                        function (x) {
+
+                            return parseInt(x.id) ===
+                                productId;
+
+                        }
+                    );
+
+
+                if (!product) {
+
+                    return;
+
+                }
+
+
+                // -------------------------------------------------
+                // PREVENT DUPLICATE PRODUCT
+                // -------------------------------------------------
+
+                let alreadyExists = false;
+
+
+                $(".product-id").each(
+                    function () {
+
+                        if (
+                            parseInt(
+                                $(this).val()
+                            ) === productId
+                        ) {
+
+                            alreadyExists = true;
+
+                        }
+
+                    }
+                );
+
+
+                if (alreadyExists) {
+
+                    alert(
+                        "This product has already been added."
+                    );
+
+                    return;
+
+                }
+
+
+                addProductRow(product);
+
+
+                // -------------------------------------------------
+                // HIDE SEARCH
+                // -------------------------------------------------
+
+                $("#productSearchBox")
+                    .slideUp(150);
+
+                $("#productSearch")
+                    .val("");
+
+                $("#productSearchResults")
+                    .empty();
+
+            }
+        );
+
+
+        // =========================================================
+        // ADD PRODUCT ROW
+        // =========================================================
+
+        function addProductRow(product) {
+
+            const index =
+                rowIndex++;
+
+
+            const row = `
+
+                <tr data-product-id="${product.id}">
+
+                    <!-- MODEL BINDING INDEX -->
+
+                    <input type="hidden"
+                           name="Items.index"
+                           value="${index}" />
+
+
+                    <!-- PRODUCT ID -->
+
+                    <input type="hidden"
+                           name="Items[${index}].ProductId"
+                           value="${product.id}"
+                           class="product-id" />
+
+
+                    <!-- PRODUCT -->
+
+                    <td>
+
+                        <div class="fw-semibold">
+
+                            ${escapeHtml(
+                                product.sku ||
+                                "Unknown"
+                            )}
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            ${
+                                product.barcode
+                                    ? "Barcode: " +
+                                      escapeHtml(
+                                          product.barcode
+                                      )
+                                    : ""
+                            }
+
+                        </small>
+
+                    </td>
+
+
+                    <!-- SUBCATEGORY -->
+
+                    <td>
+
+                        <input type="text"
+                               class="form-control subcategory"
+                               value="${escapeHtml(
+                                   product.subCategoryName ||
+                                   "N/A"
+                               )}"
+                               readonly />
+
+                        <input type="hidden"
+                               name="Items[${index}].SubCategoryId"
+                               value="${
+                                   product.subCategoryId || 0
+                               }" />
+
+                    </td>
+
+
+                    <!-- QUANTITY -->
+
+                    <td>
+
+                        <input type="number"
+                               name="Items[${index}].Quantity"
+                               class="form-control qty"
+                               min="0.01"
+                               step="0.01"
+                               value="1" />
+
+                        <small class="text-muted stock-hint">
+                            Stock: Loading...
+                        </small>
+
+                    </td>
+
+
+                    <!-- UNIT COST -->
+
+                    <td>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input type="number"
+                                   name="Items[${index}].UnitCost"
+                                   class="form-control cost"
+                                   min="0"
+                                   step="0.01"
+                                   value="0"
+                                   readonly />
+
+                        </div>
+
+                        <small class="text-muted cost-hint">
+                            Loading PO price...
+                        </small>
+
+                    </td>
+
+
+                    <!-- TOTAL -->
+
+                    <td>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input type="text"
+                                   class="form-control total"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- ACTION -->
+
+                    <td class="text-center">
+
+                        <button type="button"
+                                class="btn btn-danger btn-sm remove"
+                                title="Remove Product">
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            $("#itemBody")
+                .append(row);
+
+
+            const newRow =
+                $("#itemBody tr").last();
+
+
+            updateNoItemsMessage();
+
+
+            // -----------------------------------------------------
+            // LOAD PRODUCT DETAILS
+            // -----------------------------------------------------
+
+            getProductDetails(
+                product.id,
+                newRow
+            );
+
+
+            // -----------------------------------------------------
+            // CALCULATE
+            // -----------------------------------------------------
+
+            calculateRowTotal(
+                newRow
+            );
+
+            calculateGrandTotal();
+
+
+            // -----------------------------------------------------
+            // SHOW THIS PRODUCT IN SUMMARY
+            // -----------------------------------------------------
+
+            selectSummaryRow(
+                newRow
+            );
+
+        }
+
+
+        // =========================================================
+        // GET PRODUCT DETAILS
+        // =========================================================
+
+        function getProductDetails(
+            productId,
+            row
+        ) {
+
+            const fromWarehouse =
+                $("#FromWarehouse").val();
+
+            const toWarehouse =
+                $("#ToWarehouse").val();
+
+
+            if (!fromWarehouse ||
+                !toWarehouse ||
+                !productId) {
+
+                return;
+
+            }
+
+
+            row.find(".stock-hint")
+                .text("Loading stock...");
+
+            row.find(".cost-hint")
+                .text("Loading PO price...");
+
+
+            $.ajax({
+
+                url: '@Url.Action("GetProductDetails", "StockTransfer")',
+
+                type: "GET",
+
+                data: {
+
+                    productId:
+                        productId,
+
+                    fromWarehouseId:
+                        fromWarehouse,
+
+                    toWarehouseId:
+                        toWarehouse
+
+                },
+
+                success: function (response) {
+
+                    if (!response ||
+                        response.success !== true) {
+
+                        alert(
+                            response &&
+                            response.message
+                                ? response.message
+                                : "Unable to get product details."
+                        );
+
+                        return;
+
+                    }
+
+
+                    const fromAvailable =
+                        parseFloat(
+                            response.fromAvailableQuantity
+                        ) || 0;
+
+
+                    const toAvailable =
+                        parseFloat(
+                            response.toAvailableQuantity
+                        ) || 0;
+
+
+                    const unitCost =
+                        parseFloat(
+                            response.unitCost
+                        ) || 0;
+
+
+                    // -------------------------------------------------
+                    // SAVE STOCK VALUES ON ROW
+                    // -------------------------------------------------
+
+                    row.attr(
+                        "data-from-available",
+                        fromAvailable
+                    );
+
+                    row.attr(
+                        "data-to-available",
+                        toAvailable
+                    );
+
+
+                    row.attr(
+                        "data-unit-cost",
+                        unitCost
+                    );
+
+
+                    // -------------------------------------------------
+                    // UNIT COST
+                    // -------------------------------------------------
+
+                    row.find(".cost")
+                        .val(
+                            unitCost.toFixed(2)
+                        );
+
+
+                    if (unitCost > 0) {
+
+                        row.find(".cost-hint")
+                            .text(
+                                "From latest Purchase Order"
+                            );
+
+                    }
+                    else {
+
+                        row.find(".cost-hint")
+                            .text(
+                                "No Purchase Order price found"
+                            );
+
+                    }
+
+
+                    // -------------------------------------------------
+                    // STOCK HINT
+                    // -------------------------------------------------
+
+                    row.find(".stock-hint")
+                        .text(
+                            "From warehouse available: " +
+                            fromAvailable.toFixed(2)
+                        );
+
+
+                    // -------------------------------------------------
+                    // CALCULATE TOTAL
+                    // -------------------------------------------------
+
+                    calculateRowTotal(
+                        row
+                    );
+
+                    calculateGrandTotal();
+
+
+                    // -------------------------------------------------
+                    // UPDATE SUMMARY
+                    // -------------------------------------------------
+
+                    if (
+                        selectedSummaryRow &&
+                        selectedSummaryRow[0] === row[0]
+                    ) {
+
+                        updateStockSummary(
+                            row
+                        );
+
+                    }
+
+                },
+
+                error: function (xhr) {
+
+                    console.error(xhr);
+
+                    row.find(".stock-hint")
+                        .text(
+                            "Unable to load stock"
+                        );
+
+                    row.find(".cost-hint")
+                        .text(
+                            "Unable to load PO price"
+                        );
+
+                    alert(
+                        "Unable to get product details."
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        // =========================================================
+        // SELECT SUMMARY ROW
+        // =========================================================
+
+        function selectSummaryRow(row) {
+
+            selectedSummaryRow =
+                row;
+
+            updateStockSummary(
+                row
+            );
+
+        }
+
+
+        // =========================================================
+        // UPDATE STOCK SUMMARY
+        // =========================================================
+
+        function updateStockSummary(row) {
+
+            if (!row ||
+                row.length === 0) {
+
+                $("#stockSummary")
+                    .hide();
+
+                return;
+
+            }
+
+
+            const productId =
+                parseInt(
+                    row.find(".product-id").val()
+                ) || 0;
+
+
+            if (!productId) {
+
+                $("#stockSummary")
+                    .hide();
+
+                return;
+
+            }
+
+
+            const product =
+                products.find(
+                    function (x) {
+
+                        return parseInt(x.id) ===
+                            productId;
+
+                    }
+                );
+
+
+            const sku =
+                product &&
+                product.sku
+                    ? product.sku
+                    : "Product";
+
+
+            const fromWarehouseText =
+                $("#FromWarehouse option:selected")
+                    .text()
+                    .trim();
+
+
+            const toWarehouseText =
+                $("#ToWarehouse option:selected")
+                    .text()
+                    .trim();
+
+
+            const fromAvailable =
+                parseFloat(
+                    row.attr(
+                        "data-from-available"
+                    )
+                ) || 0;
+
+
+            const toAvailable =
+                parseFloat(
+                    row.attr(
+                        "data-to-available"
+                    )
+                ) || 0;
+
+
+            const quantity =
+                parseFloat(
+                    row.find(".qty").val()
+                ) || 0;
+
+
+            const unitCost =
+                parseFloat(
+                    row.find(".cost").val()
+                ) || 0;
+
+
+            const fromAfter =
+                fromAvailable -
+                quantity;
+
+
+            const toAfter =
+                toAvailable +
+                quantity;
+
+
+            $("#summaryProduct")
+                .text(sku);
+
+
+            $("#summaryFromWarehouse")
+                .text(
+                    fromWarehouseText ||
+                    "-"
+                );
+
+
+            $("#summaryToWarehouse")
+                .text(
+                    toWarehouseText ||
+                    "-"
+                );
+
+
+            $("#summaryFromAvailable")
+                .text(
+                    fromAvailable.toFixed(2)
+                );
+
+
+            $("#summaryToAvailable")
+                .text(
+                    toAvailable.toFixed(2)
+                );
+
+
+            $("#summaryTransferQuantity")
+                .text(
+                    quantity.toFixed(2)
+                );
+
+
+            $("#summaryFromAfter")
+                .text(
+                    fromAfter.toFixed(2)
+                );
+
+
+            $("#summaryToAfter")
+                .text(
+                    toAfter.toFixed(2)
+                );
+
+
+            $("#summaryUnitCost")
+                .text(
+                    "₹" +
+                    unitCost.toFixed(2)
+                );
+
+
+            $("#stockSummary")
+                .show();
+
+        }
+
+
+        // =========================================================
+        // ROW CLICK
+        // =========================================================
+
+        $(document).on(
+            "click",
+            "#itemBody tr",
+            function (event) {
+
+                if (
+                    $(event.target).closest(
+                        ".remove"
+                    ).length
+                ) {
+
+                    return;
+
+                }
+
+
+                selectSummaryRow(
+                    $(this)
+                );
+
+            }
+        );
+
+
+        // =========================================================
+        // QUANTITY CHANGE
+        // =========================================================
+
+        $(document).on(
+            "input",
+            ".qty",
+            function () {
+
+                const row =
+                    $(this).closest("tr");
+
+
+                calculateRowTotal(
+                    row
+                );
+
+                calculateGrandTotal();
+
+
+                selectSummaryRow(
+                    row
+                );
+
+            }
+        );
+
+
+        // =========================================================
+        // COST CHANGE
+        // =========================================================
+
+        $(document).on(
+            "input",
+            ".cost",
+            function () {
+
+                const row =
+                    $(this).closest("tr");
+
+
+                calculateRowTotal(
+                    row
+                );
+
+                calculateGrandTotal();
+
+
+                selectSummaryRow(
+                    row
+                );
+
+            }
+        );
+
+
+        // =========================================================
+        // ROW TOTAL
+        // =========================================================
+
+        function calculateRowTotal(row) {
+
+            const qty =
+                parseFloat(
+                    row.find(".qty").val()
+                ) || 0;
+
+
+            const cost =
+                parseFloat(
+                    row.find(".cost").val()
+                ) || 0;
+
+
+            const total =
+                qty * cost;
+
+
+            row.find(".total")
+                .val(
+                    total.toFixed(2)
+                );
+
+        }
+
+
+        // =========================================================
+        // GRAND TOTAL
+        // =========================================================
+
+        function calculateGrandTotal() {
+
+            let grandTotal = 0;
+
+
+            $(".total").each(
+                function () {
+
+                    grandTotal +=
+                        parseFloat(
+                            $(this).val()
+                        ) || 0;
+
+                }
+            );
+
+
+            $("#GrandTotal")
+                .val(
+                    grandTotal.toFixed(2)
+                );
+
+        }
+
+
+        // =========================================================
+        // REMOVE PRODUCT
+        // =========================================================
+
+        $(document).on(
+            "click",
+            ".remove",
+            function () {
+
+                const row =
+                    $(this).closest("tr");
+
+
+                const wasSelected =
+                    selectedSummaryRow &&
+                    selectedSummaryRow[0] ===
+                    row[0];
+
+
+                row.remove();
+
+
+                calculateGrandTotal();
+
+                updateNoItemsMessage();
+
+
+                if (wasSelected) {
+
+                    selectedSummaryRow =
+                        $("#itemBody tr").last();
+
+
+                    if (
+                        selectedSummaryRow.length
+                    ) {
+
+                        updateStockSummary(
+                            selectedSummaryRow
+                        );
+
+                    }
+                    else {
+
+                        $("#stockSummary")
+                            .hide();
+
+                        selectedSummaryRow =
+                            null;
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        // =========================================================
+        // FROM WAREHOUSE CHANGE
+        // =========================================================
+
+        $("#FromWarehouse").on(
+            "change",
+            function () {
+
+                const from =
+                    $(this).val();
+
+                const to =
+                    $("#ToWarehouse").val();
+
+
+                if (
+                    from &&
+                    to &&
+                    from === to
+                ) {
+
+                    alert(
+                        "From Warehouse and To Warehouse cannot be the same."
+                    );
+
+                    $("#ToWarehouse")
+                        .val("");
+
+                    return;
+
+                }
+
+
+                refreshAllProductDetails();
+
+            }
+        );
+
+
+        // =========================================================
+        // TO WAREHOUSE CHANGE
+        // =========================================================
+
+        $("#ToWarehouse").on(
+            "change",
+            function () {
+
+                const from =
+                    $("#FromWarehouse").val();
+
+                const to =
+                    $(this).val();
+
+
+                if (
+                    from &&
+                    to &&
+                    from === to
+                ) {
+
+                    alert(
+                        "From Warehouse and To Warehouse cannot be the same."
+                    );
+
+                    $(this).val("");
+
+                    return;
+
+                }
+
+
+                refreshAllProductDetails();
+
+            }
+        );
+
+
+        // =========================================================
+        // REFRESH ALL PRODUCT DETAILS
+        // =========================================================
+
+        function refreshAllProductDetails() {
+
+            const from =
+                $("#FromWarehouse").val();
+
+            const to =
+                $("#ToWarehouse").val();
+
+
+            if (!from ||
+                !to ||
+                from === to) {
+
+                $("#stockSummary")
+                    .hide();
+
+                return;
+
+            }
+
+
+            $("#itemBody tr").each(
+                function () {
+
+                    const row =
+                        $(this);
+
+                    const productId =
+                        parseInt(
+                            row.find(
+                                ".product-id"
+                            ).val()
+                        ) || 0;
+
+
+                    if (productId > 0) {
+
+                        getProductDetails(
+                            productId,
+                            row
+                        );
+
+                    }
+
+                }
+            );
+
+
+            if (
+                selectedSummaryRow &&
+                selectedSummaryRow.length
+            ) {
+
+                updateStockSummary(
+                    selectedSummaryRow
+                );
+
+            }
+
+        }
+
+
+        // =========================================================
+        // NO ITEMS MESSAGE
+        // =========================================================
+
+        function updateNoItemsMessage() {
+
+            if (
+                $("#itemBody tr").length === 0
+            ) {
+
+                $("#noItemsMessage")
+                    .show();
+
+                $("#itemTable")
+                    .hide();
+
+            }
+            else {
+
+                $("#noItemsMessage")
+                    .hide();
+
+                $("#itemTable")
+                    .show();
+
+            }
+
+        }
+
+
+        // =========================================================
+        // FORM SUBMIT VALIDATION
+        // =========================================================
+
+        $("#stockTransferForm").on(
+            "submit",
+            function (event) {
+
+                const rows =
+                    $("#itemBody tr");
+
+
+                // -------------------------------------------------
+                // WAREHOUSE VALIDATION
+                // -------------------------------------------------
+
+                const fromWarehouse =
+                    $("#FromWarehouse").val();
+
+                const toWarehouse =
+                    $("#ToWarehouse").val();
+
+
+                if (!fromWarehouse) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select From Warehouse."
+                    );
+
+                    return false;
+
+                }
+
+
+                if (!toWarehouse) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select To Warehouse."
+                    );
+
+                    return false;
+
+                }
+
+
+                if (
+                    fromWarehouse ===
+                    toWarehouse
+                ) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "From Warehouse and To Warehouse cannot be the same."
+                    );
+
+                    return false;
+
+                }
+
+
+                // -------------------------------------------------
+                // NO PRODUCTS
+                // -------------------------------------------------
+
+                if (rows.length === 0) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please add at least one product."
+                    );
+
+                    return false;
+
+                }
+
+
+                let valid = true;
+
+
+                // -------------------------------------------------
+                // VALIDATE EACH ROW
+                // -------------------------------------------------
+
+                rows.each(
+                    function () {
+
+                        const row =
+                            $(this);
+
+
+                        const productId =
+                            parseInt(
+                                row.find(
+                                    ".product-id"
+                                ).val()
+                            ) || 0;
+
+
+                        const qty =
+                            parseFloat(
+                                row.find(
+                                    ".qty"
+                                ).val()
+                            ) || 0;
+
+
+                        const available =
+                            parseFloat(
+                                row.attr(
+                                    "data-from-available"
+                                )
+                            ) || 0;
+
+
+                        const unitCost =
+                            parseFloat(
+                                row.find(
+                                    ".cost"
+                                ).val()
+                            ) || 0;
+
+
+                        // PRODUCT
+
+                        if (
+                            productId <= 0
+                        ) {
+
+                            alert(
+                                "Please select a product."
+                            );
+
+                            valid = false;
+
+                            return false;
+
+                        }
+
+
+                        // QUANTITY
+
+                        if (
+                            qty <= 0
+                        ) {
+
+                            alert(
+                                "Quantity must be greater than zero."
+                            );
+
+                            valid = false;
+
+                            return false;
+
+                        }
+
+
+                        // AVAILABLE STOCK
+
+                        if (
+                            qty > available
+                        ) {
+
+                            alert(
+                                "Transfer quantity cannot be greater than available stock."
+                            );
+
+                            valid = false;
+
+                            return false;
+
+                        }
+
+
+                        // UNIT COST
+
+                        if (
+                            unitCost < 0
+                        ) {
+
+                            alert(
+                                "Unit cost cannot be negative."
+                            );
+
+                            valid = false;
+
+                            return false;
+
+                        }
+
+                    }
+                );
+
+
+                if (!valid) {
+
+                    event.preventDefault();
+
+                    return false;
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+
+        // =========================================================
+        // HTML ESCAPE
+        // =========================================================
+
+        function escapeHtml(value) {
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+
+                return "";
+
+            }
+
+
+            return String(value)
+
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+    </script>
+    
+
+}

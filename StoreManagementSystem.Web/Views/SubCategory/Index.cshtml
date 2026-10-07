@@ -28,25 +28,43 @@
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show">
-
         @TempData["Success"]
 
-        <button class="btn-close" data-bs-dismiss="alert"></button>
-
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
     </div>
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
+
+<!-- Summary -->
 <div class="row mb-4">
 
-    <div class="col-lg-4">
+    <div class="col-lg-6">
 
         <div class="card shadow-sm border-0">
 
             <div class="card-body text-center">
 
-                <h6>Total Sub Categories</h6>
+                <h6 class="text-muted">
+                    Total Sub Categories
+                </h6>
 
-                <h2>@Model.Count()</h2>
+                <h2 class="fw-bold">
+                    @Model.Count()
+                </h2>
 
             </div>
 
@@ -54,31 +72,19 @@
 
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-6">
 
         <div class="card shadow-sm border-0">
 
             <div class="card-body text-center">
 
-                <h6>Active</h6>
+                <h6 class="text-muted">
+                    Categories Used
+                </h6>
 
-                <h2>@Model.Count(x => x.IsActive)</h2>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-4">
-
-        <div class="card shadow-sm border-0">
-
-            <div class="card-body text-center">
-
-                <h6>Inactive</h6>
-
-                <h2>@Model.Count(x => !x.IsActive)</h2>
+                <h2 class="fw-bold">
+                    @Model.Select(x => x.CategoryId).Distinct().Count()
+                </h2>
 
             </div>
 
@@ -88,6 +94,7 @@
 
 </div>
 
+<!-- Filter -->
 <form method="get">
 
     <div class="row mb-3">
@@ -98,7 +105,9 @@
                     name="categoryId"
                     asp-items="ViewBag.CategoryList">
 
-                <option value="">All Categories</option>
+                <option value="">
+                    All Categories
+                </option>
 
             </select>
 
@@ -106,10 +115,10 @@
 
         <div class="col-md-2">
 
-            <button class="btn btn-primary">
+            <button type="submit"
+                    class="btn btn-primary">
 
                 <i class="bi bi-funnel"></i>
-
                 Filter
 
             </button>
@@ -120,139 +129,104 @@
 
 </form>
 
+<!-- Sub Category Table -->
 <div class="card shadow-sm border-0">
 
     <div class="card-body">
 
-        <table id="subCategoryTable"
-               class="table table-hover align-middle">
+        <div class="table-responsive">
 
-            <thead class="table-light">
+            <table id="subCategoryTable"
+                   class="table table-hover align-middle">
 
-                <tr>
+                <thead class="table-light">
 
-                    <th>#</th>
-
-                    <th>Category</th>
-
-                    <th>Sub Category</th>
-
-                    <th>Description</th>
-
-                    <th>Display Order</th>
-
-                    <th>Status</th>
-
-                    <th width="160">
-
-                        Action
-
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                @{
-                    int no = 1;
-                }
-
-                @foreach (var item in Model)
-                {
                     <tr>
 
-                        <td>@no</td>
+                        <th>#</th>
 
-                        <td>
+                        <th>Category</th>
 
-                            <span class="badge bg-primary">
+                        <th>Sub Category</th>
 
-                                @item.Category.Name
-
-                            </span>
-
-                        </td>
-
-                        <td>
-
-                            <strong>
-
-                                @item.Name
-
-                            </strong>
-
-                        </td>
-
-                        <td>
-
-                            @item.Description
-
-                        </td>
-
-                        <td>
-
-                            @item.DisplayOrder
-
-                        </td>
-
-                        <td>
-
-                            @if (item.IsActive)
-                            {
-                                <span class="badge bg-success">
-
-                                    Active
-
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">
-
-                                    Inactive
-
-                                </span>
-                            }
-
-                        </td>
-
-                        <td>
-
-                            <a asp-action="Edit"
-                               asp-route-id="@item.Id"
-                               class="btn btn-warning btn-sm">
-
-                                <i class="bi bi-pencil-square"></i>
-
-                            </a>
-
-                            <form asp-action="Delete"
-                                  asp-route-id="@item.Id"
-                                  method="post"
-                                  class="d-inline deleteForm">
-
-                                @Html.AntiForgeryToken()
-
-                                <button class="btn btn-danger btn-sm">
-
-                                    <i class="bi bi-trash"></i>
-
-                                </button>
-
-                            </form>
-
-                        </td>
+                        <th width="160">
+                            Action
+                        </th>
 
                     </tr>
 
-                    no++;
-                }
+                </thead>
 
-            </tbody>
+                <tbody>
 
-        </table>
+                    @{
+                        int no = 1;
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                @no
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-primary">
+                                    @(item.Category?.Name ?? "N/A")
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    @item.Name
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-warning btn-sm"
+                                   title="Edit">
+
+                                    <i class="bi bi-pencil-square"></i>
+
+                                </a>
+
+                                <form asp-action="Delete"
+                                      asp-route-id="@item.Id"
+                                      method="post"
+                                      class="d-inline deleteForm">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Delete">
+
+                                        <i class="bi bi-trash"></i>
+
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+                        no++;
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
 
@@ -279,15 +253,10 @@
                 dom: 'Bfrtip',
 
                 buttons: [
-
                     'copy',
-
                     'excel',
-
                     'pdf',
-
                     'print'
-
                 ]
 
             });
@@ -314,7 +283,9 @@
 
                 cancelButtonColor: "#6c757d",
 
-                confirmButtonText: "Delete"
+                confirmButtonText: "Delete",
+
+                cancelButtonText: "Cancel"
 
             }).then((result) => {
 
@@ -329,5 +300,4 @@
         });
 
     </script>
-
 }

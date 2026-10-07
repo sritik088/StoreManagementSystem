@@ -1,0 +1,303 @@
+﻿@model StoreManagementSystem.Domain.Entities.DamageEntry
+
+@{
+    ViewData["Title"] = "Damage Entry Details";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    ```
+    <!-- ============================================================
+         HEADER
+    ============================================================= -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Damage Entry Details
+            </h2>
+
+            <p class="text-muted mb-0">
+                View inventory damage transaction details
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MAIN INFORMATION
+    ============================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="fw-bold mb-0">
+                    Damage Information
+                </h5>
+
+                <span class="badge bg-danger">
+                    Damage Entry
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Damage Number
+                    </small>
+
+                    <div class="fw-bold">
+                        @Model.DamageNumber
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Damage Date & Time
+                    </small>
+
+                    <div class="fw-semibold">
+                        @Model.DamageDate.ToString("dd-MMM-yyyy hh:mm tt")
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Damage Type
+                    </small>
+
+                    <div class="fw-semibold">
+                        @(Model.Damage?.DamageName ?? "-")
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Product SKU
+                    </small>
+
+                    <div class="fw-semibold">
+                        @(Model.Product?.SKU ?? "-")
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Barcode
+                    </small>
+
+                    <div class="fw-semibold">
+                        @(Model.Product?.Barcode ?? "-")
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Warehouse
+                    </small>
+
+                    <div class="fw-semibold">
+                        @(Model.Warehouse?.Name ?? "-")
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         DAMAGE VALUE
+    ============================================================= -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Damaged Quantity
+                    </small>
+
+                    <h3 class="fw-bold mb-0">
+                        @Model.Quantity.ToString("N2")
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Unit Cost
+                    </small>
+
+                    <h3 class="fw-bold mb-0">
+                        ₹ @Model.UnitCost.ToString("N2")
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Total Damage Value
+                    </small>
+
+                    <h3 class="fw-bold text-danger mb-0">
+                        ₹ @Model.TotalValue.ToString("N2")
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         REMARKS
+    ============================================================= -->
+    @if (!string.IsNullOrWhiteSpace(Model.Remarks))
+    {
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-0 py-3">
+
+                <h5 class="fw-bold mb-0">
+                    Remarks
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <p class="mb-0">
+                    @Model.Remarks
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ACTIONS
+    ============================================================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <div class="fw-semibold">
+                        Reverse this damage?
+                    </div>
+
+                    <small class="text-muted">
+                        Reversal will restore the damaged quantity
+                        to warehouse stock and create a stock ledger entry.
+                    </small>
+
+                </div>
+
+
+                <form asp-action="Reverse"
+                      method="post"
+                      onsubmit="return confirm('Are you sure you want to reverse this damage entry? The quantity will be added back to warehouse stock.');">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-warning">
+
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reverse Damage
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+    ```
+
+</div>

@@ -8,28 +8,20 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
-
         <h2 class="fw-bold mb-0">
-
             <i class="bi bi-grid-fill text-primary"></i>
-
             Categories
-
         </h2>
 
         <small class="text-muted">
-
             Manage product categories
-
         </small>
-
     </div>
 
     <a asp-action="Create"
        class="btn btn-primary">
 
         <i class="bi bi-plus-circle"></i>
-
         New Category
 
     </a>
@@ -49,18 +41,12 @@
 
                     <th>#</th>
 
-                    <th>Name</th>
+                    <th>Main Category</th>
 
-                    <th>Description</th>
-
-                    <th>Status</th>
-
-                    <th>Display Order</th>
+                    <th>Category</th>
 
                     <th width="150">
-
                         Action
-
                     </th>
 
                 </tr>
@@ -75,54 +61,41 @@
 
                 @foreach (var item in Model)
                 {
-
                     <tr>
 
-                        <td>@no</td>
-
+                        <!-- Number -->
                         <td>
-
-                            <strong>
-
-                                @item.Name
-
-                            </strong>
-
+                            @no
                         </td>
 
+                        <!-- Main Category -->
                         <td>
 
-                            @item.Description
-
-                        </td>
-
-                        <td>
-
-                            @if (item.IsActive)
+                            @if (item.MainCategory != null)
                             {
-                                <span class="badge bg-success">
-
-                                    Active
-
+                                <span class="badge bg-primary">
+                                    @item.MainCategory.Name
                                 </span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">
-
-                                    Inactive
-
+                                <span class="text-muted">
+                                    Not Assigned
                                 </span>
                             }
 
                         </td>
 
+                        <!-- Category -->
                         <td>
 
-                            @item.DisplayOrder
+                            <strong>
+                                @item.Name
+                            </strong>
 
                         </td>
 
+                        <!-- Actions -->
                         <td>
 
                             <a asp-action="Edit"
@@ -138,7 +111,10 @@
                                   method="post"
                                   class="d-inline deleteForm">
 
-                                <button class="btn btn-danger btn-sm">
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">
 
                                     <i class="bi bi-trash"></i>
 
@@ -151,7 +127,6 @@
                     </tr>
 
                     no++;
-
                 }
 
             </tbody>
@@ -168,63 +143,60 @@
 
     <script>
 
-        $(function(){
+        $(function () {
 
-        $("#categoryTable").DataTable({
+            $("#categoryTable").DataTable({
 
-        responsive:true,
+                responsive: true,
 
-        pageLength:10,
+                pageLength: 10,
 
-        lengthMenu:[10,25,50,100],
+                lengthMenu: [10, 25, 50, 100],
 
-        dom:'Bfrtip',
+                dom: 'Bfrtip',
 
-        buttons:[
+                buttons: [
+                    'copy',
+                    'excel',
+                    'pdf',
+                    'print'
+                ]
 
-        'copy',
-
-        'excel',
-
-        'pdf',
-
-        'print'
-
-        ]
+            });
 
         });
 
-        });
+        $(".deleteForm").submit(function (e) {
 
-        $(".deleteForm").submit(function(e){
+            e.preventDefault();
 
-        e.preventDefault();
+            let form = this;
 
-        let form=this;
+            Swal.fire({
 
-        Swal.fire({
+                title: "Delete Category?",
 
-        title:"Delete Category?",
+                text: "You won't be able to recover it!",
 
-        text:"You won't be able to recover it!",
+                icon: "warning",
 
-        icon:"warning",
+                showCancelButton: true,
 
-        showCancelButton:true,
+                confirmButtonColor: "#dc3545",
 
-        confirmButtonColor:"#dc3545",
+                cancelButtonColor: "#6c757d",
 
-        confirmButtonText:"Yes, Delete"
+                confirmButtonText: "Yes, Delete"
 
-        }).then((result)=>{
+            }).then((result) => {
 
-        if(result.isConfirmed){
+                if (result.isConfirmed) {
 
-        form.submit();
+                    form.submit();
 
-        }
+                }
 
-        });
+            });
 
         });
 

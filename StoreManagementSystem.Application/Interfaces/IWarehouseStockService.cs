@@ -1,7 +1,5 @@
 ﻿using StoreManagementSystem.Domain.Entities;
 
-namespace StoreManagementSystem.Application.Interfaces;
-
 public interface IWarehouseStockService
 {
     Task IncreaseStockAsync(
@@ -32,4 +30,6 @@ public interface IWarehouseStockService
         int warehouseId,
         int productId,
         decimal quantity);
+
+    Task<List<WarehouseStock>> GetAllAsync();
 }

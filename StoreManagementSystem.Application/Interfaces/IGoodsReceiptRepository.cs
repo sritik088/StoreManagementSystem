@@ -8,14 +8,28 @@ namespace StoreManagementSystem.Application.Interfaces
 
         Task<GoodsReceipt?> GetByIdAsync(int id);
 
+        Task<GoodsReceipt?> GetDeletedByIdAsync(int id);
+
+        Task<PurchaseOrder?> GetPurchaseOrderWithDetailsAsync(int id);
+
+        Task<string> GenerateGRNNumberAsync();
+
+        Task<IEnumerable<PurchaseOrder>>
+            GetApprovedPurchaseOrdersAsync();
+
+        Task<decimal>
+            GetPreviouslyReceivedQuantityAsync(
+                int purchaseOrderItemId);
+
         Task AddAsync(GoodsReceipt receipt);
 
         Task UpdateAsync(GoodsReceipt receipt);
 
         Task DeleteAsync(int id);
 
-        Task<string> GenerateGRNNumberAsync();
+        Task RestoreAsync(int id);
 
-        Task<IEnumerable<PurchaseOrder>> GetApprovedPurchaseOrdersAsync();
+        Task RecalculatePurchaseOrderStatusAsync(
+            int purchaseOrderId);
     }
 }

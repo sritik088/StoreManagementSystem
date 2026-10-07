@@ -1,45 +1,80 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using StoreManagementSystem.Domain.Enums;
 
 namespace StoreManagementSystem.Web.ViewModels.GoodsReceipt
 {
-    public class GoodsReceiptItemViewModel
+    public class GoodsReceiptViewModel
     {
         public int Id { get; set; }
 
-        public int PurchaseOrderItemId { get; set; }
+        public string? GRNNumber { get; set; }
 
-        [Required]
-        public int ProductId { get; set; }
+        // =====================================================
+        // RECEIPT TYPE
+        // =====================================================
 
-        public string ProductName { get; set; } = string.Empty;
+        public GoodsReceiptType ReceiptType { get; set; }
+            = GoodsReceiptType.Purchase;
 
-        public string SKU { get; set; } = string.Empty;
+        // =====================================================
+        // PURCHASE
+        // =====================================================
 
-        public string UnitName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Please select a Purchase Order.")]
+        public int PurchaseOrderId { get; set; }
 
-        public decimal OrderedQuantity { get; set; }
+        public int SupplierId { get; set; }
 
-        public decimal PreviouslyReceivedQuantity { get; set; }
+        public string? SupplierName { get; set; }
 
-        public decimal RemainingQuantity =>
-            OrderedQuantity - PreviouslyReceivedQuantity;
+        // =====================================================
+        // GIFT
+        // =====================================================
 
-        [Range(0.01, 999999)]
-        public decimal ReceivedQuantity { get; set; }
+        [StringLength(200)]
+        public string? DonorName { get; set; }
 
-        public decimal UnitPrice { get; set; }
+        [StringLength(500)]
+        public string? GiftReason { get; set; }
 
-        public decimal Discount { get; set; }
+        // =====================================================
+        // COMMON
+        // =====================================================
+
+        [Required(ErrorMessage = "Please select receipt date.")]
+        [DataType(DataType.Date)]
+        public DateTime ReceiptDate { get; set; }
+            = DateTime.Today;
+
+        public decimal SubTotal { get; set; }
 
         public decimal TaxAmount { get; set; }
 
-        public decimal LineTotal { get; set; }
+        public decimal Discount { get; set; }
 
-        [Required]
-        public int WarehouseId { get; set; }
+        public decimal GrandTotal { get; set; }
 
-        public IEnumerable<SelectListItem> Warehouses
+        public string? Remarks { get; set; }
+
+        // =====================================================
+        // DROPDOWNS
+        // =====================================================
+
+        public IEnumerable<SelectListItem> PurchaseOrders { get; set; }
             = Enumerable.Empty<SelectListItem>();
+
+        public IEnumerable<SelectListItem> Warehouses { get; set; }
+            = Enumerable.Empty<SelectListItem>();
+
+        public IEnumerable<SelectListItem> Products { get; set; }
+            = Enumerable.Empty<SelectListItem>();
+
+        // =====================================================
+        // GRN ITEMS
+        // =====================================================
+
+        public List<GoodsReceiptItemViewModel> Items { get; set; }
+            = new List<GoodsReceiptItemViewModel>();
     }
 }

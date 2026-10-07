@@ -1,0 +1,1280 @@
+﻿@model StoreManagementSystem.Web.ViewModels.SalesOrder.SalesOrderViewModel
+
+@{
+    ViewData["Title"] = "Edit Sales Order";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between
+                align-items-md-center
+                gap-3 mb-4">
+
+        <div>
+            <h4 class="fw-bold mb-1">
+                Edit Sales Order
+            </h4>
+
+            <div class="text-muted">
+                Update sales order details and items.
+            </div>
+        </div>
+
+        <div>
+            <a asp-action="Details"
+               asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back to Details
+
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         VALIDATION
+         ===================================================== -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"
+         role="alert">
+    </div>
+
+
+    <form asp-action="Edit"
+          method="post"
+          id="salesOrderForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="Id" />
+
+        <input type="hidden"
+               asp-for="OrderNumber" />
+
+        <input type="hidden"
+               asp-for="Status" />
+
+
+        <!-- =================================================
+             ORDER INFORMATION
+             ================================================= -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-0 fw-semibold">
+                    Order Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <!-- ORDER NUMBER -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Order Number
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               value="@Model.OrderNumber"
+                               readonly />
+
+                    </div>
+
+
+                    <!-- ORDER DATE -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="OrderDate"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="OrderDate"
+                               type="date"
+                               class="form-control" />
+
+                        <span asp-validation-for="OrderDate"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- WAREHOUSE -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="WarehouseId"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <select asp-for="WarehouseId"
+                                asp-items="Model.Warehouses"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Warehouse --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="WarehouseId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- CUSTOMER NAME -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="CustomerName"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="CustomerName"
+                               class="form-control"
+                               placeholder="Enter customer name" />
+
+                        <span asp-validation-for="CustomerName"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- CUSTOMER PHONE -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="CustomerPhone"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="CustomerPhone"
+                               class="form-control"
+                               placeholder="Enter customer phone" />
+
+                        <span asp-validation-for="CustomerPhone"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SALES ORDER ITEMS
+             ================================================= -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <div class="d-flex
+                            justify-content-between
+                            align-items-center">
+
+                    <h5 class="mb-0 fw-semibold">
+                        Sales Order Items
+                    </h5>
+
+                    <button type="button"
+                            class="btn btn-sm btn-primary"
+                            id="addItemBtn">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add Product
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered
+                                  align-middle mb-0"
+                           id="itemsTable">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th style="min-width:220px;">
+                                    Product
+                                </th>
+
+                                <th style="width:110px;">
+                                    Quantity
+                                </th>
+
+                                <th style="width:140px;">
+                                    Unit Cost
+                                </th>
+
+                                <th style="width:140px;">
+                                    Sale Price
+                                </th>
+
+                                <th style="width:100px;">
+                                    Tax %
+                                </th>
+
+                                <th style="width:120px;">
+                                    Discount %
+                                </th>
+
+                                <th style="width:150px;"
+                                    class="text-end">
+                                    Line Total
+                                </th>
+
+                                <th style="width:150px;"
+                                    class="text-end">
+                                    Gross Profit
+                                </th>
+
+                                <th style="width:60px;">
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="itemsBody">
+
+                            @for (int i = 0;
+                                                        i < Model.Items.Count;
+                                                        i++)
+                            {
+                                <tr class="item-row">
+
+                                    <!-- PRODUCT -->
+
+                                    <td>
+
+                                        <select name="Items[@i].ProductId"
+                                                class="form-select product-select">
+
+                                            <option value="">
+                                                -- Select Product --
+                                            </option>
+
+                                            @foreach (var product in Model.Items[i].Products)
+                                            {
+                                                if (product.Value ==
+                                                Model.Items[i].ProductId.ToString())
+                                                {
+                                                    <option value="@product.Value"
+                                                            selected>
+                                                        @product.Text
+                                                    </option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@product.Value">
+                                                        @product.Text
+                                                    </option>
+                                                }
+                                            }
+
+                                        </select>
+
+                                        <input type="hidden"
+                                               name="Items[@i].Id"
+                                               value="@Model.Items[i].Id" />
+
+                                    </td>
+
+
+                                    <!-- QUANTITY -->
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="Items[@i].Quantity"
+                                               value="@Model.Items[i].Quantity"
+                                               class="form-control quantity-input"
+                                               min="0.01"
+                                               step="0.01" />
+
+                                    </td>
+
+
+                                    <!-- UNIT COST -->
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="Items[@i].UnitPrice"
+                                               value="@Model.Items[i].UnitPrice"
+                                               class="form-control cost-input"
+                                               min="0"
+                                               step="0.01"
+                                               readonly />
+
+                                    </td>
+
+
+                                    <!-- SALE PRICE -->
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="Items[@i].SalePrice"
+                                               value="@Model.Items[i].SalePrice"
+                                               class="form-control sale-price-input"
+                                               min="0"
+                                               step="0.01" />
+
+                                    </td>
+
+
+                                    <!-- TAX -->
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="Items[@i].TaxPercent"
+                                               value="@Model.Items[i].TaxPercent"
+                                               class="form-control tax-input"
+                                               min="0"
+                                               max="100"
+                                               step="0.01" />
+
+                                    </td>
+
+
+                                    <!-- DISCOUNT -->
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="Items[@i].DiscountPercent"
+                                               value="@Model.Items[i].DiscountPercent"
+                                               class="form-control discount-input"
+                                               min="0"
+                                               max="100"
+                                               step="0.01" />
+
+                                    </td>
+
+
+                                    <!-- LINE TOTAL -->
+
+                                    <td class="text-end">
+
+                                        <strong class="line-total">
+                                            ₹@Model.Items[i].LineTotal.ToString("N2")
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- GROSS PROFIT -->
+
+                                    <td class="text-end">
+
+                                        <strong class="gross-profit">
+                                            ₹@Model.Items[i].GrossProfit.ToString("N2")
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- REMOVE -->
+
+                                    <td class="text-center">
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger remove-item">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOTALS
+             ================================================= -->
+
+        <div class="row justify-content-end mb-4">
+
+            <div class="col-md-5 col-lg-4">
+
+                <div class="card shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <div class="d-flex
+                                    justify-content-between
+                                    mb-2">
+
+                            <span class="text-muted">
+                                Subtotal
+                            </span>
+
+                            <strong id="subTotalDisplay">
+                                ₹@Model.SubTotal.ToString("N2")
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex
+                                    justify-content-between
+                                    mb-2">
+
+                            <span class="text-muted">
+                                Discount
+                            </span>
+
+                            <strong id="discountDisplay">
+                                ₹@Model.DiscountAmount.ToString("N2")
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex
+                                    justify-content-between
+                                    mb-2">
+
+                            <span class="text-muted">
+                                Tax
+                            </span>
+
+                            <strong id="taxDisplay">
+                                ₹@Model.TaxAmount.ToString("N2")
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex
+                                    justify-content-between
+                                    mb-3">
+
+                            <span class="text-muted">
+                                Gross Profit
+                            </span>
+
+                            <strong id="grossProfitDisplay">
+                                ₹@Model.GrossProfit.ToString("N2")
+                            </strong>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <div class="d-flex
+                                    justify-content-between">
+
+                            <span class="fw-bold">
+                                Grand Total
+                            </span>
+
+                            <strong class="fs-5 text-success"
+                                    id="grandTotalDisplay">
+
+                                ₹@Model.GrandTotal.ToString("N2")
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             REMARKS
+             ================================================= -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-0 fw-semibold">
+                    Remarks
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <textarea asp-for="Remarks"
+                          class="form-control"
+                          rows="4"
+                          maxlength="500"
+                          placeholder="Enter remarks..."></textarea>
+
+                <span asp-validation-for="Remarks"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             ACTIONS
+             ================================================= -->
+
+        <div class="d-flex
+                    justify-content-end
+                    gap-2">
+
+            <a asp-action="Details"
+               asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary">
+
+                Cancel
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-check-lg me-1"></i>
+                Update Sales Order
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        // =====================================================
+        // PRODUCT OPTIONS
+        // =====================================================
+
+        const productOptions = `
+            @foreach (var product in Model.Items.FirstOrDefault()?.Products ?? new List<SelectListItem>())
+            {
+                    <text>
+                        <option value="@product.Value">
+                            @product.Text
+                        </option>
+                    </text>
+            }
+        `;
+
+
+        // =====================================================
+        // FORMAT CURRENCY
+        // =====================================================
+
+        function formatCurrency(value) {
+
+            return "₹" +
+                value.toLocaleString(
+                    "en-IN",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                );
+
+        }
+
+
+        // =====================================================
+        // CALCULATE ROW
+        // =====================================================
+
+        function calculateRow(row) {
+
+            const quantity =
+                parseFloat(
+                    row.querySelector(".quantity-input")?.value
+                ) || 0;
+
+            const unitCost =
+                parseFloat(
+                    row.querySelector(".cost-input")?.value
+                ) || 0;
+
+            const salePrice =
+                parseFloat(
+                    row.querySelector(".sale-price-input")?.value
+                ) || 0;
+
+            const taxPercent =
+                parseFloat(
+                    row.querySelector(".tax-input")?.value
+                ) || 0;
+
+            const discountPercent =
+                parseFloat(
+                    row.querySelector(".discount-input")?.value
+                ) || 0;
+
+
+            // -------------------------------------------------
+            // Selling value
+            // -------------------------------------------------
+
+            const grossSales =
+                quantity * salePrice;
+
+
+            // -------------------------------------------------
+            // Discount
+            // -------------------------------------------------
+
+            const discount =
+                grossSales *
+                discountPercent /
+                100;
+
+
+            // -------------------------------------------------
+            // Net selling value
+            // -------------------------------------------------
+
+            const netSales =
+                Math.max(
+                    grossSales - discount,
+                    0
+                );
+
+
+            // -------------------------------------------------
+            // Tax
+            // -------------------------------------------------
+
+            const tax =
+                netSales *
+                taxPercent /
+                100;
+
+
+            // -------------------------------------------------
+            // Customer total
+            // -------------------------------------------------
+
+            const lineTotal =
+                netSales + tax;
+
+
+            // -------------------------------------------------
+            // Purchase cost
+            // -------------------------------------------------
+
+            const costAmount =
+                quantity * unitCost;
+
+
+            // -------------------------------------------------
+            // Gross profit
+            // Tax is NOT included in gross profit.
+            // -------------------------------------------------
+
+            const grossProfit =
+                netSales - costAmount;
+
+
+            const totalElement =
+                row.querySelector(".line-total");
+
+            if (totalElement) {
+
+                totalElement.textContent =
+                    formatCurrency(lineTotal);
+
+            }
+
+
+            const profitElement =
+                row.querySelector(".gross-profit");
+
+            if (profitElement) {
+
+                profitElement.textContent =
+                    formatCurrency(grossProfit);
+
+            }
+
+        }
+
+
+        // =====================================================
+        // CALCULATE ALL TOTALS
+        // =====================================================
+
+        function calculateTotals() {
+
+            let subtotal = 0;
+            let discount = 0;
+            let tax = 0;
+            let grossProfit = 0;
+
+
+            document
+                .querySelectorAll(".item-row")
+                .forEach(function (row) {
+
+                    const quantity =
+                        parseFloat(
+                            row.querySelector(".quantity-input")?.value
+                        ) || 0;
+
+                    const unitCost =
+                        parseFloat(
+                            row.querySelector(".cost-input")?.value
+                        ) || 0;
+
+                    const salePrice =
+                        parseFloat(
+                            row.querySelector(".sale-price-input")?.value
+                        ) || 0;
+
+                    const taxPercent =
+                        parseFloat(
+                            row.querySelector(".tax-input")?.value
+                        ) || 0;
+
+                    const discountPercent =
+                        parseFloat(
+                            row.querySelector(".discount-input")?.value
+                        ) || 0;
+
+
+                    const grossSales =
+                        quantity * salePrice;
+
+
+                    const rowDiscount =
+                        grossSales *
+                        discountPercent /
+                        100;
+
+
+                    const netSales =
+                        Math.max(
+                            grossSales - rowDiscount,
+                            0
+                        );
+
+
+                    const rowTax =
+                        netSales *
+                        taxPercent /
+                        100;
+
+
+                    const costAmount =
+                        quantity * unitCost;
+
+
+                    const rowGrossProfit =
+                        netSales - costAmount;
+
+
+                    subtotal += grossSales;
+                    discount += rowDiscount;
+                    tax += rowTax;
+                    grossProfit += rowGrossProfit;
+
+                });
+
+
+            const grandTotal =
+                subtotal -
+                discount +
+                tax;
+
+
+            document.getElementById(
+                "subTotalDisplay"
+            ).textContent =
+                formatCurrency(subtotal);
+
+
+            document.getElementById(
+                "discountDisplay"
+            ).textContent =
+                formatCurrency(discount);
+
+
+            document.getElementById(
+                "taxDisplay"
+            ).textContent =
+                formatCurrency(tax);
+
+
+            document.getElementById(
+                "grossProfitDisplay"
+            ).textContent =
+                formatCurrency(grossProfit);
+
+
+            document.getElementById(
+                "grandTotalDisplay"
+            ).textContent =
+                formatCurrency(grandTotal);
+
+        }
+
+
+        // =====================================================
+        // INPUT EVENTS
+        // =====================================================
+
+        document.addEventListener(
+            "input",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "quantity-input"
+                    ) ||
+                    event.target.classList.contains(
+                        "sale-price-input"
+                    ) ||
+                    event.target.classList.contains(
+                        "tax-input"
+                    ) ||
+                    event.target.classList.contains(
+                        "discount-input"
+                    )
+                ) {
+
+                    const row =
+                        event.target.closest(
+                            ".item-row"
+                        );
+
+                    if (row) {
+
+                        calculateRow(row);
+
+                    }
+
+                    calculateTotals();
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // PRODUCT CHANGE
+        // =====================================================
+
+        document.addEventListener(
+            "change",
+            async function (event) {
+
+                if (!event.target.classList.contains(
+                    "product-select"
+                )) {
+                    return;
+                }
+
+                const productId =
+                    parseInt(
+                        event.target.value
+                    ) || 0;
+
+                const row =
+                    event.target.closest(
+                        ".item-row"
+                    );
+
+                if (!row || productId <= 0) {
+                    return;
+                }
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            '@Url.Action("GetProductPrice", "SalesOrder")?productId=' +
+                            productId
+                        );
+
+                    const data =
+                        await response.json();
+
+
+                    if (data.success) {
+
+                        const costInput =
+                            row.querySelector(
+                                ".cost-input"
+                            );
+
+                        if (costInput) {
+
+                            costInput.value =
+                                Number(
+                                    data.unitPrice
+                                ).toFixed(2);
+
+                        }
+
+                    }
+
+
+                    calculateRow(row);
+                    calculateTotals();
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Unable to load product cost.",
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // REMOVE ITEM
+        // =====================================================
+
+        document.addEventListener(
+            "click",
+            function (event) {
+
+                const button =
+                    event.target.closest(
+                        ".remove-item"
+                    );
+
+                if (!button) {
+                    return;
+                }
+
+
+                const rows =
+                    document.querySelectorAll(
+                        ".item-row"
+                    );
+
+
+                if (rows.length <= 1) {
+
+                    alert(
+                        "At least one product is required."
+                    );
+
+                    return;
+                }
+
+
+                button
+                    .closest(".item-row")
+                    .remove();
+
+
+                reindexItems();
+
+                calculateTotals();
+
+            }
+        );
+
+
+        // =====================================================
+        // ADD ITEM
+        // =====================================================
+
+        document.getElementById(
+            "addItemBtn"
+        ).addEventListener(
+            "click",
+            function () {
+
+                const tbody =
+                    document.getElementById(
+                        "itemsBody"
+                    );
+
+                const index =
+                    tbody.querySelectorAll(
+                        ".item-row"
+                    ).length;
+
+
+                const row =
+                    document.createElement("tr");
+
+                row.className =
+                    "item-row";
+
+
+                row.innerHTML = `
+
+                    <td>
+
+                        <select
+                            name="Items[${index}].ProductId"
+                            class="form-select product-select">
+
+                            <option value="">
+                                -- Select Product --
+                            </option>
+
+                            ${productOptions}
+
+                        </select>
+
+                        <input
+                            type="hidden"
+                            name="Items[${index}].Id"
+                            value="0" />
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="Items[${index}].Quantity"
+                            class="form-control quantity-input"
+                            value="1"
+                            min="0.01"
+                            step="0.01" />
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="Items[${index}].UnitPrice"
+                            class="form-control cost-input"
+                            value="0"
+                            min="0"
+                            step="0.01"
+                            readonly />
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="Items[${index}].SalePrice"
+                            class="form-control sale-price-input"
+                            value="0"
+                            min="0"
+                            step="0.01" />
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="Items[${index}].TaxPercent"
+                            class="form-control tax-input"
+                            value="0"
+                            min="0"
+                            max="100"
+                            step="0.01" />
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="Items[${index}].DiscountPercent"
+                            class="form-control discount-input"
+                            value="0"
+                            min="0"
+                            max="100"
+                            step="0.01" />
+
+                    </td>
+
+
+                    <td class="text-end">
+
+                        <strong class="line-total">
+                            ₹0.00
+                        </strong>
+
+                    </td>
+
+
+                    <td class="text-end">
+
+                        <strong class="gross-profit">
+                            ₹0.00
+                        </strong>
+
+                    </td>
+
+
+                    <td class="text-center">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger remove-item">
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                tbody.appendChild(row);
+
+                calculateRow(row);
+                calculateTotals();
+
+            }
+        );
+
+
+        // =====================================================
+        // REINDEX ITEMS
+        // =====================================================
+
+        function reindexItems() {
+
+            document
+                .querySelectorAll(".item-row")
+                .forEach(function (row, index) {
+
+                    row.querySelectorAll(
+                        "input, select"
+                    ).forEach(function (element) {
+
+                        const name =
+                            element.getAttribute(
+                                "name"
+                            );
+
+                        if (!name) {
+                            return;
+                        }
+
+
+                        const newName =
+                            name.replace(
+                                /Items\[\d+\]/,
+                                "Items[" +
+                                index +
+                                "]"
+                            );
+
+
+                        element.setAttribute(
+                            "name",
+                            newName
+                        );
+
+                    });
+
+                });
+
+        }
+
+
+        // =====================================================
+        // INITIAL CALCULATION
+        // =====================================================
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                document
+                    .querySelectorAll(".item-row")
+                    .forEach(function (row) {
+
+                        calculateRow(row);
+
+                    });
+
+
+                calculateTotals();
+
+            }
+        );
+
+    </script>
+}

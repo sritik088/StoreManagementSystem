@@ -1,0 +1,810 @@
+﻿```cshtml
+@model IEnumerable<StoreManagementSystem.Domain.Entities.DamageEntry>
+
+@{
+    ViewData["Title"] = "Damage Entries";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ============================================================
+         PAGE HEADER
+    ============================================================= -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-box-seam me-2"></i>
+                Damage Entries
+            </h2>
+
+            <p class="text-muted mb-0">
+                Record and monitor damaged inventory
+            </p>
+        </div>
+
+        <div class="mt-3 mt-md-0">
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>
+                New Damage Entry
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         ALERTS
+    ============================================================= -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         SUMMARY CARDS
+    ============================================================= -->
+    @{
+        var totalEntries = Model.Count();
+
+        var totalQuantity = Model.Sum(x => x.Quantity);
+
+        var totalValue = Model.Sum(x => x.TotalValue);
+
+        var totalProducts = Model
+        .Select(x => x.ProductId)
+        .Distinct()
+        .Count();
+    }
+
+    <div class="row g-3 mb-4">
+
+        <!-- Total Entries -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="text-muted small mb-1">
+                                Total Damage Entries
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                @totalEntries
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+
+                            <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Damaged Quantity -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="text-muted small mb-1">
+                                Damaged Quantity
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                @totalQuantity.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+
+                            <i class="bi bi-boxes text-warning fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Damage Value -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="text-muted small mb-1">
+                                Damage Value
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                ₹ @totalValue.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
+
+                            <i class="bi bi-currency-rupee text-info fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Affected Products -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="text-muted small mb-1">
+                                Affected Products
+                            </div>
+
+                            <h3 class="fw-bold mb-0">
+                                @totalProducts
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+
+                            <i class="bi bi-box text-primary fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         FILTERS
+    ============================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- Search -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Search
+                    </label>
+
+                    <input type="text"
+                           id="damageSearch"
+                           class="form-control"
+                           placeholder="Damage No, SKU, warehouse..." />
+
+                </div>
+
+
+                <!-- Damage Type -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Damage Type
+                    </label>
+
+                    <select id="damageTypeFilter"
+                            class="form-select">
+
+                        <option value="">
+                            All Damage Types
+                        </option>
+
+                        @foreach (var item in Model
+                                                .Where(x => x.Damage != null)
+                                                .Select(x => x.Damage!.DamageName)
+                                                .Distinct()
+                                                .OrderBy(x => x))
+                        {
+                            <option value="@item">
+                                @item
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- Warehouse -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Warehouse
+                    </label>
+
+                    <select id="warehouseFilter"
+                            class="form-select">
+
+                        <option value="">
+                            All Warehouses
+                        </option>
+
+                        @foreach (var item in Model
+                                                .Where(x => x.Warehouse != null)
+                                                .Select(x => x.Warehouse!.Name)
+                                                .Distinct()
+                                                .OrderBy(x => x))
+                        {
+                            <option value="@item">
+                                @item
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- Date -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Date
+                    </label>
+
+                    <input type="date"
+                           id="dateFilter"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         DAMAGE TABLE
+    ============================================================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-0">
+                        Damage History
+                    </h5>
+
+                    <small class="text-muted">
+                        Inventory damage records
+                    </small>
+
+                </div>
+
+                <span class="badge bg-light text-dark border">
+                    @totalEntries Records
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table id="damageTable"
+                       class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">
+                                #
+                            </th>
+
+                            <th>
+                                Damage No.
+                            </th>
+
+                            <th>
+                                Date &amp; Time
+                            </th>
+
+                            <th>
+                                Damage Type
+                            </th>
+
+                            <th>
+                                Product
+                            </th>
+
+                            <th>
+                                Warehouse
+                            </th>
+
+                            <th class="text-end">
+                                Quantity
+                            </th>
+
+                            <th class="text-end">
+                                Unit Cost
+                            </th>
+
+                            <th class="text-end">
+                                Damage Value
+                            </th>
+
+                            <th class="text-center">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @{
+                            var rowNumber = 1;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <!-- # -->
+
+                                <td class="ps-4">
+                                    @rowNumber
+                                </td>
+
+
+                                <!-- Damage Number -->
+
+                                <td>
+
+                                    <span class="fw-semibold">
+                                        @item.DamageNumber
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Date & Time -->
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @item.DamageDate.ToString("dd-MMM-yyyy")
+                                    </div>
+
+                                    <small class="text-muted">
+                                        @item.DamageDate.ToString("hh:mm tt")
+                                    </small>
+
+                                </td>
+
+
+                                <!-- Damage Type -->
+
+                                <td>
+
+                                    @if (item.Damage != null)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger">
+                                            @item.Damage.DamageName
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- Product -->
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @(item.Product?.SKU ?? "-")
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(item.Product?.Barcode))
+                                    {
+                                        <small class="text-muted">
+                                            @item.Product.Barcode
+                                        </small>
+                                    }
+
+                                </td>
+
+
+                                <!-- Warehouse -->
+
+                                <td>
+                                    @(item.Warehouse?.Name ?? "-")
+                                </td>
+
+
+                                <!-- Quantity -->
+
+                                <td class="text-end fw-semibold">
+
+                                    @item.Quantity.ToString("N2")
+
+                                </td>
+
+
+                                <!-- Unit Cost -->
+
+                                <td class="text-end">
+
+                                    ₹ @item.UnitCost.ToString("N2")
+
+                                </td>
+
+
+                                <!-- Damage Value -->
+
+                                <td class="text-end fw-semibold">
+
+                                    ₹ @item.TotalValue.ToString("N2")
+
+                                </td>
+
+
+                                <!-- ACTIONS -->
+
+                                <td class="text-center">
+
+                                    <div class="d-inline-flex gap-1">
+
+                                        <!-- Details -->
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View Details">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+
+                                        <!-- Delete -->
+
+                                        <form asp-action="Delete"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this damage entry? Stock will not be automatically restored. Use Reverse Damage if you want to restore the stock.');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@item.Id" />
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            rowNumber++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const searchInput =
+                document.getElementById("damageSearch");
+
+            const damageTypeFilter =
+                document.getElementById("damageTypeFilter");
+
+            const warehouseFilter =
+                document.getElementById("warehouseFilter");
+
+            const dateFilter =
+                document.getElementById("dateFilter");
+
+            const table =
+                document.getElementById("damageTable");
+
+            const rows =
+                table.querySelectorAll("tbody tr");
+
+
+            function filterTable() {
+
+                const search =
+                    searchInput.value.toLowerCase().trim();
+
+                const damageType =
+                    damageTypeFilter.value.toLowerCase().trim();
+
+                const warehouse =
+                    warehouseFilter.value.toLowerCase().trim();
+
+                const selectedDate =
+                    dateFilter.value;
+
+
+                rows.forEach(function (row) {
+
+                    const rowText =
+                        row.innerText.toLowerCase();
+
+
+                    const rowDamageType =
+                        row.cells[3]?.innerText
+                            .toLowerCase()
+                            .trim() || "";
+
+
+                    const rowWarehouse =
+                        row.cells[5]?.innerText
+                            .toLowerCase()
+                            .trim() || "";
+
+
+                    const rowDateText =
+                        row.cells[2]?.innerText
+                            .trim() || "";
+
+
+                    // =========================
+                    // SEARCH
+                    // =========================
+
+                    const matchesSearch =
+                        !search ||
+                        rowText.includes(search);
+
+
+                    // =========================
+                    // DAMAGE TYPE
+                    // =========================
+
+                    const matchesDamageType =
+                        !damageType ||
+                        rowDamageType.includes(damageType);
+
+
+                    // =========================
+                    // WAREHOUSE
+                    // =========================
+
+                    const matchesWarehouse =
+                        !warehouse ||
+                        rowWarehouse.includes(warehouse);
+
+
+                    // =========================
+                    // DATE
+                    // =========================
+
+                    let matchesDate = true;
+
+
+                    if (selectedDate) {
+
+                        const parts =
+                            rowDateText.split("-");
+
+
+                        if (parts.length >= 3) {
+
+                            const months = {
+
+                                "jan": "01",
+                                "feb": "02",
+                                "mar": "03",
+                                "apr": "04",
+                                "may": "05",
+                                "jun": "06",
+                                "jul": "07",
+                                "aug": "08",
+                                "sep": "09",
+                                "oct": "10",
+                                "nov": "11",
+                                "dec": "12"
+
+                            };
+
+
+                            const day =
+                                parts[0].padStart(2, "0");
+
+
+                            const month =
+                                months[
+                                    parts[1].toLowerCase()
+                                ];
+
+
+                            const year =
+                                parts[2];
+
+
+                            const rowDate =
+                                `${year}-${month}-${day}`;
+
+
+                            matchesDate =
+                                rowDate === selectedDate;
+
+                        }
+
+                    }
+
+
+                    // =========================
+                    // FINAL FILTER
+                    // =========================
+
+                    row.style.display =
+                        matchesSearch &&
+                        matchesDamageType &&
+                        matchesWarehouse &&
+                        matchesDate
+                            ? ""
+                            : "none";
+
+                });
+
+            }
+
+
+            searchInput.addEventListener(
+                "input",
+                filterTable
+            );
+
+
+            damageTypeFilter.addEventListener(
+                "change",
+                filterTable
+            );
+
+
+            warehouseFilter.addEventListener(
+                "change",
+                filterTable
+            );
+
+
+            dateFilter.addEventListener(
+                "change",
+                filterTable
+            );
+
+        });
+
+    </script>
+
+}
+

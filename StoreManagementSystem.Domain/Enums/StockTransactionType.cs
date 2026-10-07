@@ -4,7 +4,8 @@
     {
         OpeningStock = 1,
 
-        PurchaseReceipt = 2,
+
+    PurchaseReceipt = 2,
 
         SalesIssue = 3,
 
@@ -18,8 +19,16 @@
 
         StockAdjustment = 8,
 
-        ConsignmentIn = 9,
+        GiftReceipt = 9,
 
-        ConsignmentOut = 10
+        // =====================================================
+        // REVERSAL TRANSACTIONS
+        // =====================================================
+
+        PurchaseReceiptReversal = 10,
+
+        GiftReceiptReversal = 11
     }
+
+
 }
