@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
 {
@@ -13,19 +12,39 @@ namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
         public string ProductName { get; set; } = string.Empty;
 
         [Range(0.01, 999999)]
-        public decimal Quantity { get; set; }
+        public decimal Quantity { get; set; } = 1;
 
-        [Range(0.01, 999999)]
+        [Range(0, 999999)]
         public decimal UnitPrice { get; set; }
 
+        // =====================================================
+        // DISCOUNT
+        // =====================================================
+
+        // Discount percentage entered by the user in the UI
+        [Range(0, 100)]
+        public decimal DiscountPercent { get; set; }
+
+        // Actual discount amount in ₹
+        // This is what should be stored in the database
         public decimal Discount { get; set; }
 
+        // =====================================================
+        // TAX
+        // =====================================================
+
+        // Tax percentage entered by the user in the UI
+        [Range(0, 100)]
+        public decimal TaxPercent { get; set; }
+
+        // Actual tax amount in ₹
+        // This is what should be stored in the database
         public decimal TaxAmount { get; set; }
 
-        public decimal Total { get; set; }
+        // =====================================================
+        // TOTAL
+        // =====================================================
 
-        // Dropdown
-        public IEnumerable<SelectListItem> Products { get; set; }
-            = Enumerable.Empty<SelectListItem>();
+        public decimal Total { get; set; }
     }
 }

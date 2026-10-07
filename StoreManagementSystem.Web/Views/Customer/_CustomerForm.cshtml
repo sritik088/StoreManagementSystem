@@ -1,0 +1,87 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Customer.CustomerViewModel
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label asp-for="ContactPerson"></label>
+        <input asp-for="ContactPerson" class="form-control" />
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="Mobile"></label>
+        <input asp-for="Mobile" class="form-control" />
+        <span asp-validation-for="Mobile" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label asp-for="GSTNumber"></label>
+        <input asp-for="GSTNumber" class="form-control" />
+    </div>
+
+    <div class="col-md-12 mb-3">
+        <label asp-for="Address"></label>
+        <textarea asp-for="Address"
+                  rows="3"
+                  class="form-control"></textarea>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="City"></label>
+        <input asp-for="City" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="State"></label>
+        <input asp-for="State" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="PostalCode"></label>
+        <input asp-for="PostalCode" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="PANNumber"></label>
+        <input asp-for="PANNumber" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="CreditLimit"></label>
+        <input asp-for="CreditLimit" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="CreditDays"></label>
+        <input asp-for="CreditDays" class="form-control" />
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <label asp-for="IsActive"></label>
+
+        <select asp-for="IsActive"
+                class="form-select">
+
+            <option value="true">
+                Active
+            </option>
+
+            <option value="false">
+                Inactive
+            </option>
+
+        </select>
+
+    </div>
+
+</div>

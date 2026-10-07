@@ -1,23 +1,28 @@
 ﻿using StoreManagementSystem.Domain.Entities;
 
-namespace StoreManagementSystem.Application.Interfaces
+public interface IPurchaseOrderRepository
 {
-    public interface IPurchaseOrderRepository
-    {
-        Task<IEnumerable<PurchaseOrder>> GetAllAsync();
+    Task<IEnumerable<PurchaseOrder>> GetAllAsync();
 
-        Task<PurchaseOrder?> GetByIdAsync(int id);
+    Task<PurchaseOrder?> GetByIdAsync(int id);
 
-        Task AddAsync(PurchaseOrder purchaseOrder);
+    Task<PurchaseOrder?> GetByIdWithDetailsAsync(int id);
 
-        Task UpdateAsync(PurchaseOrder purchaseOrder);
+    Task<string> GeneratePONumberAsync();
 
-        Task DeleteAsync(int id);
+    Task<decimal> GetLatestUnitPriceAsync(int productId);
 
-        Task<string> GeneratePONumberAsync();
+    Task AddAsync(PurchaseOrder purchaseOrder);
 
-        Task ApproveAsync(int id);
+    Task UpdateAsync(PurchaseOrder purchaseOrder);
 
-        Task CancelAsync(int id);
-    }
+    Task DeleteAsync(int id);
+
+    Task RestoreAsync(int id);
+
+    Task ApproveAsync(int id);
+
+    Task CancelAsync(int id);
+
+    Task<bool> HasActiveGoodsReceiptsAsync(int purchaseOrderId);
 }

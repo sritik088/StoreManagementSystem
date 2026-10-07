@@ -1,0 +1,240 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Sales.SalesInvoiceCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Sales Invoice";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+
+        <h3 class="fw-bold mb-1">
+            <i class="bi bi-receipt-cutoff me-2"></i>
+            Create Sales Invoice
+        </h3>
+
+        <div class="text-muted">
+            Generate an invoice from an existing Sales Order.
+        </div>
+
+    </div>
+
+
+    <form asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger">
+        </div>
+
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0 fw-semibold">
+                    Invoice Details
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="SalesOrderId"
+                               class="form-label fw-semibold">
+
+                            Sales Order
+
+                        </label>
+
+                        <select asp-for="SalesOrderId"
+                                asp-items="Model.SalesOrders"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Sales Order --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="SalesOrderId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label asp-for="InvoiceDate"
+                               class="form-label fw-semibold">
+
+                            Invoice Date
+
+                        </label>
+
+                        <input asp-for="InvoiceDate"
+                               type="date"
+                               class="form-control" />
+
+                        <span asp-validation-for="InvoiceDate"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label asp-for="PaymentMode"
+                               class="form-label fw-semibold">
+
+                            Payment Mode
+
+                        </label>
+
+                        <select asp-for="PaymentMode"
+                                class="form-select">
+
+                            <option value="Cash">
+                                Cash
+                            </option>
+
+                            <option value="UPI">
+                                UPI
+                            </option>
+
+                            <option value="Card">
+                                Card
+                            </option>
+
+                            <option value="Bank Transfer">
+                                Bank Transfer
+                            </option>
+
+                            <option value="Credit">
+                                Credit
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="PaidAmount"
+                               class="form-label fw-semibold">
+
+                            Paid Amount
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input asp-for="PaidAmount"
+                                   type="number"
+                                   min="0"
+                                   step="0.01"
+                                   class="form-control" />
+
+                        </div>
+
+                        <span asp-validation-for="PaidAmount"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="PaymentReference"
+                               class="form-label fw-semibold">
+
+                            Payment Reference
+
+                        </label>
+
+                        <input asp-for="PaymentReference"
+                               class="form-control"
+                               placeholder="UPI/Transaction/Cheque No." />
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Remarks"
+                               class="form-label fw-semibold">
+
+                            Remarks
+
+                        </label>
+
+                        <input asp-for="Remarks"
+                               class="form-control"
+                               placeholder="Optional remarks" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="alert alert-info">
+
+            <i class="bi bi-info-circle me-2"></i>
+
+            When the invoice is saved, the system will verify warehouse
+            stock, deduct the sold quantity and create a
+            <strong>SalesIssue</strong> entry in Stock Ledger.
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-check2-circle me-1"></i>
+                Create Invoice
+
+            </button>
+
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

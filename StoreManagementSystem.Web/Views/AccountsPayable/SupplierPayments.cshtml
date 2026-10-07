@@ -1,0 +1,291 @@
+﻿@model StoreManagementSystem.Web.ViewModels.AccountsPayable.SupplierPaymentsViewModel
+
+@{
+    ViewData["Title"] = "Supplier Payments";
+    Layout = "_AdminLayout";
+
+
+var suppliers =
+    ViewBag.Suppliers as IEnumerable<StoreManagementSystem.Domain.Entities.Supplier>
+    ?? Enumerable.Empty<StoreManagementSystem.Domain.Entities.Supplier>();
+
+
+}
+
+<div class="container-fluid py-4">
+
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-cash-stack me-2"></i>
+                Supplier Payments
+            </h3>
+
+            <div class="text-muted">
+                Supplier payment history
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a href="/AccountsPayable"
+               class="btn btn-outline-secondary">
+                AP Dashboard
+            </a>
+
+            <a href="/SupplierPayments/Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>
+                New Payment
+            </a>
+
+        </div>
+
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  action="/SupplierPayments">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Search
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@Model.Search"
+                               class="form-control"
+                               placeholder="Payment no., supplier or reference" />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-semibold">
+                            Supplier
+                        </label>
+
+                        <select name="supplierId"
+                                class="form-select">
+
+                            <option value="">
+                                All Suppliers
+                            </option>
+
+                            @foreach (var supplier in suppliers)
+                            {
+                                <option value="@supplier.Id"
+                                        selected="@(Model.SupplierId == supplier.Id)">
+                                    @supplier.Name
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-semibold">
+                            From
+                        </label>
+
+                        <input type="date"
+                               name="fromDate"
+                               value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-semibold">
+                            To
+                        </label>
+
+                        <input type="date"
+                               name="toDate"
+                               value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex justify-content-between">
+
+                <h5 class="mb-0 fw-bold">
+                    Payment Register
+                </h5>
+
+                <div class="fs-3 fw-bold text-success">
+                    ₹@Model.PaymentsMade.ToString("N2")
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Payment No.</th>
+                        <th>Date</th>
+                        <th>Supplier</th>
+                        <th>Mode</th>
+                        <th>Reference</th>
+                        <th class="text-end">Amount</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (!Model.Payments.Any())
+                    {
+                        <tr>
+                            <td colspan="8"
+                                class="text-center py-5 text-muted">
+                                No supplier payments found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var payment in Model.Payments)
+                        {
+                            <tr class="@(payment.IsCancelled ? "table-secondary" : "")">
+
+                                <td class="fw-semibold">
+                                    @payment.PaymentNumber
+                                </td>
+
+                                <td>
+                                    @payment.PaymentDate.ToString("dd-MMM-yyyy")
+                                </td>
+
+                                <td>
+                                    @payment.SupplierName
+                                </td>
+
+                                <td>
+                                    @payment.PaymentMode
+                                </td>
+
+                                <td>
+                                    @(payment.ReferenceNumber ?? "-")
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    ₹@payment.Amount.ToString("N2")
+                                </td>
+
+                                <td>
+
+                                    @if (payment.IsCancelled)
+                                    {
+                                        <span class="badge bg-danger">
+                                            Cancelled
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            Paid
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    @if (!payment.IsCancelled)
+                                    {
+                                        <a href="/SupplierPayments/Cancel/@payment.Id"
+                                           class="btn btn-sm btn-outline-danger">
+                                            Cancel
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">
+                                            @payment.CancellationRemarks
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+    
+
+</div>

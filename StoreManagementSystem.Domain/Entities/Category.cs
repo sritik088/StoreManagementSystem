@@ -10,20 +10,21 @@ namespace StoreManagementSystem.Domain.Entities
         [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(500)]
-        public string? Description { get; set; }
+        // Main Category
+        [Required]
+        public int MainCategoryId { get; set; }
 
-        public string? ImageUrl { get; set; }
+        public MainCategory? MainCategory { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
 
-        public int DisplayOrder { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        public DateTime? UpdatedDate { get; set; }
-
+        // Category → SubCategories
         public ICollection<SubCategory> SubCategories { get; set; }
             = new List<SubCategory>();
+
+        // Category → Products
+        public ICollection<Product> Products { get; set; }
+            = new List<Product>();
     }
 }

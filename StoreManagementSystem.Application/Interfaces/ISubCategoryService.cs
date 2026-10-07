@@ -8,12 +8,12 @@ namespace StoreManagementSystem.Application.Interfaces
 
         Task<SubCategory?> GetByIdAsync(int id);
 
+        Task<IEnumerable<SubCategory>> GetByCategoryAsync(int categoryId);
+
         Task<bool> CreateAsync(SubCategory subCategory);
 
         Task<bool> UpdateAsync(SubCategory subCategory);
 
         Task<bool> DeleteAsync(int id);
-
-        Task<IEnumerable<SubCategory>> GetByCategoryAsync(int categoryId);
     }
 }

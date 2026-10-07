@@ -12,6 +12,7 @@ public static class IdentitySeeder
         {
             RoleConstants.SuperAdmin,
             RoleConstants.StoreManager,
+            RoleConstants.WarehouseManager,
             RoleConstants.PurchaseManager,
             RoleConstants.InventoryManager,
             RoleConstants.SalesManager,
@@ -23,7 +24,8 @@ public static class IdentitySeeder
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                await roleManager.CreateAsync(
+                    new IdentityRole(role));
             }
         }
 
@@ -38,15 +40,51 @@ public static class IdentitySeeder
             {
                 UserName = email,
                 Email = email,
+
                 FirstName = "System",
                 LastName = "Administrator",
-                EmailConfirmed = true
+
+                EmailConfirmed = true,
+
+                IsActive = true,
+
+                CreatedDate = DateTime.Now,
+
+                // SuperAdmin has access to all warehouses
+                WarehouseId = null
             };
 
-            await userManager.CreateAsync(admin, password);
+            var result = await userManager.CreateAsync(
+                admin,
+                password);
 
-            await userManager.AddToRoleAsync(admin,
-                RoleConstants.SuperAdmin);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(
+                    admin,
+                    RoleConstants.SuperAdmin);
+            }
+        }
+        else
+        {
+            // Make sure existing admin remains active
+            if (!admin.IsActive)
+            {
+                admin.IsActive = true;
+
+                await userManager.UpdateAsync(admin);
+            }
+
+            var rolesForAdmin =
+                await userManager.GetRolesAsync(admin);
+
+            if (!rolesForAdmin.Contains(
+                    RoleConstants.SuperAdmin))
+            {
+                await userManager.AddToRoleAsync(
+                    admin,
+                    RoleConstants.SuperAdmin);
+            }
         }
     }
 }

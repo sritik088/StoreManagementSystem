@@ -8,6 +8,8 @@ public interface IStockTransferRepository
 
     Task<StockTransfer?> GetByIdAsync(int id);
 
+    Task<StockTransfer?> GetDeletedByIdAsync(int id);
+
     Task AddAsync(StockTransfer transfer);
 
     void Update(StockTransfer transfer);
@@ -15,4 +17,8 @@ public interface IStockTransferRepository
     Task<bool> ExistsAsync(int id);
 
     Task<string> GenerateTransferNumberAsync();
+
+    Task<bool> DeleteAsync(int id);
+
+    Task<bool> RestoreAsync(int id);
 }

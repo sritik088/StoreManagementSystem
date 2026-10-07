@@ -1,0 +1,1825 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Reports.InventoryValuationViewModel
+
+@{
+    ViewData["Title"] = "Inventory Valuation";
+    Layout = "_AdminLayout";
+
+
+// =========================================================
+// SYSTEM SETTINGS
+// =========================================================
+
+var organisationName = ViewData["OrganisationName"]?.ToString();
+    var branch = ViewData["Branch"]?.ToString();
+    var address = ViewData["Address"]?.ToString();
+    var phone = ViewData["Phone"]?.ToString();
+    var email = ViewData["Email"]?.ToString();
+    var gstin = ViewData["GSTIN"]?.ToString();
+    var reportHeading = ViewData["ReportHeading"]?.ToString();
+
+    var fromDateLabel =
+        ViewData["FromDateLabel"]?.ToString() ?? "From";
+
+    var toDateLabel =
+        ViewData["ToDateLabel"]?.ToString() ?? "To";
+
+    var authorisedSignatory =
+        ViewData["AuthorisedSignatory"]?.ToString();
+
+    var authorisedDesignation =
+        ViewData["AuthorisedDesignation"]?.ToString();
+
+    var preparedBy =
+        User.Identity?.Name ?? "System User";
+
+    var printReportHeading =
+        string.IsNullOrWhiteSpace(reportHeading) ||
+        reportHeading.Equals("Report", StringComparison.OrdinalIgnoreCase)
+            ? "INVENTORY VALUATION REGISTER"
+            : reportHeading.ToUpperInvariant();
+
+
+}
+
+<div class="container-fluid inventory-page">
+
+    
+    <!-- =========================================================
+         PRINT REPORT HEADER
+         ========================================================= -->
+
+    <div class="inventory-print-report">
+
+        <!-- COMPANY HEADER -->
+
+        <div class="inventory-print-company">
+
+            <div class="inventory-print-organisation">
+                @(string.IsNullOrWhiteSpace(organisationName)
+                                ? "SHARMA TRADING & SUPPLIERS"
+                                : organisationName.ToUpperInvariant())
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(branch))
+            {
+                <div class="inventory-print-branch">
+                    @branch.ToUpperInvariant()
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(address))
+            {
+                <div class="inventory-print-address">
+                    @address
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(phone) ||
+                        !string.IsNullOrWhiteSpace(email) ||
+                        !string.IsNullOrWhiteSpace(gstin))
+            {
+                <div class="inventory-print-contact">
+
+                    @if (!string.IsNullOrWhiteSpace(phone))
+                    {
+                        <span>Phone: @phone</span>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <span>Email: @email</span>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(gstin))
+                    {
+                        <span>GSTIN: @gstin</span>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- REPORT TITLE -->
+
+        <div class="inventory-print-report-title">
+            @printReportHeading
+        </div>
+
+
+        <!-- DATE RANGE -->
+
+        <div class="inventory-print-date-range">
+
+            @if (Model.FromDate.HasValue)
+            {
+                <span>
+                    @fromDateLabel:
+                    @Model.FromDate.Value.ToString("dd-MMM-yyyy")
+                </span>
+            }
+
+            @if (Model.ToDate.HasValue)
+            {
+                <span class="inventory-date-gap">
+                    @toDateLabel:
+                    @Model.ToDate.Value.ToString("dd-MMM-yyyy")
+                </span>
+            }
+
+        </div>
+
+
+        <div class="inventory-print-separator"></div>
+
+
+        <!-- =====================================================
+             REPORT SUMMARY
+             ===================================================== -->
+
+        <div class="inventory-print-section-title">
+            REPORT SUMMARY
+        </div>
+
+        <table class="inventory-summary-table">
+
+            <thead>
+                <tr>
+                    <th>Products in Stock</th>
+                    <th>Total Quantity</th>
+                    <th>Purchase Cost</th>
+                    <th>Inventory Value</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>
+                        @Model.TotalProducts
+                    </td>
+
+                    <td>
+                        @Model.TotalQuantity.ToString("N2")
+                    </td>
+
+                    <td>
+                        ₹@Model.TotalPurchaseCost.ToString("N2")
+                    </td>
+
+                    <td>
+                        ₹@Model.TotalInventoryValue.ToString("N2")
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+
+
+        <div class="inventory-print-separator"></div>
+
+
+        <!-- =====================================================
+             INVENTORY DETAILS
+             ===================================================== -->
+
+        <div class="inventory-print-section-title">
+            INVENTORY DETAILS
+        </div>
+
+
+        <table class="inventory-print-table">
+
+            <thead>
+
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Barcode</th>
+                    <th>Main Category</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
+                    <th>Warehouse</th>
+                    <th>Date &amp; Time</th>
+                    <th>Quantity</th>
+                    <th>Purchase Price</th>
+                    <th>Inventory Value</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    var printIndex = 1;
+
+                    foreach (var item in Model.Items)
+                    {
+                        <tr>
+
+                            <td class="text-center">
+                                @printIndex
+                            </td>
+
+                            <td class="product-cell">
+                                @item.ProductName
+                            </td>
+
+                            <td>
+                                @item.SKU
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.Barcode)
+                                                        ? "-"
+                                                        : item.Barcode)
+                    </td>
+
+                            <td>
+                                @item.MainCategoryName
+                            </td>
+
+                            <td>
+                                @item.CategoryName
+                            </td>
+
+                            <td>
+                                @item.SubCategoryName
+                            </td>
+
+                            <td>
+                                @item.WarehouseName
+                            </td>
+
+                            <td class="nowrap">
+                        @if (item.ReceiptDate.HasValue)
+                                {
+                                    @item.ReceiptDate.Value.ToString("dd-MMM-yyyy hh:mm tt")
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+
+                            <td class="text-end nowrap">
+                                @item.QuantityOnHand.ToString("N2")
+                            </td>
+
+                            <td class="text-end nowrap">
+                                ₹@item.PurchasePrice.ToString("N2")
+                            </td>
+
+                            <td class="text-end nowrap">
+                                ₹@item.InventoryValue.ToString("N2")
+                            </td>
+
+                        </tr>
+
+                        printIndex++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="12" class="text-center no-inventory-row">
+                            No Inventory Found
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+
+                    <td colspan="9" class="total-label">
+                        Total:
+                    </td>
+
+                    <td class="text-end nowrap">
+                        @Model.TotalQuantity.ToString("N2")
+                    </td>
+
+                    <td class="text-end">
+                        —
+                    </td>
+
+                    <td class="text-end nowrap">
+                        ₹@Model.TotalInventoryValue.ToString("N2")
+                    </td>
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+
+        <div class="inventory-print-separator"></div>
+
+
+        <!-- =====================================================
+             SIGNATURE SECTION
+             ===================================================== -->
+
+        <div class="inventory-print-signatures">
+
+            <div class="inventory-prepared-signature">
+
+                <div class="signature-title">
+                    Prepared By
+                </div>
+
+                <div class="signature-space"></div>
+
+                <div class="signature-line">
+                    ______________________________
+                </div>
+
+                <div class="signature-name">
+                    @preparedBy
+                </div>
+
+            </div>
+
+
+            <div class="inventory-authorised-signature">
+
+                <div class="signature-title">
+                    Authorised Signatory
+                </div>
+
+                <div class="signature-space"></div>
+
+                <div class="signature-line">
+                    ______________________________
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(authorisedSignatory))
+                {
+                    <div class="signature-name">
+                        @authorisedSignatory
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(authorisedDesignation))
+                {
+                    <div class="signature-designation">
+                        @authorisedDesignation
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="inventory-print-footer">
+            © @DateTime.Now.Year Store Management ERP
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         WEB PAGE HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-box-seam text-primary me-2"></i>
+                Inventory Valuation
+            </h2>
+
+            <p class="text-muted mb-0">
+                Current inventory value based on purchase cost.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    onclick="printInventoryReport()">
+
+                <i class="bi bi-file-earmark-pdf me-1"></i>
+                PDF / Print
+
+            </button>
+
+            <a asp-controller="Reports"
+               asp-action="Dashboard"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         FILTER CARD
+         ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4 no-print">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+                <i class="bi bi-funnel me-2"></i>
+                Valuation Filters
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form action="/InventoryValuation"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <!-- MAIN CATEGORY -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Main Category
+                        </label>
+
+                        <select asp-for="MainCategoryId"
+                                class="form-select"
+                                id="mainCategoryFilter">
+
+                            <option value="">
+                                All Main Categories
+                            </option>
+
+                            @foreach (var mainCategory in Model.MainCategories)
+                            {
+                                <option value="@mainCategory.Id"
+                                        selected="@(Model.MainCategoryId == mainCategory.Id)">
+                                    @mainCategory.Name
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- CATEGORY -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Category
+                        </label>
+
+                        <select asp-for="CategoryId"
+                                class="form-select"
+                                id="categoryFilter">
+
+                            <option value="">
+                                All Categories
+                            </option>
+
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id"
+                                        data-main-category="@category.MainCategoryId"
+                                        selected="@(Model.CategoryId == category.Id)">
+                                    @category.Name
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PRODUCT -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Product
+                        </label>
+
+                        <select asp-for="ProductId"
+                                class="form-select">
+
+                            <option value="">
+                                All Products
+                            </option>
+
+                            @foreach (var product in Model.Products)
+                            {
+                                <option value="@product.Id"
+                                        selected="@(Model.ProductId == product.Id)">
+                                    @product.Name
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- WAREHOUSE -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Warehouse
+                        </label>
+
+                        <select asp-for="WarehouseId"
+                                class="form-select">
+
+                            <option value="">
+                                All Warehouses
+                            </option>
+
+                            @foreach (var warehouse in Model.Warehouses)
+                            {
+                                <option value="@warehouse.Id"
+                                        selected="@(Model.WarehouseId == warehouse.Id)">
+                                    @warehouse.Name
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- FROM DATE -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            @Model.FromDateLabel
+                        </label>
+
+                        <input asp-for="FromDate"
+                               type="date"
+                               class="form-control"
+                               id="FromDate" />
+
+                    </div>
+
+
+                    <!-- TO DATE -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            @Model.ToDateLabel
+                        </label>
+
+                        <input asp-for="ToDate"
+                               type="date"
+                               class="form-control"
+                               id="ToDate" />
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div class="col-lg-6 col-md-12">
+
+                        <label class="form-label d-block">
+                            &nbsp;
+                        </label>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search me-1"></i>
+                            Generate Report
+
+                        </button>
+
+                        <a href="/InventoryValuation"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         WEB SUMMARY CARDS
+         ========================================================= -->
+
+    <div class="row g-3 mb-4 no-print">
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Products in Stock
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                @Model.TotalProducts
+                            </h3>
+
+                        </div>
+
+                        <div class="text-primary fs-2">
+                            <i class="bi bi-box"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total Quantity
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                @Model.TotalQuantity.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-success fs-2">
+                            <i class="bi bi-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Purchase Cost
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                ₹@Model.TotalPurchaseCost.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-warning fs-2">
+                            <i class="bi bi-currency-rupee"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Inventory Value
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                ₹@Model.TotalInventoryValue.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-info fs-2">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         WEB REPORT TABLE
+         ========================================================= -->
+
+    <div class="card shadow-sm border-0 no-print">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0 fw-bold">
+
+                    <i class="bi bi-table me-2"></i>
+                    Inventory Valuation Details
+
+                </h5>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-success"
+                        onclick="exportExcel()">
+
+                    <i class="bi bi-file-earmark-excel me-1"></i>
+                    Excel
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="table-responsive inventory-table-container">
+
+                <table id="inventoryValuationTable"
+                       class="table table-bordered table-hover align-middle w-100">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Barcode</th>
+                            <th>Main Category</th>
+                            <th>Category</th>
+                            <th>Subcategory</th>
+                            <th>Warehouse</th>
+                            <th>Date &amp; Time</th>
+
+                            <th class="text-end">
+                                Quantity
+                            </th>
+
+                            <th class="text-end">
+                                Purchase Price
+                            </th>
+
+                            <th class="text-end">
+                                Inventory Value
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            var index = 1;
+
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @index
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            @item.ProductName
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @item.SKU
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.Barcode)
+                                                                        ? "-"
+                                                                        : item.Barcode)
+                            </td>
+
+                                    <td>
+                                        @item.MainCategoryName
+                                    </td>
+
+                                    <td>
+                                        @item.CategoryName
+                                    </td>
+
+                                    <td>
+                                        @item.SubCategoryName
+                                    </td>
+
+                                    <td>
+                                        @item.WarehouseName
+                                    </td>
+
+                                    <td class="nowrap">
+
+                                @if (item.ReceiptDate.HasValue)
+                                        {
+                                            @item.ReceiptDate.Value.ToString(
+                                            "dd-MM-yyyy hh:mm tt")
+                                                                }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end nowrap">
+                                        @item.QuantityOnHand.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end nowrap">
+                                        ₹@item.PurchasePrice.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end nowrap">
+
+                                        <strong>
+                                            ₹@item.InventoryValue.ToString("N2")
+                                        </strong>
+
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="12"
+                                    class="text-center py-5">
+
+                                    <div class="text-muted">
+
+                                        <i class="bi bi-inbox fs-1"></i>
+
+                                        <h5 class="mt-3">
+                                            No Inventory Found
+                                        </h5>
+
+                                        <p class="mb-0">
+                                            There are no inventory records
+                                            matching the selected filters.
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                    <tfoot>
+
+                        <tr>
+
+                            <th colspan="9"
+                                class="text-end">
+
+                                Total:
+
+                            </th>
+
+                            <th class="text-end nowrap">
+                                @Model.TotalQuantity.ToString("N2")
+                            </th>
+
+                            <th class="text-end">
+                                —
+                            </th>
+
+                            <th class="text-end nowrap">
+                                ₹@Model.TotalInventoryValue.ToString("N2")
+                            </th>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+
+@section Scripts {
+
+    ```
+    <script>
+
+        let inventoryTable = null;
+
+
+        $(document).ready(function () {
+
+            // =====================================================
+            // DATA TABLE
+            // =====================================================
+
+            inventoryTable =
+                $('#inventoryValuationTable').DataTable({
+
+                    pageLength: 25,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, "All"]
+                    ],
+
+                    order: [
+                        [1, 'asc']
+                    ],
+
+                    columnDefs: [
+                        {
+                            orderable: false,
+                            targets: [0]
+                        }
+                    ],
+
+                    language: {
+
+                        search: "Search inventory:",
+
+                        lengthMenu:
+                            "Show _MENU_ records",
+
+                        info:
+                            "Showing _START_ to _END_ of _TOTAL_ records",
+
+                        infoEmpty:
+                            "Showing 0 to 0 of 0 records",
+
+                        emptyTable:
+                            "No inventory valuation records found."
+
+                    }
+
+                });
+
+
+            // =====================================================
+            // MAIN CATEGORY -> CATEGORY
+            // =====================================================
+
+            const mainCategoryFilter =
+                document.getElementById(
+                    "mainCategoryFilter"
+                );
+
+            const categoryFilter =
+                document.getElementById(
+                    "categoryFilter"
+                );
+
+
+            function filterCategories() {
+
+                if (!mainCategoryFilter ||
+                    !categoryFilter) {
+
+                    return;
+                }
+
+                const selectedMainCategory =
+                    mainCategoryFilter.value;
+
+
+                Array.from(
+                    categoryFilter.options
+                ).forEach(function (option, index) {
+
+                    if (index === 0) {
+
+                        option.hidden = false;
+
+                        return;
+                    }
+
+
+                    const optionMainCategory =
+                        option.getAttribute(
+                            "data-main-category"
+                        );
+
+
+                    if (!selectedMainCategory ||
+                        optionMainCategory === selectedMainCategory) {
+
+                        option.hidden = false;
+
+                    }
+                    else {
+
+                        option.hidden = true;
+
+                    }
+
+                });
+
+
+                const selectedOption =
+                    categoryFilter.options[
+                        categoryFilter.selectedIndex
+                    ];
+
+
+                if (selectedOption &&
+                    selectedOption.hidden) {
+
+                    categoryFilter.value = "";
+
+                }
+
+            }
+
+
+            if (mainCategoryFilter) {
+
+                mainCategoryFilter.addEventListener(
+                    "change",
+                    filterCategories
+                );
+
+            }
+
+
+            filterCategories();
+
+
+            // =====================================================
+            // DATE VALIDATION
+            // =====================================================
+
+            const fromDate =
+                document.getElementById("FromDate");
+
+            const toDate =
+                document.getElementById("ToDate");
+
+
+            if (fromDate && toDate) {
+
+                fromDate.addEventListener(
+                    "change",
+                    function () {
+
+                        if (toDate.value &&
+                            fromDate.value > toDate.value) {
+
+                            toDate.value =
+                                fromDate.value;
+
+                        }
+
+                        toDate.min =
+                            fromDate.value;
+
+                    }
+                );
+
+
+                if (fromDate.value) {
+
+                    toDate.min =
+                        fromDate.value;
+
+                }
+
+            }
+
+        });
+
+
+        // =========================================================
+        // PDF / PRINT
+        // =========================================================
+
+        function printInventoryReport() {
+
+            if (inventoryTable) {
+
+                inventoryTable
+                    .page
+                    .len(-1)
+                    .draw(false);
+
+            }
+
+
+            setTimeout(function () {
+
+                window.print();
+
+            }, 300);
+
+        }
+
+
+        // =========================================================
+        // BEFORE PRINT
+        // =========================================================
+
+        window.addEventListener(
+            "beforeprint",
+            function () {
+
+                if (inventoryTable) {
+
+                    inventoryTable
+                        .page
+                        .len(-1)
+                        .draw(false);
+
+                }
+
+            }
+        );
+
+
+        // =========================================================
+        // AFTER PRINT
+        // =========================================================
+
+        window.addEventListener(
+            "afterprint",
+            function () {
+
+                if (inventoryTable) {
+
+                    inventoryTable
+                        .page
+                        .len(25)
+                        .draw(false);
+
+                }
+
+            }
+        );
+
+
+        // =========================================================
+        // CSV / EXCEL EXPORT
+        // =========================================================
+
+        function exportExcel() {
+
+            const table =
+                document.getElementById(
+                    "inventoryValuationTable"
+                );
+
+
+            if (!table) {
+                return;
+            }
+
+
+            let csv = [];
+
+
+            const rows =
+                table.querySelectorAll("tr");
+
+
+            rows.forEach(function (row) {
+
+                const columns =
+                    row.querySelectorAll("th, td");
+
+
+                const rowData = [];
+
+
+                columns.forEach(function (column) {
+
+                    let text =
+                        column.innerText
+                            .replace(/"/g, '""')
+                            .replace(/\n/g, " ")
+                            .trim();
+
+
+                    rowData.push(
+                        '"' + text + '"'
+                    );
+
+                });
+
+
+                csv.push(
+                    rowData.join(",")
+                );
+
+            });
+
+
+            const blob =
+                new Blob(
+                    [csv.join("\n")],
+                    {
+                        type:
+                            "text/csv;charset=utf-8;"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(blob);
+
+
+            const link =
+                document.createElement("a");
+
+
+            link.href = url;
+
+            link.download =
+                "Inventory_Valuation.csv";
+
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(url);
+
+        }
+
+    </script>
+    ```
+
+}
+
+<style>
+
+    /* =========================================================
+           PRINT REPORT
+           ========================================================= */
+
+    .inventory-print-report {
+        display: none;
+    }
+
+
+    .inventory-print-company {
+        text-align: center;
+        width: 100%;
+    }
+
+
+    .inventory-print-organisation {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+
+    .inventory-print-branch {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 3px;
+        text-transform: uppercase;
+    }
+
+
+    .inventory-print-address {
+        font-size: 11px;
+        margin-bottom: 3px;
+    }
+
+
+    .inventory-print-contact {
+        font-size: 10px;
+        margin-bottom: 7px;
+    }
+
+
+        .inventory-print-contact span + span {
+            margin-left: 18px;
+        }
+
+
+    .inventory-print-report-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 8px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+
+    .inventory-print-date-range {
+        text-align: center;
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
+
+
+    .inventory-date-gap {
+        margin-left: 25px;
+    }
+
+
+    .inventory-print-separator {
+        width: 100%;
+        border-top: 1px solid #000;
+        margin: 7px 0;
+    }
+
+
+    .inventory-print-section-title {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        margin: 9px 0 6px 0;
+        text-transform: uppercase;
+    }
+
+
+    /* =========================================================
+           SUMMARY
+           ========================================================= */
+
+    .inventory-summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin: 0;
+    }
+
+
+        .inventory-summary-table th,
+        .inventory-summary-table td {
+            width: 25%;
+            text-align: center;
+            padding: 4px 5px;
+            border: 0;
+        }
+
+
+        .inventory-summary-table th {
+            font-size: 10px;
+            font-weight: 700;
+            border-bottom: 1px solid #000;
+        }
+
+
+        .inventory-summary-table td {
+            font-size: 12px;
+            font-weight: 700;
+            padding-top: 6px;
+        }
+
+
+    /* =========================================================
+           PRINT TABLE
+           ========================================================= */
+
+    .inventory-print-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin: 0;
+        font-size: 7.5px;
+    }
+
+
+        .inventory-print-table th,
+        .inventory-print-table td {
+            border: 1px solid #000;
+            padding: 3px 3px;
+            vertical-align: middle;
+            color: #000;
+            background: #fff;
+            overflow-wrap: anywhere;
+        }
+
+
+        .inventory-print-table thead {
+            display: table-header-group;
+        }
+
+
+            .inventory-print-table thead th {
+                font-weight: 700;
+                text-align: center;
+                vertical-align: middle;
+                background: #fff;
+            }
+
+
+        .inventory-print-table tbody tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+
+        .inventory-print-table tfoot {
+            display: table-footer-group;
+        }
+
+
+            .inventory-print-table tfoot td {
+                font-weight: 700;
+                border-top: 2px solid #000;
+            }
+
+
+        .inventory-print-table .product-cell {
+            font-weight: 600;
+        }
+
+
+        .inventory-print-table .total-label {
+            text-align: right;
+            font-weight: 700;
+        }
+
+
+    .no-inventory-row {
+        padding: 15px !important;
+        font-weight: 600;
+    }
+
+
+    .nowrap {
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+           SIGNATURES
+           ========================================================= */
+
+    .inventory-print-signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        width: 100%;
+        margin-top: 20px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+
+    .inventory-prepared-signature {
+        width: 270px;
+        text-align: left;
+    }
+
+
+    .inventory-authorised-signature {
+        width: 270px;
+        text-align: left;
+    }
+
+
+    .signature-title {
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+
+    .signature-space {
+        height: 27px;
+    }
+
+
+    .signature-line {
+        font-size: 10px;
+        line-height: 1;
+    }
+
+
+    .signature-name {
+        font-size: 10px;
+        font-weight: 700;
+        margin-top: 4px;
+    }
+
+
+    .signature-designation {
+        font-size: 9px;
+        margin-top: 2px;
+    }
+
+
+    /* =========================================================
+           FOOTER
+           ========================================================= */
+
+    .inventory-print-footer {
+        text-align: center;
+        font-size: 8px;
+        margin-top: 18px;
+        padding-top: 5px;
+        border-top: 1px solid #000;
+    }
+
+
+    /* =========================================================
+           PRINT SETTINGS
+           ========================================================= */
+
+    @@media print {
+
+        @@page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+
+        html,
+        body {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+
+        body {
+            font-size: 9px !important;
+        }
+        /* -----------------------------------------------------
+               HIDE WEB PAGE
+               ----------------------------------------------------- */
+
+        .no-print,
+        .sidebar,
+        .navbar,
+        .topbar,
+        .btn,
+        .dataTables_filter,
+        .dataTables_length,
+        .dataTables_info,
+        .dataTables_paginate,
+        .dataTables_processing,
+        .dataTables_wrapper {
+            display: none !important;
+        }
+        /* -----------------------------------------------------
+               SHOW PRINT REPORT
+               ----------------------------------------------------- */
+
+        .inventory-print-report {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* -----------------------------------------------------
+               HIDE ORIGINAL WEB CONTAINER CONTENT
+               ----------------------------------------------------- */
+
+        .inventory-page {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+
+            .inventory-page > *:not(.inventory-print-report) {
+                display: none !important;
+            }
+        /* -----------------------------------------------------
+               TABLE
+               ----------------------------------------------------- */
+
+        .inventory-print-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+        }
+
+
+            .inventory-print-table th,
+            .inventory-print-table td {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                background: #fff !important;
+            }
+                /* Column widths */
+
+                .inventory-print-table th:nth-child(1),
+                .inventory-print-table td:nth-child(1) {
+                    width: 3% !important;
+                    text-align: center !important;
+                }
+
+
+                .inventory-print-table th:nth-child(2),
+                .inventory-print-table td:nth-child(2) {
+                    width: 12% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(3),
+                .inventory-print-table td:nth-child(3) {
+                    width: 7% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(4),
+                .inventory-print-table td:nth-child(4) {
+                    width: 8% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(5),
+                .inventory-print-table td:nth-child(5) {
+                    width: 9% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(6),
+                .inventory-print-table td:nth-child(6) {
+                    width: 8% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(7),
+                .inventory-print-table td:nth-child(7) {
+                    width: 9% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(8),
+                .inventory-print-table td:nth-child(8) {
+                    width: 9% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(9),
+                .inventory-print-table td:nth-child(9) {
+                    width: 10% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(10),
+                .inventory-print-table td:nth-child(10) {
+                    width: 7% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(11),
+                .inventory-print-table td:nth-child(11) {
+                    width: 9% !important;
+                }
+
+
+                .inventory-print-table th:nth-child(12),
+                .inventory-print-table td:nth-child(12) {
+                    width: 9% !important;
+                }
+        /* -----------------------------------------------------
+               PAGE BREAKS
+               ----------------------------------------------------- */
+
+        .inventory-print-company,
+        .inventory-print-report-title,
+        .inventory-print-date-range,
+        .inventory-print-section-title {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+
+        .inventory-print-table tbody tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+
+        .inventory-print-signatures {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        /* -----------------------------------------------------
+               REMOVE BOOTSTRAP EFFECTS
+               ----------------------------------------------------- */
+
+        .row,
+        .d-flex {
+            display: block !important;
+        }
+
+
+        .card {
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+
+        .text-muted,
+        .text-primary,
+        .text-success,
+        .text-warning,
+        .text-info,
+        .text-danger {
+            color: #000 !important;
+        }
+    }
+
+</style>

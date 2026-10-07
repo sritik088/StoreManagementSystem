@@ -1,0 +1,277 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="container-fluid">
+
+    ```
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Customers</h2>
+            <p class="text-muted mb-0">Manage your customers and their credit information.</p>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>
+            Add Customer
+        </a>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Customer Table -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+
+                <div class="col-md-6">
+                    <h5 class="mb-0 fw-semibold">
+                        Customer List
+                    </h5>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text"
+                               id="customerSearch"
+                               class="form-control"
+                               placeholder="Search customers..." />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0" id="customerTable">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Location</th>
+                            <th>GST Number</th>
+                            <th>Credit Limit</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            int count = 1;
+                        }
+
+                        @foreach (var customer in Model)
+                        {
+                            <tr>
+
+                                <td>
+                                    @count
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold">
+                                        @customer.Name
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(customer.Email))
+                                    {
+                                        <small class="text-muted">
+                                            @customer.Email
+                                        </small>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(customer.Mobile))
+                                    {
+                                        <span>
+                                            <i class="bi bi-telephone me-1"></i>
+                                            @customer.Mobile
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(customer.City))
+                                    {
+                                        @customer.City
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(customer.State))
+                                    {
+                                        <small class="text-muted d-block">
+                                            @customer.State
+                                        </small>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(customer.GSTNumber))
+                                    {
+                                        <span class="badge bg-light text-dark">
+                                            @customer.GSTNumber
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    ₹@customer.CreditLimit.ToString("N2")
+                                    <small class="text-muted d-block">
+                                        @customer.CreditDays days
+                                    </small>
+                                </td>
+
+                                <td>
+                                    @if (customer.IsActive)
+                                    {
+                                        <span class="badge bg-success-subtle text-success">
+                                            Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            Inactive
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+
+                                    <div class="btn-group">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@customer.Id"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@customer.Id"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteCustomer(@customer.Id, '@Html.Raw(customer.Name.Replace("'", "\\'"))')"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            count++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+
+<form id="deleteForm"
+      asp-action="Delete"
+      method="post">
+
+    ```
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" id="deleteCustomerId" name="id" />
+    ```
+
+</form>
+
+@section Scripts {
+
+    ```
+    <script>
+
+        // Search
+        document.getElementById("customerSearch")
+            .addEventListener("keyup", function () {
+
+                const value = this.value.toLowerCase();
+
+                document.querySelectorAll("#customerTable tbody tr")
+                    .forEach(function (row) {
+
+                        row.style.display =
+                            row.innerText.toLowerCase().includes(value)
+                                ? ""
+                                : "none";
+
+                    });
+
+            });
+
+
+        // Delete confirmation
+        function deleteCustomer(id, name) {
+
+            if (confirm("Are you sure you want to delete customer '" + name + "'?")) {
+
+                document.getElementById("deleteCustomerId").value = id;
+
+                document.getElementById("deleteForm").submit();
+            }
+        }
+
+    </script>
+    
+
+}

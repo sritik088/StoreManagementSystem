@@ -11,94 +11,87 @@
 
         <div class="card shadow-lg border-0">
 
-            <div class="card-header bg-warning">
+            <div class="card-header bg-warning text-dark">
 
-                <h4>
-
+                <h4 class="mb-0">
                     <i class="bi bi-pencil-square"></i>
-
                     Edit Category
-
                 </h4>
 
             </div>
 
             <div class="card-body">
 
-                <form asp-action="Edit">
+                <form asp-action="Edit"
+                      method="post">
 
-                    <input asp-for="Id" hidden />
+                    @Html.AntiForgeryToken()
+
+                    <!-- Category ID -->
+                    <input asp-for="Id"
+                           type="hidden" />
 
                     <div asp-validation-summary="ModelOnly"
                          class="alert alert-danger">
                     </div>
 
+                    <!-- Main Category -->
                     <div class="mb-3">
 
-                        <label asp-for="Name"></label>
+                        <label asp-for="MainCategoryId"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <select asp-for="MainCategoryId"
+                                asp-items="ViewBag.MainCategoryList"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Main Category --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="MainCategoryId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <!-- Category Name -->
+                    <div class="mb-3">
+
+                        <label asp-for="Name"
+                               class="form-label fw-semibold">
+                        </label>
 
                         <input asp-for="Name"
-                               class="form-control" />
+                               class="form-control"
+                               placeholder="Enter category name" />
 
                         <span asp-validation-for="Name"
-                              class="text-danger"></span>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label asp-for="Description"></label>
-
-<textarea asp-for="Description"
-          class="form-control"
-          rows="4"></textarea>
-
-                    </div>
-
-                    <div class="row">
-
-                        <div class="col-md-6">
-
-                            <label asp-for="DisplayOrder"></label>
-
-                            <input asp-for="DisplayOrder"
-                                   class="form-control" />
-
-                        </div>
-
-                        <div class="col-md-6">
-
-                            <div class="form-check form-switch mt-4">
-
-                                <input asp-for="IsActive"
-                                       class="form-check-input" />
-
-                                <label asp-for="IsActive"
-                                       class="form-check-label">
-
-                                    Active
-
-                                </label>
-
-                            </div>
-
-                        </div>
+                              class="text-danger">
+                        </span>
 
                     </div>
 
                     <hr />
 
+                    <!-- Buttons -->
                     <div class="text-end">
 
                         <a asp-action="Index"
                            class="btn btn-secondary">
 
+                            <i class="bi bi-x-circle"></i>
                             Cancel
 
                         </a>
 
-                        <button class="btn btn-warning">
+                        <button type="submit"
+                                class="btn btn-warning">
 
+                            <i class="bi bi-check-circle"></i>
                             Update Category
 
                         </button>

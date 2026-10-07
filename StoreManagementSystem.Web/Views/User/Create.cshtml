@@ -1,0 +1,351 @@
+﻿@model StoreManagementSystem.Web.ViewModels.User.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Create User";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold mb-1">
+            Create User
+        </h2>
+
+        <p class="text-muted">
+            Create an ERP user and assign role and warehouse access.
+        </p>
+
+    </div>
+
+
+    <form asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger">
+        </div>
+
+
+        <div class="row g-4">
+
+            <!-- USER INFORMATION -->
+
+            <div class="col-lg-8">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white">
+
+                        <h5 class="mb-0 fw-semibold">
+
+                            <i class="bi bi-person me-2"></i>
+
+                            User Information
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="row g-3">
+
+                            <!-- FIRST NAME -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="FirstName"
+                                       class="form-label">
+                                    First Name
+                                </label>
+
+                                <input asp-for="FirstName"
+                                       class="form-control"
+                                       placeholder="Enter first name" />
+
+                                <span asp-validation-for="FirstName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- LAST NAME -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="LastName"
+                                       class="form-label">
+                                    Last Name
+                                </label>
+
+                                <input asp-for="LastName"
+                                       class="form-control"
+                                       placeholder="Enter last name" />
+
+                                <span asp-validation-for="LastName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- EMAIL -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Email"
+                                       class="form-label">
+                                    Email
+                                </label>
+
+                                <input asp-for="Email"
+                                       type="email"
+                                       class="form-control"
+                                       placeholder="user@store.com" />
+
+                                <span asp-validation-for="Email"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- PHONE -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="PhoneNumber"
+                                       class="form-label">
+                                    Phone Number
+                                </label>
+
+                                <input asp-for="PhoneNumber"
+                                       class="form-control"
+                                       placeholder="Enter phone number" />
+
+                                <span asp-validation-for="PhoneNumber"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- PASSWORD -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Password"
+                                       class="form-label">
+                                    Password
+                                </label>
+
+                                <input asp-for="Password"
+                                       type="password"
+                                       class="form-control"
+                                       placeholder="Enter password" />
+
+                                <span asp-validation-for="Password"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CONFIRM PASSWORD -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="ConfirmPassword"
+                                       class="form-label">
+                                    Confirm Password
+                                </label>
+
+                                <input asp-for="ConfirmPassword"
+                                       type="password"
+                                       class="form-control"
+                                       placeholder="Confirm password" />
+
+                                <span asp-validation-for="ConfirmPassword"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- ADDRESS -->
+
+                            <div class="col-12">
+
+                                <label asp-for="Address"
+                                       class="form-label">
+                                    Address
+                                </label>
+
+                                <textarea asp-for="Address"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Enter address"></textarea>
+
+                                <span asp-validation-for="Address"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACCESS -->
+
+            <div class="col-lg-4">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white">
+
+                        <h5 class="mb-0 fw-semibold">
+
+                            <i class="bi bi-shield-lock me-2"></i>
+
+                            Access
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <!-- ROLE -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Role"
+                                   class="form-label">
+                                Role
+                            </label>
+
+                            <select asp-for="Role"
+                                    asp-items="Model.Roles"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Select Role --
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="Role"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- WAREHOUSE -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="WarehouseId"
+                                   class="form-label">
+
+                                Warehouse
+
+                            </label>
+
+                            <select asp-for="WarehouseId"
+                                    asp-items="Model.Warehouses"
+                                    class="form-select">
+
+                                <option value="">
+                                    All Warehouses
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="WarehouseId"
+                                  class="text-danger">
+                            </span>
+
+                            <small class="text-muted">
+
+                                Leave empty for access to all warehouses.
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- ACTIVE -->
+
+                        <div class="form-check form-switch mt-4">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   type="checkbox" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label">
+
+                                Active User
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUTTONS -->
+
+        <div class="mt-4">
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-check-lg me-2"></i>
+
+                Create User
+
+            </button>
+
+
+            <a asp-action="Index"
+               class="btn btn-light ms-2">
+
+                Cancel
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

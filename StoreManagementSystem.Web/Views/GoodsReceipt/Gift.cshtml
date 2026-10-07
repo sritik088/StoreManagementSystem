@@ -1,0 +1,1113 @@
+﻿@model StoreManagementSystem.Web.ViewModels.GoodsReceipt.GoodsReceiptViewModel
+
+@{
+    ViewData["Title"] = "Gift Goods Receipt";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-gift me-2"></i>
+                Gift Goods Receipt
+            </h2>
+
+            <p class="text-muted mb-0">
+                Receive free or donated goods directly into warehouse stock.
+            </p>
+        </div>
+
+        <a asp-controller="GoodsReceipt"
+           asp-action="Index"
+           class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to GRN List
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         VALIDATION SUMMARY
+         ========================================================= -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"
+         role="alert">
+    </div>
+
+
+    <!-- =========================================================
+         FORM
+         ========================================================= -->
+
+    <form asp-controller="GoodsReceipt"
+          asp-action="Gift"
+          method="post"
+          id="giftReceiptForm">
+
+        @Html.AntiForgeryToken()
+
+        <!-- IMPORTANT:
+             Always submit Gift as ReceiptType
+        -->
+
+        <input type="hidden"
+               asp-for="ReceiptType"
+               value="Gift" />
+
+
+        <!-- =====================================================
+             GIFT INFORMATION
+             ===================================================== -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-warning">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-gift me-2"></i>
+                    Gift Receipt Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <!-- DONOR -->
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DonorName"
+                               class="form-label fw-semibold">
+
+                            Donor Name
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <input asp-for="DonorName"
+                               class="form-control"
+                               id="DonorName"
+                               maxlength="200"
+                               placeholder="Enter donor name" />
+
+                        <span asp-validation-for="DonorName"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- REASON -->
+
+                    <div class="col-md-5">
+
+                        <label asp-for="GiftReason"
+                               class="form-label fw-semibold">
+
+                            Gift / Donation Reason
+
+                        </label>
+
+                        <input asp-for="GiftReason"
+                               class="form-control"
+                               id="GiftReason"
+                               maxlength="500"
+                               placeholder="Example: Donation for office use" />
+
+                        <span asp-validation-for="GiftReason"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="col-md-3">
+
+                        <label asp-for="ReceiptDate"
+                               class="form-label fw-semibold">
+
+                            Receipt Date
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <input asp-for="ReceiptDate"
+                               type="date"
+                               class="form-control"
+                               id="ReceiptDate" />
+
+                        <span asp-validation-for="ReceiptDate"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             GIFT ITEMS
+             ===================================================== -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-success text-white
+                    d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-box-seam me-2"></i>
+
+                    Gift Items
+
+                </h5>
+
+                <button type="button"
+                        class="btn btn-light btn-sm"
+                        id="addGiftItem">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Add Item
+
+                </button>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle"
+                           id="giftItemsTable">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th style="width: 30%;">
+                                    Product
+                                </th>
+
+                                <th style="width: 25%;">
+                                    Warehouse
+                                </th>
+
+                                <th style="width: 15%;">
+                                    Quantity
+                                </th>
+
+                                <th style="width: 15%;">
+                                    Unit Price
+                                </th>
+
+                                <th style="width: 10%;">
+                                    Total
+                                </th>
+
+                                <th style="width: 5%;">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="giftItemsBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- EMPTY STATE -->
+
+                <div id="noGiftItems"
+                     class="text-center text-muted py-4 border rounded">
+
+                    <i class="bi bi-box display-6"></i>
+
+                    <p class="mb-0 mt-2">
+                        No gift items added.
+                    </p>
+
+                    <small>
+                        Click "Add Item" to add a gift product.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RECEIPT SUMMARY
+             ===================================================== -->
+
+        <div class="row justify-content-end mb-4">
+
+            <div class="col-md-5">
+
+                <div class="card shadow-sm">
+
+                    <div class="card-header bg-light">
+
+                        <h6 class="mb-0">
+                            <i class="bi bi-calculator me-2"></i>
+                            Gift Receipt Summary
+                        </h6>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong id="summarySubTotal">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span>
+                                Tax
+                            </span>
+
+                            <strong id="summaryTax">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong id="summaryDiscount">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="fw-bold">
+                                Grand Total
+                            </span>
+
+                            <strong class="text-success fs-5"
+                                    id="summaryGrandTotal">
+
+                                ₹0.00
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             IMPORTANT NOTE
+             ===================================================== -->
+
+        <div class="alert alert-info mb-4">
+
+            <i class="bi bi-info-circle me-2"></i>
+
+            <strong>Gift GRN:</strong>
+
+            Gift and donated goods have no purchase cost.
+            Therefore, the Unit Price, Tax, Discount and Grand Total
+            for this GRN are always <strong>₹0.00</strong>.
+
+        </div>
+
+
+        <!-- =====================================================
+             REMARKS
+             ===================================================== -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+
+                <h6 class="mb-0">
+
+                    <i class="bi bi-chat-left-text me-2"></i>
+
+                    Remarks
+
+                </h6>
+
+            </div>
+
+            <div class="card-body">
+
+                <textarea asp-for="Remarks"
+                          class="form-control"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Enter any additional remarks"></textarea>
+
+                <span asp-validation-for="Remarks"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             BUTTONS
+             ===================================================== -->
+
+        <div class="d-flex justify-content-end gap-2 mb-4">
+
+            <a asp-controller="GoodsReceipt"
+               asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="bi bi-x-circle me-1"></i>
+                Cancel
+
+            </a>
+
+
+            <button type="submit"
+                    class="btn btn-success"
+                    id="saveGiftButton">
+
+                <i class="bi bi-check-circle me-1"></i>
+                Save Gift GRN
+
+            </button>
+
+        </div>
+
+    </form>
+    ```
+
+</div>
+
+@section Scripts {
+
+    ```
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        $(document).ready(function () {
+
+            // =====================================================
+            // DATA FROM VIEW MODEL
+            // =====================================================
+
+            const products = @Html.Raw(
+                            System.Text.Json.JsonSerializer.Serialize(
+                                    Model.Products.Select(x => new
+                                    {
+                                            id = x.Value,
+                                            name = x.Text
+                                    })
+                            )
+                    );
+
+
+        const warehouses = @Html.Raw(
+                        System.Text.Json.JsonSerializer.Serialize(
+                                Model.Warehouses.Select(x => new
+                                {
+                                        id = x.Value,
+                                        name = x.Text
+                                })
+                        )
+                );
+
+
+        let giftItemIndex = 0;
+
+
+            // =====================================================
+            // ESCAPE HTML
+            // =====================================================
+
+            function escapeHtml(value) {
+
+                if (value === null || value === undefined) {
+                    return "";
+                }
+
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+
+            }
+
+
+            // =====================================================
+            // PRODUCT OPTIONS
+            // =====================================================
+
+            function getProductOptions() {
+
+                let html =
+                    '<option value="">-- Select Product --</option>';
+
+                products.forEach(function (product) {
+
+                    html +=
+                        '<option value="' +
+                        escapeHtml(product.id) +
+                        '">' +
+                        escapeHtml(product.name) +
+                        '</option>';
+
+                });
+
+                return html;
+            }
+
+
+            // =====================================================
+            // WAREHOUSE OPTIONS
+            // =====================================================
+
+            function getWarehouseOptions() {
+
+                let html =
+                    '<option value="">-- Select Warehouse --</option>';
+
+                warehouses.forEach(function (warehouse) {
+
+                    html +=
+                        '<option value="' +
+                        escapeHtml(warehouse.id) +
+                        '">' +
+                        escapeHtml(warehouse.name) +
+                        '</option>';
+
+                });
+
+                return html;
+            }
+
+
+            // =====================================================
+            // EMPTY MESSAGE
+            // =====================================================
+
+            function updateEmptyMessage() {
+
+                const count =
+                    $("#giftItemsBody tr").length;
+
+                if (count === 0) {
+                    $("#noGiftItems").show();
+                }
+                else {
+                    $("#noGiftItems").hide();
+                }
+
+            }
+
+
+            // =====================================================
+            // ADD GIFT ITEM
+            // =====================================================
+
+            function addGiftItem() {
+
+                const index = giftItemIndex++;
+
+                const row = `
+
+                    <tr class="gift-item-row">
+
+                        <!-- PRODUCT -->
+
+                        <td>
+
+                            <select
+                                name="Items[${index}].ProductId"
+                                class="form-select product-select">
+
+                                ${getProductOptions()}
+
+                            </select>
+
+                            <div class="text-danger small product-error"></div>
+
+                        </td>
+
+
+                        <!-- WAREHOUSE -->
+
+                        <td>
+
+                            <select
+                                name="Items[${index}].WarehouseId"
+                                class="form-select warehouse-select">
+
+                                ${getWarehouseOptions()}
+
+                            </select>
+
+                            <div class="text-danger small warehouse-error"></div>
+
+                        </td>
+
+
+                        <!-- QUANTITY -->
+
+                        <td>
+
+                            <input
+                                type="number"
+                                name="Items[${index}].ReceivedQuantity"
+                                class="form-control quantity-input"
+                                min="0.01"
+                                step="0.01"
+                                value="1" />
+
+                            <div class="text-danger small quantity-error"></div>
+
+                        </td>
+
+
+                        <!-- UNIT PRICE -->
+
+                        <td>
+
+                            <input
+                                type="number"
+                                class="form-control"
+                                value="0.00"
+                                readonly />
+
+                            <!-- IMPORTANT:
+                                 Posted UnitPrice = 0
+                            -->
+
+                            <input
+                                type="hidden"
+                                name="Items[${index}].UnitPrice"
+                                value="0" />
+
+                        </td>
+
+
+                        <!-- TOTAL -->
+
+                        <td>
+
+                            <input
+                                type="text"
+                                class="form-control total-input"
+                                value="₹0.00"
+                                readonly />
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td class="text-center">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger remove-gift-item"
+                                title="Remove Item">
+
+                                <i class="bi bi-trash"></i>
+
+                            </button>
+
+                        </td>
+
+
+                        <!-- HIDDEN PURCHASE FIELDS -->
+
+                        <input
+                            type="hidden"
+                            name="Items[${index}].OrderedQuantity"
+                            value="0" />
+
+                        <input
+                            type="hidden"
+                            name="Items[${index}].Discount"
+                            value="0" />
+
+                        <input
+                            type="hidden"
+                            name="Items[${index}].TaxAmount"
+                            value="0" />
+
+                    </tr>
+
+                `;
+
+                $("#giftItemsBody").append(row);
+
+                updateEmptyMessage();
+
+                calculateTotals();
+
+            }
+
+
+            // =====================================================
+            // REINDEX
+            // =====================================================
+
+            function reindexGiftItems() {
+
+                $("#giftItemsBody tr").each(function (index) {
+
+                    $(this)
+                        .find("[name]")
+                        .each(function () {
+
+                            const name =
+                                $(this).attr("name");
+
+                            if (!name) {
+                                return;
+                            }
+
+                            const newName =
+                                name.replace(
+                                    /Items\[\d+\]/,
+                                    "Items[" + index + "]"
+                                );
+
+                            $(this).attr(
+                                "name",
+                                newName
+                            );
+
+                        });
+
+                });
+
+
+                giftItemIndex =
+                    $("#giftItemsBody tr").length;
+
+            }
+
+
+            // =====================================================
+            // CALCULATE TOTALS
+            // =====================================================
+
+            function calculateTotals() {
+
+                // Gift GRN is ALWAYS zero value.
+
+                $("#giftItemsBody tr").each(function () {
+
+                    $(this)
+                        .find(".total-input")
+                        .val("₹0.00");
+
+                });
+
+
+                $("#summarySubTotal")
+                    .text("₹0.00");
+
+                $("#summaryTax")
+                    .text("₹0.00");
+
+                $("#summaryDiscount")
+                    .text("₹0.00");
+
+                $("#summaryGrandTotal")
+                    .text("₹0.00");
+
+            }
+
+
+            // =====================================================
+            // ADD BUTTON
+            // =====================================================
+
+            $("#addGiftItem").on("click", function () {
+
+                addGiftItem();
+
+            });
+
+
+            // =====================================================
+            // REMOVE BUTTON
+            // =====================================================
+
+            $(document).on(
+                "click",
+                ".remove-gift-item",
+                function () {
+
+                    $(this)
+                        .closest("tr")
+                        .remove();
+
+                    reindexGiftItems();
+
+                    updateEmptyMessage();
+
+                    calculateTotals();
+
+                }
+            );
+
+
+            // =====================================================
+            // PRODUCT CHANGE
+            // =====================================================
+
+            $(document).on(
+                "change",
+                ".product-select",
+                function () {
+
+                    const row =
+                        $(this).closest("tr");
+
+                    if ($(this).val()) {
+
+                        $(this)
+                            .removeClass("is-invalid");
+
+                        row.find(".product-error")
+                            .text("");
+
+                    }
+
+                }
+            );
+
+
+            // =====================================================
+            // WAREHOUSE CHANGE
+            // =====================================================
+
+            $(document).on(
+                "change",
+                ".warehouse-select",
+                function () {
+
+                    const row =
+                        $(this).closest("tr");
+
+                    if ($(this).val()) {
+
+                        $(this)
+                            .removeClass("is-invalid");
+
+                        row.find(".warehouse-error")
+                            .text("");
+
+                    }
+
+                }
+            );
+
+
+            // =====================================================
+            // QUANTITY CHANGE
+            // =====================================================
+
+            $(document).on(
+                "input",
+                ".quantity-input",
+                function () {
+
+                    const input =
+                        $(this);
+
+                    const row =
+                        input.closest("tr");
+
+                    const quantity =
+                        parseFloat(input.val()) || 0;
+
+                    if (quantity <= 0) {
+
+                        input.addClass("is-invalid");
+
+                        row.find(".quantity-error")
+                            .text(
+                                "Gift quantity must be greater than zero."
+                            );
+
+                    }
+                    else {
+
+                        input.removeClass("is-invalid");
+
+                        row.find(".quantity-error")
+                            .text("");
+
+                    }
+
+                    calculateTotals();
+
+                }
+            );
+
+
+            // =====================================================
+            // FORM VALIDATION
+            // =====================================================
+
+            $("#giftReceiptForm").on(
+                "submit",
+                function (event) {
+
+                    let hasError = false;
+
+                    // -------------------------------------------------
+                    // DONOR
+                    // -------------------------------------------------
+
+                    const donorName =
+                        $.trim(
+                            $("#DonorName").val() || ""
+                        );
+
+                    if (!donorName) {
+
+                        hasError = true;
+
+                        $("#DonorName")
+                            .addClass("is-invalid")
+                            .focus();
+
+                    }
+                    else {
+
+                        $("#DonorName")
+                            .removeClass("is-invalid");
+
+                    }
+
+
+                    // -------------------------------------------------
+                    // ITEMS
+                    // -------------------------------------------------
+
+                    const rows =
+                        $("#giftItemsBody tr");
+
+
+                    if (rows.length === 0) {
+
+                        hasError = true;
+
+                        alert(
+                            "Please add at least one gift item."
+                        );
+
+                    }
+
+
+                    rows.each(function () {
+
+                        const row =
+                            $(this);
+
+                        const product =
+                            row.find(".product-select");
+
+                        const warehouse =
+                            row.find(".warehouse-select");
+
+                        const quantityInput =
+                            row.find(".quantity-input");
+
+                        const quantity =
+                            parseFloat(
+                                quantityInput.val()
+                            ) || 0;
+
+
+                        // PRODUCT
+
+                        if (!product.val()) {
+
+                            hasError = true;
+
+                            product.addClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".product-error")
+                                .text(
+                                    "Please select a product."
+                                );
+
+                        }
+                        else {
+
+                            product.removeClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".product-error")
+                                .text("");
+
+                        }
+
+
+                        // WAREHOUSE
+
+                        if (!warehouse.val()) {
+
+                            hasError = true;
+
+                            warehouse.addClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".warehouse-error")
+                                .text(
+                                    "Please select a warehouse."
+                                );
+
+                        }
+                        else {
+
+                            warehouse.removeClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".warehouse-error")
+                                .text("");
+
+                        }
+
+
+                        // QUANTITY
+
+                        if (quantity <= 0) {
+
+                            hasError = true;
+
+                            quantityInput.addClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".quantity-error")
+                                .text(
+                                    "Gift quantity must be greater than zero."
+                                );
+
+                        }
+                        else {
+
+                            quantityInput.removeClass(
+                                "is-invalid"
+                            );
+
+                            row.find(".quantity-error")
+                                .text("");
+
+                        }
+
+                    });
+
+
+                    // -------------------------------------------------
+                    // STOP SUBMIT
+                    // -------------------------------------------------
+
+                    if (hasError) {
+
+                        event.preventDefault();
+
+                        return false;
+
+                    }
+
+
+                    // -------------------------------------------------
+                    // PREVENT DOUBLE CLICK
+                    // -------------------------------------------------
+
+                    $("#saveGiftButton")
+                        .prop("disabled", true)
+                        .html(
+                            '<span class="spinner-border spinner-border-sm me-1"></span>' +
+                            'Saving...'
+                        );
+
+
+                    return true;
+
+                }
+            );
+
+
+            // =====================================================
+            // INITIAL STATE
+            // =====================================================
+
+            updateEmptyMessage();
+
+            calculateTotals();
+
+        });
+
+    </script>
+    
+
+}

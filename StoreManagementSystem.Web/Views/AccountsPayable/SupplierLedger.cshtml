@@ -1,0 +1,632 @@
+﻿@model StoreManagementSystem.Web.ViewModels.AccountsPayable.SupplierLedgerViewModel
+
+@{
+    ViewData["Title"] = "Supplier Ledger";
+    Layout = "_AdminLayout";
+
+    var suppliers =
+        ViewBag.Suppliers as IEnumerable<StoreManagementSystem.Domain.Entities.Supplier>
+        ?? Enumerable.Empty<StoreManagementSystem.Domain.Entities.Supplier>();
+
+    string DateValue(DateTime? date)
+    {
+        return date.HasValue
+            ? date.Value.ToString("yyyy-MM-dd")
+            : "";
+    }
+}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-journal-text me-2"></i>
+                Supplier Ledger
+            </h3>
+
+            <div class="text-muted">
+                Purchase and payment transaction history
+            </div>
+
+        </div>
+
+        <a href="/AccountsPayable"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            AP Dashboard
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         FILTER
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  action="/SupplierLedger">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- SUPPLIER -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Supplier
+                        </label>
+
+                        <select name="supplierId"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                -- Select Supplier --
+                            </option>
+
+                            @foreach (var supplier in suppliers)
+                            {
+                                if (Model.SupplierId == supplier.Id)
+                                {
+                                    <option value="@supplier.Id" selected>
+                                        @supplier.Name
+                                        @(string.IsNullOrWhiteSpace(supplier.SupplierCode)
+                                                                        ? ""
+                                                                        : $" ({supplier.SupplierCode})")
+                            </option>
+                                                        }
+                                else
+                                {
+                                    <option value="@supplier.Id">
+                                        @supplier.Name
+                                        @(string.IsNullOrWhiteSpace(supplier.SupplierCode)
+                                                                        ? ""
+                                                                        : $" ({supplier.SupplierCode})")
+                            </option>
+                                                        }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- DATE FROM -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-semibold">
+                            Date From
+                        </label>
+
+                        <input type="date"
+                               name="fromDate"
+                               class="form-control"
+                               value="@DateValue(Model.FromDate)" />
+
+                    </div>
+
+
+                    <!-- DATE TO -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-semibold">
+                            Date To
+                        </label>
+
+                        <input type="date"
+                               name="toDate"
+                               class="form-control"
+                               value="@DateValue(Model.ToDate)" />
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+
+                    <div class="col-md-2">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            <i class="bi bi-search me-1"></i>
+                            View Ledger
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         VALIDATION
+         ========================================================= -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+
+            @foreach (var error in ViewData.ModelState.Values
+                    .SelectMany(v => v.Errors))
+            {
+                <div>
+                    @error.ErrorMessage
+                </div>
+            }
+
+        </div>
+    }
+
+
+    @if (Model.SupplierId.HasValue)
+    {
+
+        <!-- =====================================================
+             SUMMARY
+             ===================================================== -->
+
+        <div class="row g-3 mb-4">
+
+            <!-- SUPPLIER -->
+
+            <div class="col-md-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Supplier
+                        </div>
+
+                        <div class="fw-bold">
+                            @Model.SupplierName
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- OPENING BALANCE -->
+
+            <div class="col-md-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Opening Balance
+                        </div>
+
+                        <div class="fs-5 fw-bold text-warning">
+
+                            ₹@Model.OpeningBalance.ToString("N2")
+
+                        </div>
+
+                        @if (Model.FromDate.HasValue)
+                        {
+                            <small class="text-muted">
+                                Before
+                                @Model.FromDate.Value.ToString("dd-MMM-yyyy")
+                            </small>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PURCHASES -->
+
+            <div class="col-md-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Period Purchases
+                        </div>
+
+                        <div class="fs-5 fw-bold text-primary">
+
+                            ₹@Model.GoodsReceivedValue.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PAYMENTS -->
+
+            <div class="col-md-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Period Payments
+                        </div>
+
+                        <div class="fs-5 fw-bold text-success">
+
+                            ₹@Model.PaymentsMade.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CLOSING BALANCE
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <div class="text-muted small">
+                            Closing Outstanding
+                        </div>
+
+                        <div class="fs-3 fw-bold text-danger">
+                            ₹@Model.ClosingOutstanding.ToString("N2")
+                        </div>
+
+                    </div>
+
+                    <div class="text-end">
+
+                        @if (Model.FromDate.HasValue ||
+                                            Model.ToDate.HasValue)
+                        {
+                            <div class="text-muted small">
+                                Ledger Period
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @(Model.FromDate.HasValue
+                                                        ? Model.FromDate.Value.ToString("dd-MMM-yyyy")
+                                                        : "Beginning")
+
+                                -
+
+                                @(Model.ToDate.HasValue
+                                                        ? Model.ToDate.Value.ToString("dd-MMM-yyyy")
+                                                        : "Present")
+
+                    </div>
+                                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             LEDGER
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-header bg-white py-3">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-journal-text me-2"></i>
+                            Supplier Ledger
+                        </h5>
+
+                        <small class="text-muted">
+                            Opening balance + transactions for selected period
+                        </small>
+
+                    </div>
+
+                    <!-- PDF -->
+
+                    <a href="@(
+                       $"/SupplierLedger/Pdf?supplierId={Model.SupplierId}" +
+                       $"&fromDate={DateValue(Model.FromDate)}" +
+                       $"&toDate={DateValue(Model.ToDate)}"
+                                        )"
+                   target="_blank"
+                   class="btn btn-outline-danger">
+
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+                        PDF
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Reference No.
+                            </th>
+
+                            <th>
+                                Transaction
+                            </th>
+
+                            <th class="text-end">
+                                Debit
+                            </th>
+
+                            <th class="text-end">
+                                Credit
+                            </th>
+
+                            <th class="text-end">
+                                Balance
+                            </th>
+
+                            <th>
+                                Remarks
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <!-- =================================================
+                             OPENING BALANCE ROW
+                             ================================================= -->
+                    @if (Model.FromDate.HasValue)
+                        {
+                            <tr class="table-warning">
+
+                                <td>
+                                    @Model.FromDate.Value.ToString("dd-MMM-yyyy")
+                                </td>
+
+                                <td class="fw-bold">
+                                    OPENING
+                                </td>
+
+                                <td>
+
+                                    <span class="badge bg-warning text-dark">
+                                        Opening Balance
+                                    </span>
+
+                                </td>
+
+                                <td class="text-end">
+                                    -
+                                </td>
+
+                                <td class="text-end">
+                                    -
+                                </td>
+
+                                <td class="text-end fw-bold">
+
+                                    ₹@Model.OpeningBalance.ToString("N2")
+
+                                </td>
+
+                                <td class="text-muted">
+                                    Balance brought forward
+                                </td>
+
+                            </tr>
+                        }
+
+
+                        <!-- =================================================
+                             TRANSACTIONS
+                             ================================================= -->
+                        @if (Model.Entries == null ||
+                                            !Model.Entries.Any())
+                        {
+                            <tr>
+
+                                <td colspan="7"
+                                    class="text-center py-5 text-muted">
+
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+
+                                    No transactions found for the selected period.
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var entry in Model.Entries)
+                            {
+                                <tr>
+
+                                    <!-- DATE -->
+
+                                    <td>
+                                        @entry.Date.ToString("dd-MMM-yyyy")
+                                    </td>
+
+
+                                    <!-- REFERENCE -->
+
+                                    <td class="fw-semibold">
+                                        @entry.ReferenceNo
+                                    </td>
+
+
+                                    <!-- TRANSACTION -->
+
+                                    <td>
+
+                                        @if (entry.Debit > 0)
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary">
+                                                @entry.TransactionType
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-subtle text-success">
+                                                @entry.TransactionType
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- DEBIT -->
+
+                                    <td class="text-end">
+
+                                        @if (entry.Debit > 0)
+                                        {
+                                            <span class="text-danger fw-semibold">
+                                                ₹@entry.Debit.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- CREDIT -->
+
+                                    <td class="text-end">
+
+                                        @if (entry.Credit > 0)
+                                        {
+                                            <span class="text-success fw-semibold">
+                                                ₹@entry.Credit.ToString("N2")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- BALANCE -->
+
+                                    <td class="text-end fw-bold">
+
+                                        ₹@entry.Balance.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- REMARKS -->
+
+                                    <td>
+                                        @(entry.Remarks ?? "-")
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+
+                        <!-- =================================================
+                             CLOSING BALANCE
+                             ================================================= -->
+
+                        <tr class="table-light fw-bold">
+
+                            <td colspan="5"
+                                class="text-end">
+
+                                Closing Outstanding
+
+                            </td>
+
+                            <td class="text-end text-danger">
+
+                                ₹@Model.ClosingOutstanding.ToString("N2")
+
+                            </td>
+
+                            <td></td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    }
+
+</div>

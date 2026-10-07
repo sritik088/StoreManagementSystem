@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
 using StoreManagementSystem.Web.ViewModels.Category;
@@ -7,70 +8,93 @@ namespace StoreManagementSystem.Web.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ICategoryService _service;
+        private readonly ICategoryService _categoryService;
+        private readonly IMainCategoryService _mainCategoryService;
 
-        public CategoryController(ICategoryService service)
+        public CategoryController(
+            ICategoryService categoryService,
+            IMainCategoryService mainCategoryService)
         {
-            _service = service;
+            _categoryService = categoryService;
+            _mainCategoryService = mainCategoryService;
         }
 
         // =========================
         // INDEX
         // =========================
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var categories = await _service.GetAllAsync();
+            var categories = await _categoryService.GetAllAsync();
+
+            await LoadMainCategories();
 
             return View(categories);
         }
 
         // =========================
-        // CREATE
+        // CREATE - GET
         // =========================
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadMainCategories();
+
             return View();
         }
+
+        // =========================
+        // CREATE - POST
+        // =========================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
-
-            var category = new Category
             {
-                Name = model.Name,
-                Description = model.Description,
-                DisplayOrder = model.DisplayOrder,
-                IsActive = model.IsActive
-            };
+                await LoadMainCategories();
 
-            var result = await _service.CreateAsync(category);
-
-            if (!result)
-            {
-                ModelState.AddModelError("", "Category already exists.");
                 return View(model);
             }
 
-            TempData["Success"] = "Category created successfully.";
+            var category = new Category
+            {
+                Name = model.Name.Trim(),
+                MainCategoryId = model.MainCategoryId
+            };
+
+            var result = await _categoryService
+                .CreateAsync(category);
+
+            if (!result)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Category already exists.");
+
+                await LoadMainCategories();
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Category created successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
         // =========================
-        // EDIT
+        // EDIT - GET
         // =========================
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var category = await _service.GetByIdAsync(id);
+            var category =
+                await _categoryService.GetByIdAsync(id);
 
             if (category == null)
                 return NotFound();
@@ -79,35 +103,56 @@ namespace StoreManagementSystem.Web.Controllers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
-                DisplayOrder = category.DisplayOrder,
-                IsActive = category.IsActive
+                MainCategoryId = category.MainCategoryId
             };
+
+            await LoadMainCategories();
 
             return View(model);
         }
 
+        // =========================
+        // EDIT - POST
+        // =========================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(CategoryViewModel model)
+        public async Task<IActionResult> Edit(
+            CategoryViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                await LoadMainCategories();
 
-            var category = await _service.GetByIdAsync(model.Id);
+                return View(model);
+            }
+
+            var category =
+                await _categoryService
+                    .GetByIdAsync(model.Id);
 
             if (category == null)
                 return NotFound();
 
-            category.Name = model.Name;
-            category.Description = model.Description;
-            category.DisplayOrder = model.DisplayOrder;
-            category.IsActive = model.IsActive;
-            category.UpdatedDate = DateTime.Now;
+            category.Name = model.Name.Trim();
+            category.MainCategoryId = model.MainCategoryId;
 
-            await _service.UpdateAsync(category);
+            var result = await _categoryService
+                .UpdateAsync(category);
 
-            TempData["Success"] = "Category updated successfully.";
+            if (!result)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Unable to update category.");
+
+                await LoadMainCategories();
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Category updated successfully.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -117,13 +162,39 @@ namespace StoreManagementSystem.Web.Controllers
         // =========================
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            var result =
+                await _categoryService.DeleteAsync(id);
 
-            TempData["Success"] = "Category deleted successfully.";
+            if (!result)
+            {
+                TempData["Error"] =
+                    "Category not found.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["Success"] =
+                "Category deleted successfully.";
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // =========================
+        // LOAD MAIN CATEGORIES
+        // =========================
+
+        private async Task LoadMainCategories()
+        {
+            var mainCategories =
+                await _mainCategoryService.GetAllAsync();
+
+            ViewBag.MainCategoryList = new SelectList(
+                mainCategories,
+                "Id",
+                "Name");
         }
     }
 }

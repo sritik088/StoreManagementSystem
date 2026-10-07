@@ -1,0 +1,985 @@
+﻿
+@model StoreManagementSystem.Web.ViewModels.Sidebar.SidebarArrangementViewModel
+
+@{
+    ViewData["Title"] = "Sidebar Arrangement";
+    Layout = "_AdminLayout";
+
+    var orderedSections = Model.Sections
+        .Where(x => x.IsActive)
+        .OrderBy(x => x.DisplayOrder)
+        .ThenBy(x => x.Id)
+        .ToList();
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-layout-sidebar me-2"></i>
+                Sidebar Arrangement
+            </h4>
+
+            <div class="text-muted">
+                Configure the order of sections and menu items.
+            </div>
+        </div>
+
+        <button type="button"
+                id="saveArrangementBtn"
+                class="btn btn-primary">
+
+            <i class="bi bi-check-lg me-1"></i>
+            Save Arrangement
+
+        </button>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- INFORMATION -->
+    <!-- ===================================================== -->
+
+    <div class="alert alert-info border-0 shadow-sm">
+
+        <div class="d-flex">
+
+            <i class="bi bi-info-circle fs-5 me-3"></i>
+
+            <div>
+
+                <strong>How Sidebar Arrangement works</strong>
+
+                <ul class="mb-0 mt-2">
+
+                    <li>
+                        Change <strong>Section Position</strong>
+                        to change the section order.
+                    </li>
+
+                    <li>
+                        Change an item's
+                        <strong>Section</strong>
+                        to move it to another section.
+                    </li>
+
+                    <li>
+                        Change <strong>Position</strong>
+                        to control the order of items inside that section.
+                    </li>
+
+                    <li>
+                        No drag-and-drop is required.
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- SECTION POSITIONS -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex align-items-center">
+
+                <div class="header-icon me-2">
+                    <i class="bi bi-list-ol"></i>
+                </div>
+
+                <div>
+                    <h6 class="mb-0">
+                        Section Positions
+                    </h6>
+
+                    <small class="text-muted">
+                        Lower number appears first.
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                @foreach (var menuSection in orderedSections)
+                {
+                    <div class="col-md-6 col-xl-4">
+
+                        <div class="section-position-card">
+
+                            <div class="d-flex align-items-center">
+
+                                <div class="section-number">
+                                    @menuSection.DisplayOrder
+                                </div>
+
+                                <div class="flex-grow-1 ms-3">
+
+                                    <div class="fw-semibold">
+                                        @menuSection.Name
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Section ID:
+                                        @menuSection.Id
+                                    </small>
+
+                                </div>
+
+                                <div>
+
+                                    <label class="form-label small fw-semibold mb-1">
+                                        Position
+                                    </label>
+
+                                    <input type="number"
+                                           class="form-control section-position"
+                                           data-section-id="@menuSection.Id"
+                                           value="@menuSection.DisplayOrder"
+                                           min="1"
+                                           step="1"
+                                           style="width:90px;" />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- MENU ITEMS -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex align-items-center">
+
+                <div class="header-icon me-2">
+                    <i class="bi bi-menu-button-wide"></i>
+                </div>
+
+                <div>
+
+                    <h6 class="mb-0">
+                        Menu Items
+                    </h6>
+
+                    <small class="text-muted">
+                        Assign each menu item to a section and set its position.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            @foreach (var menuSection in orderedSections)
+            {
+                var sectionItems = menuSection.Items
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.DisplayOrder)
+                .ThenBy(x => x.Id)
+                .ToList();
+
+                <div class="section-group mb-5"
+                     data-section-id="@menuSection.Id">
+
+                    <!-- ================================================= -->
+                    <!-- SECTION HEADER -->
+                    <!-- ================================================= -->
+
+                    <div class="section-group-header mb-3">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="section-badge me-3">
+
+                                <i class="bi bi-folder2-open"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h6 class="mb-0">
+                                    @menuSection.Name
+                                </h6>
+
+                                <small class="text-muted">
+
+                                    Current section position:
+                                    <strong>
+                                        @menuSection.DisplayOrder
+                                    </strong>
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- ITEMS -->
+                    <!-- ================================================= -->
+                    @if (sectionItems.Any())
+                    {
+                        foreach (var menuItem in sectionItems)
+                        {
+                            <div class="menu-item-card border rounded p-3 mb-2"
+                                 data-item-id="@menuItem.Id">
+
+                                <div class="row align-items-center g-3">
+
+
+                                    <!-- ================================= -->
+                                    <!-- ITEM INFORMATION -->
+                                    <!-- ================================= -->
+
+                                    <div class="col-lg-4">
+
+                                        <div class="d-flex align-items-center">
+
+                                            <div class="menu-icon me-3">
+
+                                                <i class="bi @menuItem.Icon"></i>
+
+                                            </div>
+
+                                            <div>
+
+                                                <div class="fw-semibold">
+
+                                                    @menuItem.Name
+
+                                                </div>
+
+                                                <small class="text-muted">
+
+                                                    @menuItem.Controller
+                                                    /
+                                                    @menuItem.Action
+
+                                                </small>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================= -->
+                                    <!-- SECTION -->
+                                    <!-- ================================= -->
+
+                                    <div class="col-lg-3">
+
+                                        <label class="form-label small fw-semibold">
+
+                                            Section
+
+                                        </label>
+
+                                        <select class="form-select item-section">
+
+                                            @foreach (var targetSection in orderedSections)
+                                            {
+                                                if (targetSection.Id == menuSection.Id)
+                                                {
+                                                    <option value="@targetSection.Id"
+                                                            selected>
+
+                                                        @targetSection.Name
+
+                                                    </option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@targetSection.Id">
+
+                                                        @targetSection.Name
+
+                                                    </option>
+                                                }
+                                            }
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <!-- ================================= -->
+                                    <!-- POSITION -->
+                                    <!-- ================================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <label class="form-label small fw-semibold">
+
+                                            Position
+
+                                        </label>
+
+                                        <input type="number"
+                                               class="form-control item-position"
+                                               value="@menuItem.DisplayOrder"
+                                               min="1"
+                                               step="1" />
+
+                                    </div>
+
+
+                                    <!-- ================================= -->
+                                    <!-- PERMISSION -->
+                                    <!-- ================================= -->
+
+                                    <div class="col-lg-3">
+
+                                        <label class="form-label small fw-semibold">
+
+                                            Permission
+
+                                        </label>
+
+                                        @if (!string.IsNullOrWhiteSpace(menuItem.Permission))
+                                        {
+                                            <div class="permission-badge">
+
+                                                <i class="bi bi-shield-check me-1"></i>
+
+                                                @menuItem.Permission
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="permission-badge no-permission">
+
+                                                <i class="bi bi-unlock me-1"></i>
+
+                                                Visible to all authenticated users
+
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-section">
+
+                            <i class="bi bi-inbox me-2"></i>
+
+                            No active menu items in this section.
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- BOTTOM SAVE -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-end mt-4">
+
+        <button type="button"
+                id="saveArrangementBtnBottom"
+                class="btn btn-primary">
+
+            <i class="bi bi-check-lg me-1"></i>
+
+            Save Arrangement
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ANTIFORGERY TOKEN -->
+<!-- ========================================================= -->
+
+<form id="antiForgeryForm"
+      style="display:none;">
+
+    @Html.AntiForgeryToken()
+
+</form>
+
+
+<!-- ========================================================= -->
+<!-- STYLES -->
+<!-- ========================================================= -->
+
+<style>
+
+    .header-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+    }
+
+
+    .section-position-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 15px;
+        background: #fff;
+        transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+
+        .section-position-card:hover {
+            box-shadow: 0 3px 12px rgba(0,0,0,.07);
+            border-color: #d1d5db;
+        }
+
+
+    .section-number {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+
+    .section-group {
+        position: relative;
+    }
+
+
+    .section-group-header {
+        padding: 12px 15px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+
+    .section-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e2e8f0;
+        font-size: 18px;
+    }
+
+
+    .menu-item-card {
+        background: #fff;
+        transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+
+        .menu-item-card:hover {
+            box-shadow: 0 3px 12px rgba(0,0,0,.08);
+            border-color: #d1d5db !important;
+        }
+
+
+    .menu-icon {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        font-size: 18px;
+    }
+
+
+    .permission-badge {
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+
+        .permission-badge.no-permission {
+            color: #64748b;
+        }
+
+
+    .empty-section {
+        padding: 15px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        color: #64748b;
+        background: #f8fafc;
+    }
+
+
+    .section-group:last-child {
+        margin-bottom: 0 !important;
+    }
+
+</style>
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const saveButtons = [
+            document.getElementById("saveArrangementBtn"),
+            document.getElementById("saveArrangementBtnBottom")
+        ];
+
+
+        // =====================================================
+        // SAVE ARRANGEMENT
+        // =====================================================
+
+        async function saveArrangement() {
+
+            saveButtons.forEach(button => {
+
+                if (button) {
+                    button.disabled = true;
+
+                    button.dataset.originalHtml =
+                        button.innerHTML;
+
+                    button.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                }
+
+            });
+
+
+            try {
+
+                // =================================================
+                // READ SECTION POSITIONS
+                // =================================================
+
+                const sectionPositions = new Map();
+
+
+                document
+                    .querySelectorAll(".section-position")
+                    .forEach(input => {
+
+                        const sectionId =
+                            parseInt(input.dataset.sectionId);
+
+                        let position =
+                            parseInt(input.value);
+
+
+                        if (!Number.isFinite(position) ||
+                            position < 1) {
+
+                            position = 1;
+
+                        }
+
+
+                        sectionPositions.set(
+                            sectionId,
+                            position
+                        );
+
+                    });
+
+
+                // =================================================
+                // READ ALL MENU ITEMS
+                // =================================================
+
+                const sectionItems = new Map();
+
+
+                document
+                    .querySelectorAll(".menu-item-card")
+                    .forEach(card => {
+
+                        const itemId =
+                            parseInt(
+                                card.dataset.itemId
+                            );
+
+
+                        const sectionSelect =
+                            card.querySelector(
+                                ".item-section"
+                            );
+
+
+                        const positionInput =
+                            card.querySelector(
+                                ".item-position"
+                            );
+
+
+                        if (!sectionSelect ||
+                            !positionInput) {
+
+                            return;
+
+                        }
+
+
+                        const sectionId =
+                            parseInt(
+                                sectionSelect.value
+                            );
+
+
+                        let position =
+                            parseInt(
+                                positionInput.value
+                            );
+
+
+                        if (!Number.isFinite(position) ||
+                            position < 1) {
+
+                            position = 1;
+
+                        }
+
+
+                        if (!sectionItems.has(sectionId)) {
+
+                            sectionItems.set(
+                                sectionId,
+                                []
+                            );
+
+                        }
+
+
+                        sectionItems
+                            .get(sectionId)
+                            .push({
+
+                                id: itemId,
+
+                                sectionId: sectionId,
+
+                                displayOrder: position
+
+                            });
+
+                    });
+
+
+                // =================================================
+                // BUILD REQUEST
+                // =================================================
+
+                const sections = [];
+
+
+                sectionPositions.forEach(
+                    (position, sectionId) => {
+
+                        const items =
+                            sectionItems.get(sectionId) || [];
+
+
+                        // Sort items by entered position.
+                        items.sort(
+                            (a, b) => {
+
+                                if (a.displayOrder !==
+                                    b.displayOrder) {
+
+                                    return a.displayOrder -
+                                           b.displayOrder;
+
+                                }
+
+                                return a.id - b.id;
+
+                            }
+                        );
+
+
+                        sections.push({
+
+                            id: sectionId,
+
+                            displayOrder: position,
+
+                            items: items.map(item => ({
+
+                                id: item.id,
+
+                                sectionId: sectionId,
+
+                                displayOrder:
+                                    item.displayOrder
+
+                            }))
+
+                        });
+
+                    }
+                );
+
+
+                // =================================================
+                // SORT SECTIONS
+                // =================================================
+
+                sections.sort(
+                    (a, b) => {
+
+                        if (a.displayOrder !==
+                            b.displayOrder) {
+
+                            return a.displayOrder -
+                                   b.displayOrder;
+
+                        }
+
+                        return a.id - b.id;
+
+                    }
+                );
+
+
+                // =================================================
+                // VALIDATION
+                // =================================================
+
+                if (sections.length === 0) {
+
+                    throw new Error(
+                        "No sidebar sections were found."
+                    );
+
+                }
+
+
+                // =================================================
+                // ANTIFORGERY TOKEN
+                // =================================================
+
+                const tokenElement =
+                    document.querySelector(
+                        '#antiForgeryForm input[name="__RequestVerificationToken"]'
+                    );
+
+
+                if (!tokenElement) {
+
+                    throw new Error(
+                        "Security token was not found. Please refresh the page."
+                    );
+
+                }
+
+
+                // =================================================
+                // POST
+                // =================================================
+
+                const response =
+                    await fetch(
+                        '@Url.Action("Save", "Sidebar")',
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "RequestVerificationToken":
+                                    tokenElement.value
+
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    sections: sections
+
+                                })
+
+                        }
+                    );
+
+
+                // =================================================
+                // RESPONSE
+                // =================================================
+
+                let result;
+
+                try {
+
+                    result =
+                        await response.json();
+
+                }
+                catch {
+
+                    throw new Error(
+                        "The server returned an invalid response."
+                    );
+
+                }
+
+
+                if (!response.ok ||
+                    !result.success) {
+
+                    throw new Error(
+                        result.message ||
+                        "Unable to save sidebar arrangement."
+                    );
+
+                }
+
+
+                // =================================================
+                // SUCCESS
+                // =================================================
+
+                alert(
+                    result.message ||
+                    "Sidebar arrangement saved successfully."
+                );
+
+
+                // Reload so the sidebar reflects
+                // the new arrangement immediately.
+
+                window.location.reload();
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Sidebar arrangement error:",
+                    error
+                );
+
+
+                alert(
+                    error.message ||
+                    "An error occurred while saving the sidebar arrangement."
+                );
+
+            }
+            finally {
+
+                saveButtons.forEach(button => {
+
+                    if (button) {
+
+                        button.disabled = false;
+
+                        button.innerHTML =
+                            button.dataset.originalHtml ||
+                            '<i class="bi bi-check-lg me-1"></i> Save Arrangement';
+
+                    }
+
+                });
+
+            }
+
+        }
+
+
+        // =====================================================
+        // BUTTON EVENTS
+        // =====================================================
+
+        saveButtons.forEach(button => {
+
+            if (button) {
+
+                button.addEventListener(
+                    "click",
+                    saveArrangement
+                );
+
+            }
+
+        });
+
+    });
+
+</script>

@@ -1,0 +1,1083 @@
+﻿@model StoreManagementSystem.Web.ViewModels.GoodsReceipt.GoodsReceiptViewModel
+
+@using StoreManagementSystem.Domain.Enums
+
+@{
+    ViewData["Title"] = "Goods Receipt Details";
+    Layout = "_AdminLayout";
+
+    var isGift = Model.ReceiptType == GoodsReceiptType.Gift;
+
+    var receiptTypeText = isGift ? "Gift Receipt" : "Purchase Receipt";
+
+    var receiptTypeClass = isGift
+        ? "bg-success-subtle text-success"
+        : "bg-primary-subtle text-primary";
+
+    var statusText = "Received";
+}
+
+<style>
+    /* =========================================================
+           PAGE
+           ========================================================= */
+
+    .grn-details-page {
+        padding: 24px 0 40px;
+    }
+
+    .grn-card {
+        border: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    /* =========================================================
+           HEADER
+           ========================================================= */
+
+    .grn-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid #e9ecef;
+        background: #fff;
+    }
+
+    .grn-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+    }
+
+    .grn-subtitle {
+        font-size: 13px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .grn-number {
+        font-size: 15px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    /* =========================================================
+           BADGES
+           ========================================================= */
+
+    .grn-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-received {
+        background: #d1e7dd;
+        color: #146c43;
+    }
+
+    /* =========================================================
+           INFORMATION SECTION
+           ========================================================= */
+
+    .info-section {
+        padding: 24px 28px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 18px;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        border: 1px solid #edf0f2;
+        border-radius: 10px;
+        padding: 15px 16px;
+        height: 100%;
+    }
+
+    .info-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #212529;
+        word-break: break-word;
+    }
+
+        .info-value.muted {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+    /* =========================================================
+           ITEMS SECTION
+           ========================================================= */
+
+    .items-section {
+        padding: 24px 28px 10px;
+    }
+
+    .items-table-wrapper {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow-x: auto;
+    }
+
+    .items-table {
+        width: 100%;
+        min-width: 950px;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+        .items-table thead th {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            color: #495057;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .35px;
+            padding: 13px 12px;
+            white-space: nowrap;
+        }
+
+        .items-table tbody td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #edf0f2;
+            vertical-align: middle;
+            font-size: 13px;
+            color: #343a40;
+        }
+
+        .items-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+    .item-number {
+        width: 45px;
+        color: #6c757d !important;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .product-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 3px;
+    }
+
+    .product-sku {
+        font-size: 11px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .quantity {
+        font-weight: 600;
+        color: #343a40;
+        white-space: nowrap;
+    }
+
+    .money {
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .total-cell {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #198754 !important;
+    }
+
+    .gift-zero {
+        color: #6c757d;
+    }
+
+    /* =========================================================
+           TOTAL SUMMARY
+           ========================================================= */
+
+    .summary-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        padding: 20px 28px 28px;
+    }
+
+    .summary-box {
+        width: 360px;
+        max-width: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 11px 16px;
+        font-size: 13px;
+    }
+
+    .summary-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .summary-value {
+        color: #343a40;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .summary-grand {
+        margin-top: 4px;
+        padding: 15px 16px;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+        .summary-grand .summary-label {
+            color: #212529;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .summary-grand .summary-value {
+            color: #198754;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+    /* =========================================================
+           REMARKS
+           ========================================================= */
+
+    .remarks-section {
+        padding: 0 28px 28px;
+    }
+
+    .remarks-box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px 16px;
+    }
+
+    .remarks-text {
+        margin: 0;
+        color: #495057;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    /* =========================================================
+           FOOTER ACTIONS
+           ========================================================= */
+
+    .grn-footer {
+        padding: 18px 28px;
+        border-top: 1px solid #e9ecef;
+        background: #fafafa;
+    }
+
+    /* =========================================================
+           PRINT
+           ========================================================= */
+
+    @@media print {
+        body
+
+    {
+        background: #fff !important;
+    }
+
+    .sidebar,
+    .navbar,
+    .admin-sidebar,
+    .top-navbar,
+    .grn-footer,
+    .no-print {
+        display: none !important;
+    }
+
+    .grn-details-page {
+        padding: 0 !important;
+    }
+
+    .grn-card {
+        box-shadow: none !important;
+        border: 0 !important;
+    }
+
+    .grn-header,
+    .info-section,
+    .items-section,
+    .remarks-section {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .items-table-wrapper {
+        border: 1px solid #000 !important;
+        overflow: visible !important;
+    }
+
+    .items-table {
+        min-width: 0 !important;
+    }
+
+        .items-table thead th,
+        .items-table tbody td {
+            border-color: #000 !important;
+        }
+
+    .summary-wrapper {
+        padding-right: 0 !important;
+    }
+
+    .summary-box {
+        border-color: #000 !important;
+    }
+
+    .summary-grand {
+        border-color: #000 !important;
+    }
+
+    }
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 768px) {
+        .grn-details-page
+
+    {
+        padding: 12px 0 25px;
+    }
+
+    .grn-header {
+        padding: 18px;
+    }
+
+    .info-section {
+        padding: 18px;
+    }
+
+    .items-section {
+        padding: 18px 18px 5px;
+    }
+
+    .summary-wrapper {
+        padding: 18px;
+    }
+
+    .remarks-section {
+        padding: 0 18px 18px;
+    }
+
+    .grn-footer {
+        padding: 15px 18px;
+    }
+
+    .grn-title {
+        font-size: 20px;
+    }
+
+    }
+</style>
+
+
+<div class="container-fluid grn-details-page">
+
+    <div class="card shadow-sm grn-card">
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+
+        <div class="grn-header">
+
+            <div class="d-flex flex-column flex-md-row
+                        justify-content-between
+                        align-items-md-center gap-3">
+
+                <div>
+
+                    <h1 class="grn-title">
+                        Goods Receipt Details
+                    </h1>
+
+                    <div class="grn-subtitle">
+
+                        GRN Number:
+
+                        <span class="grn-number">
+                            @(string.IsNullOrWhiteSpace(Model.GRNNumber)
+                                                        ? "—"
+                                                        : Model.GRNNumber)
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <span class="grn-badge @receiptTypeClass">
+
+                        @if (isGift)
+                        {
+                            <i class="bi bi-gift"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-box-seam"></i>
+                        }
+
+                        @receiptTypeText
+
+                    </span>
+
+
+                    <span class="grn-badge badge-received">
+
+                        <i class="bi bi-check-circle"></i>
+
+                        @statusText
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RECEIPT INFORMATION
+             ===================================================== -->
+
+        <div class="info-section">
+
+            <div class="section-title">
+                Receipt Information
+            </div>
+
+
+            <div class="row g-3">
+
+                <!-- GRN NUMBER -->
+
+                <div class="col-6 col-md-4 col-xl-3">
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            GRN Number
+                        </span>
+
+                        <div class="info-value">
+                            @(string.IsNullOrWhiteSpace(Model.GRNNumber)
+                                                        ? "—"
+                                                        : Model.GRNNumber)
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECEIPT DATE -->
+
+                <div class="col-6 col-md-4 col-xl-3">
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            Receipt Date
+                        </span>
+
+                        <div class="info-value">
+
+                            @Model.ReceiptDate.ToString("dd MMM yyyy")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECEIPT TYPE -->
+
+                <div class="col-6 col-md-4 col-xl-3">
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            Receipt Type
+                        </span>
+
+                        <div class="info-value">
+
+                            @receiptTypeText
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="col-6 col-md-4 col-xl-3">
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            Status
+                        </span>
+
+                        <div class="info-value">
+
+                            @statusText
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                @if (isGift)
+                {
+                    <!-- DONOR -->
+
+                    <div class="col-12 col-md-6">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Donor Name
+                            </span>
+
+                            <div class="info-value
+                                            @(string.IsNullOrWhiteSpace(Model.DonorName)
+                                                                             ? "muted"
+                                                                             : "")">
+
+                                @(string.IsNullOrWhiteSpace(Model.DonorName)
+                                                            ? "—"
+                                                            : Model.DonorName)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- GIFT REASON -->
+
+                    <div class="col-12 col-md-6">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Gift Reason
+                            </span>
+
+                            <div class="info-value
+                                            @(string.IsNullOrWhiteSpace(Model.GiftReason)
+                                                                             ? "muted"
+                                                                             : "")">
+
+                                @(string.IsNullOrWhiteSpace(Model.GiftReason)
+                                                            ? "—"
+                                                            : Model.GiftReason)
+
+                        </div>
+
+                        </div>
+
+                    </div>
+                                }
+                else
+                {
+                    <!-- SUPPLIER -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Supplier
+                            </span>
+
+                            <div class="info-value
+                                            @(string.IsNullOrWhiteSpace(Model.SupplierName)
+                                                                             ? "muted"
+                                                                             : "")">
+
+                                @(string.IsNullOrWhiteSpace(Model.SupplierName)
+                                                            ? "—"
+                                                            : Model.SupplierName)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PURCHASE ORDER -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Purchase Order
+                            </span>
+
+                            <div class="info-value">
+
+                                @(Model.PurchaseOrderId > 0
+                                                            ? $"PO #{Model.PurchaseOrderId}"
+                                                            : "—")
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INVOICE -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Invoice Number
+                            </span>
+
+                            <div class="info-value muted">
+                                —
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SUPPLIER ID -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <div class="info-box">
+
+                            <span class="info-label">
+                                Supplier ID
+                            </span>
+
+                            <div class="info-value">
+
+                                @(Model.SupplierId > 0
+                                                            ? Model.SupplierId.ToString()
+                                                            : "—")
+
+                        </div>
+
+                        </div>
+
+                    </div>
+                                }
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RECEIVED ITEMS
+             ===================================================== -->
+
+        <div class="items-section">
+
+            <div class="section-title">
+                Received Items
+            </div>
+
+
+            <div class="items-table-wrapper">
+
+                <table class="items-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="item-number">
+                                #
+                            </th>
+
+                            <th>
+                                Product
+                            </th>
+
+                            <th class="text-end">
+                                Ordered
+                            </th>
+
+                            <th class="text-end">
+                                Received
+                            </th>
+
+                            @if (!isGift)
+                            {
+                                <th class="text-end">
+                                    Unit Price
+                                </th>
+
+                                <th class="text-end">
+                                    Discount
+                                </th>
+
+                                <th class="text-end">
+                                    Tax
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+                            }
+                            else
+                            {
+                                <th class="text-end">
+                                    Total
+                                </th>
+                            }
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            var rowNumber = 1;
+
+                            foreach (var item in Model.Items)
+                            {
+
+                                <tr>
+
+                                    <!-- NUMBER -->
+
+                                    <td class="item-number">
+
+                                        @rowNumber
+
+                                    </td>
+
+
+                                    <!-- PRODUCT -->
+
+                                    <td>
+
+                                        <div class="product-name">
+
+                                            @(string.IsNullOrWhiteSpace(item.ProductName)
+                                                                                ? "Unknown Product"
+                                                                                : item.ProductName)
+
+                                        </div>
+
+                                        <div class="product-sku">
+
+                                            SKU:
+                                            @(string.IsNullOrWhiteSpace(item.SKU)
+                                                                                ? "—"
+                                                                                : item.SKU)
+
+                                </div>
+
+                                    </td>
+
+
+                                    <!-- ORDERED -->
+
+                                    <td class="money">
+
+                                        <span class="quantity">
+
+                                            @item.OrderedQuantity.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- RECEIVED -->
+
+                                    <td class="money">
+
+                                        <span class="quantity">
+
+                                            @item.ReceivedQuantity.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                            @if (!isGift)
+                                    {
+                                        <!-- UNIT PRICE -->
+
+                                        <td class="money">
+
+                                            ₹@item.UnitPrice.ToString("N2")
+
+                                        </td>
+
+
+                                        <!-- DISCOUNT -->
+
+                                        <td class="money">
+
+                                            ₹@item.Discount.ToString("N2")
+
+                                        </td>
+
+
+                                        <!-- TAX -->
+
+                                        <td class="money">
+
+                                            ₹@item.TaxAmount.ToString("N2")
+
+                                        </td>
+
+
+                                        <!-- TOTAL -->
+
+                                        <td class="money total-cell">
+
+                                            ₹@item.Total.ToString("N2")
+
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <!-- GIFT TOTAL -->
+
+                                        <td class="money total-cell">
+
+                                            ₹0.00
+
+                                        </td>
+                                    }
+
+                                </tr>
+
+                                rowNumber++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="@(isGift ? 5 : 8)"
+                                    class="text-center text-muted py-4">
+
+                                    No items found in this goods receipt.
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             TOTAL SUMMARY
+             ===================================================== -->
+
+        <div class="summary-wrapper">
+
+            <div class="summary-box">
+
+                <!-- SUBTOTAL -->
+
+                <div class="summary-row">
+
+                    <span class="summary-label">
+                        Subtotal
+                    </span>
+
+                    <span class="summary-value">
+
+                        ₹@Model.SubTotal.ToString("N2")
+
+                    </span>
+
+                </div>
+
+
+                <!-- DISCOUNT -->
+
+                <div class="summary-row">
+
+                    <span class="summary-label">
+                        Discount
+                    </span>
+
+                    <span class="summary-value">
+
+                        ₹@Model.Discount.ToString("N2")
+
+                    </span>
+
+                </div>
+
+
+                <!-- TAX -->
+
+                <div class="summary-row">
+
+                    <span class="summary-label">
+                        Tax
+                    </span>
+
+                    <span class="summary-value">
+
+                        ₹@Model.TaxAmount.ToString("N2")
+
+                    </span>
+
+                </div>
+
+
+                <!-- GRAND TOTAL -->
+
+                <div class="summary-row summary-grand">
+
+                    <span class="summary-label">
+                        Grand Total
+                    </span>
+
+                    <span class="summary-value">
+
+                        ₹@Model.GrandTotal.ToString("N2")
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             REMARKS
+             ===================================================== -->
+        @if (!string.IsNullOrWhiteSpace(Model.Remarks))
+        {
+            <div class="remarks-section">
+
+                <div class="section-title">
+                    Remarks
+                </div>
+
+                <div class="remarks-box">
+
+                    <p class="remarks-text">
+                        @Model.Remarks
+                    </p>
+
+                </div>
+
+            </div>
+        }
+
+
+        <!-- =====================================================
+             FOOTER ACTIONS
+             ===================================================== -->
+
+        <div class="grn-footer no-print">
+
+            <div class="d-flex flex-column flex-sm-row
+                        justify-content-between
+                        gap-2">
+
+                <a asp-controller="GoodsReceipt"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to GRNs
+
+                </a>
+
+
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="window.print();">
+
+                    <i class="bi bi-printer me-1"></i>
+
+                    Print GRN
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

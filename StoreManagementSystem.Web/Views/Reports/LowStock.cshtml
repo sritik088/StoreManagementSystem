@@ -1,0 +1,662 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Reports.LowStockReportViewModel
+
+@{
+    ViewData["Title"] = "Low Stock Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Low Stock Report
+            </h2>
+
+            <p class="text-muted mb-0">
+                Monitor products that are below their reorder level.
+            </p>
+        </div>
+
+        <div>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>
+                Print
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-funnel me-2"></i>
+                Filters
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-controller="Reports"
+                  asp-action="LowStock"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <!-- Product -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label asp-for="ProductId"
+                               class="form-label fw-semibold">
+                            Product
+                        </label>
+
+                        <select asp-for="ProductId"
+                                asp-items="Model.Products"
+                                class="form-select">
+
+                            <option value="">
+                                -- All Products --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Warehouse -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label asp-for="WarehouseId"
+                               class="form-label fw-semibold">
+                            Warehouse
+                        </label>
+
+                        <select asp-for="WarehouseId"
+                                asp-items="Model.Warehouses"
+                                class="form-select">
+
+                            <option value="">
+                                -- All Warehouses --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Category -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label asp-for="CategoryId"
+                               class="form-label fw-semibold">
+                            Category
+                        </label>
+
+                        <select asp-for="CategoryId"
+                                asp-items="Model.Categories"
+                                class="form-select">
+
+                            <option value="">
+                                -- All Categories --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search me-1"></i>
+                            Apply Filter
+
+                        </button>
+
+                        <a asp-controller="Reports"
+                           asp-action="LowStock"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <!-- Low Stock Products -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Low Stock Products
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalLowStockProducts
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+
+                            <i class="bi bi-exclamation-circle fs-4 text-danger"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Current Stock -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Current Stock
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalCurrentStock.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+
+                            <i class="bi bi-box-seam fs-4 text-primary"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Reorder Level -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Reorder Level
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalReorderLevel.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+
+                            <i class="bi bi-arrow-repeat fs-4 text-warning"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Shortage -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Shortage
+                            </p>
+
+                            <h3 class="fw-bold mb-0 text-danger">
+                                @Model.TotalShortageQuantity.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+
+                            <i class="bi bi-graph-down-arrow fs-4 text-danger"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Low Stock Items -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-boxes me-2"></i>
+                        Low Stock Items
+                    </h5>
+
+                </div>
+
+                <span class="badge bg-danger px-3 py-2">
+
+                    @Model.Items.Count Item(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover table-bordered align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>#</th>
+
+                                <th>Product</th>
+
+                                <th>SKU</th>
+
+                                <th>Barcode</th>
+
+                                <th>Category</th>
+
+                                <th>Warehouse</th>
+
+                                <th>Unit</th>
+
+                                <th class="text-end">
+                                    Current Stock
+                                </th>
+
+                                <th class="text-end">
+                                    Reorder Level
+                                </th>
+
+                                <th class="text-end">
+                                    Shortage
+                                </th>
+
+                                <th class="text-end">
+                                    Suggested Order
+                                </th>
+
+                                <th class="text-center">
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @{
+                                var rowNumber = 1;
+                            }
+
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+
+                                    <!-- Row Number -->
+
+                                    <td>
+                                        @rowNumber
+                                    </td>
+
+
+                                    <!-- Product -->
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            @item.ProductName
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- SKU -->
+
+                                    <td>
+
+                                        <span class="badge bg-light text-dark border">
+                                            @item.SKU
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Barcode -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.Barcode))
+                                        {
+                                            <span>
+                                                @item.Barcode
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                N/A
+                                            </span>
+                                        }
+
+                                </td>
+
+
+                                <!-- Category -->
+
+                                <td>
+                                    @item.CategoryName
+                                </td>
+
+
+                                <!-- Warehouse -->
+
+                                <td>
+                                    @item.WarehouseName
+                                </td>
+
+
+                                <!-- Unit -->
+
+                                <td>
+                                    @item.UnitName
+                                </td>
+
+
+                                <!-- Current Stock -->
+
+                                <td class="text-end">
+
+                                    <span class="fw-semibold
+                                            @(item.CurrentStock <= 0
+                                                                                      ? "text-danger"
+                                                                                      : "text-warning")">
+
+                                    @item.CurrentStock.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Reorder Level -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        @item.ReorderLevel.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- Shortage -->
+
+                                    <td class="text-end">
+
+                                @if (item.ShortageQuantity > 0)
+                                        {
+                                            <span class="fw-bold text-danger">
+
+                                                @item.ShortageQuantity.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                0.00
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Suggested Order -->
+
+                                    <td class="text-end">
+
+                                        <span class="fw-bold text-primary">
+
+                                            @item.SuggestedOrderQuantity.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Status -->
+
+                                    <td class="text-center">
+
+                                        @{
+                                            var status = item.StockStatus?.Trim() ?? "";
+
+                                            var statusClass =
+                                            status.Equals("Out of Stock",
+                                            StringComparison.OrdinalIgnoreCase)
+                                            ? "bg-danger"
+                                            : status.Equals("Critical",
+                                            StringComparison.OrdinalIgnoreCase)
+                                            ? "bg-danger"
+                                            : status.Equals("Low Stock",
+                                            StringComparison.OrdinalIgnoreCase)
+                                            ? "bg-warning text-dark"
+                                            : "bg-secondary";
+                                        }
+
+                                        <span class="badge @statusClass">
+
+                                            @if (string.IsNullOrWhiteSpace(status))
+                                            {
+                                                @:Low Stock
+                                            }
+                                            else
+                                            {
+                                                @status
+                                            }
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                rowNumber++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+
+                <div class="text-center py-5">
+
+                    <div class="mb-3">
+
+                        <i class="bi bi-check-circle text-success"
+                           style="font-size: 3rem;">
+                        </i>
+
+                    </div>
+
+                    <h5 class="fw-bold">
+                        No Low Stock Products
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        All products are currently above their reorder levels.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- Report Footer -->
+
+    <div class="text-muted small mt-4">
+
+        <i class="bi bi-clock me-1"></i>
+
+        Report generated on
+        @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")
+
+    </div>
+    ```
+
+</div>
+
+<style>
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .table th {
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+
+    .table td {
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        font-weight: 500;
+    }
+
+    @@media print {
+
+        .btn,
+        nav,
+        .sidebar,
+        form {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .table {
+            font-size: 11px;
+        }
+    }
+
+</style>

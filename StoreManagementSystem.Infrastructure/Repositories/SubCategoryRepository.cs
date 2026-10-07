@@ -14,48 +14,64 @@ namespace StoreManagementSystem.Infrastructure.Repositories
             _context = context;
         }
 
+        // Get all SubCategories
         public async Task<IEnumerable<SubCategory>> GetAllAsync()
         {
             return await _context.SubCategories
-                .Include(s => s.Category)
-                .OrderBy(s => s.DisplayOrder)
+                .Where(x => !x.IsDeleted)
+                .Include(x => x.Category)
+                .ThenInclude(x => x.MainCategory)
+                .OrderBy(x => x.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
+        // Get SubCategory by ID
         public async Task<SubCategory?> GetByIdAsync(int id)
         {
             return await _context.SubCategories
                 .Include(s => s.Category)
+                    .ThenInclude(c => c.MainCategory)
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<IEnumerable<SubCategory>> GetByCategoryAsync(int categoryId)
+        // Get SubCategories by Category
+        public async Task<IEnumerable<SubCategory>> GetByCategoryAsync(
+            int categoryId)
         {
             return await _context.SubCategories
+                .AsNoTracking()
                 .Where(s => s.CategoryId == categoryId)
+                .OrderBy(s => s.Name)
                 .ToListAsync();
         }
 
+        // Add SubCategory
         public async Task AddAsync(SubCategory subCategory)
         {
             await _context.SubCategories.AddAsync(subCategory);
+
             await _context.SaveChangesAsync();
         }
 
+        // Update SubCategory
         public async Task UpdateAsync(SubCategory subCategory)
         {
             _context.SubCategories.Update(subCategory);
+
             await _context.SaveChangesAsync();
         }
 
+        // Delete SubCategory
         public async Task DeleteAsync(int id)
         {
-            var subCategory = await GetByIdAsync(id);
+            var subCategory = await _context.SubCategories
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (subCategory == null)
                 return;
 
-            _context.SubCategories.Remove(subCategory);
+            subCategory.IsDeleted = true;
 
             await _context.SaveChangesAsync();
         }

@@ -1,0 +1,675 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Reports.SupplierReportViewModel
+
+@{
+    ViewData["Title"] = "Supplier Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <!-- ===================================================== -->
+    <!-- PRINT REPORT HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="print-report-header">
+
+        @if (!string.IsNullOrWhiteSpace(Model.OrganisationName))
+        {
+            <h2 class="print-organisation-name">
+                @Model.OrganisationName
+            </h2>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Branch))
+        {
+            <div class="print-branch">
+                @Model.Branch
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Address))
+        {
+            <div class="print-address">
+                @Model.Address
+            </div>
+        }
+
+        <div class="print-contact">
+
+            @if (!string.IsNullOrWhiteSpace(Model.Phone))
+            {
+                <span>
+                    Phone: @Model.Phone
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Email))
+            {
+                <span>
+                    Email: @Model.Email
+                </span>
+            }
+
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.GSTIN))
+        {
+            <div class="print-gstin">
+                GSTIN: @Model.GSTIN
+            </div>
+        }
+
+        <hr />
+
+        <h3 class="print-report-heading">
+            @(string.IsNullOrWhiteSpace(Model.ReportHeading)
+                        ? "Supplier Report"
+                        : Model.ReportHeading)
+        </h3>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-truck me-2"></i>
+                Supplier Report
+            </h2>
+
+            <p class="text-muted mb-0">
+                Overview of suppliers, purchases, payments and outstanding amounts.
+            </p>
+
+        </div>
+
+        <div>
+
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="window.print()">
+
+                <i class="bi bi-printer me-1"></i>
+                Print
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ===================================================== -->
+
+    <div class="row g-4 mb-4 no-print">
+
+        <!-- Total Suppliers -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Suppliers
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                @Model.TotalSuppliers
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+
+                            <i class="bi bi-people fs-4 text-primary"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Total Purchase -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Purchase
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                ₹ @Model.TotalPurchase.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
+
+                            <i class="bi bi-cart-check fs-4 text-success"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Total Paid -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Paid
+                            </p>
+
+                            <h3 class="fw-bold mb-0">
+                                ₹ @Model.TotalPaid.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
+
+                            <i class="bi bi-cash-stack fs-4 text-info"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Outstanding -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Outstanding
+                            </p>
+
+                            <h3 class="fw-bold mb-0 text-danger">
+                                ₹ @Model.TotalOutstanding.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+
+                            <i class="bi bi-exclamation-circle fs-4 text-danger"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FINANCIAL SUMMARY -->
+    <!-- ===================================================== -->
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white border-0 py-3">
+
+                    <h5 class="mb-0 fw-bold">
+
+                        <i class="bi bi-bar-chart-line me-2"></i>
+                        Purchase & Payment Summary
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th>
+                                        Particular
+                                    </th>
+
+                                    <th class="text-end">
+                                        Amount
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                <tr>
+
+                                    <td>
+
+                                        <i class="bi bi-cart me-2 text-success"></i>
+                                        Total Purchase
+
+                                    </td>
+
+                                    <td class="text-end fw-semibold">
+
+                                        ₹ @Model.TotalPurchase.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td>
+
+                                        <i class="bi bi-cash-coin me-2 text-info"></i>
+                                        Total Paid
+
+                                    </td>
+
+                                    <td class="text-end fw-semibold text-success">
+
+                                        ₹ @Model.TotalPaid.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+
+
+                                <tr class="table-danger">
+
+                                    <td class="fw-bold">
+
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        Total Outstanding
+
+                                    </td>
+
+                                    <td class="text-end fw-bold text-danger">
+
+                                        ₹ @Model.TotalOutstanding.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- SUPPLIER STATISTICS -->
+        <!-- ================================================= -->
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 py-3">
+
+                    <h5 class="mb-0 fw-bold">
+
+                        <i class="bi bi-info-circle me-2"></i>
+                        Supplier Statistics
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Total Suppliers
+                            </span>
+
+                            <span class="fw-bold">
+                                @Model.TotalSuppliers
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress" style="height: 8px;">
+
+                            <div class="progress-bar"
+                                 role="progressbar"
+                                 style="width: 100%;">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Total Purchase
+                            </span>
+
+                            <span class="fw-bold">
+                                ₹ @Model.TotalPurchase.ToString("N2")
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Total Paid
+                            </span>
+
+                            <span class="fw-bold text-success">
+                                ₹ @Model.TotalPaid.ToString("N2")
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Outstanding
+                            </span>
+
+                            <span class="fw-bold text-danger">
+                                ₹ @Model.TotalOutstanding.ToString("N2")
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- REPORT FOOTER -->
+    <!-- ===================================================== -->
+
+    <div class="text-muted small mt-4 no-print">
+
+        <i class="bi bi-clock me-1"></i>
+
+        Report generated on
+        @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- AUTHORISED SIGNATORY -->
+    <!-- ===================================================== -->
+    @if (!string.IsNullOrWhiteSpace(Model.AuthorisedSignatory))
+    {
+        <div class="print-signatory">
+
+            <div class="signatory-line">
+                ______________________________
+            </div>
+
+            <div class="signatory-name">
+                @Model.AuthorisedSignatory
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.AuthorisedDesignation))
+            {
+                <div class="signatory-designation">
+                    @Model.AuthorisedDesignation
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- PRINT CSS -->
+<!-- ========================================================= -->
+
+<style>
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .progress {
+        border-radius: 10px;
+    }
+
+
+    /* ===================================================== */
+    /* PRINT HEADER */
+    /* ===================================================== */
+
+    .print-report-header {
+        display: none;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .print-organisation-name {
+        margin: 0;
+        font-weight: 700;
+        font-size: 24px;
+    }
+
+    .print-branch {
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 3px;
+    }
+
+    .print-address {
+        font-size: 13px;
+        margin-top: 3px;
+    }
+
+    .print-contact {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .print-gstin {
+        font-size: 12px;
+        margin-top: 3px;
+    }
+
+    .print-report-heading {
+        margin: 10px 0 5px;
+        font-size: 19px;
+        font-weight: 700;
+    }
+
+
+    /* ===================================================== */
+    /* SIGNATORY */
+    /* ===================================================== */
+
+    .print-signatory {
+        display: none;
+        width: 220px;
+        margin-left: auto;
+        margin-top: 60px;
+        text-align: center;
+    }
+
+    .signatory-line {
+        margin-bottom: 5px;
+    }
+
+    .signatory-name {
+        font-weight: 700;
+    }
+
+    .signatory-designation {
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+
+    /* ===================================================== */
+    /* PRINT */
+    /* ===================================================== */
+
+    @@media print {
+
+        @@page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .print-report-header {
+            display: block !important;
+        }
+
+        .print-signatory {
+            display: block !important;
+        }
+
+        .container-fluid {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+
+        .card-header {
+            background: white !important;
+        }
+
+        .progress {
+            border: 1px solid #aaa !important;
+        }
+
+        .progress-bar {
+            background: #555 !important;
+        }
+
+        table {
+            width: 100% !important;
+        }
+
+        .bi {
+            display: none !important;
+        }
+    }
+
+</style>

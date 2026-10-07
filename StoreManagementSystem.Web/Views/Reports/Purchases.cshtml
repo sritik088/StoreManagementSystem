@@ -1,0 +1,1720 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Reports.PurchaseReportViewModel
+
+@{
+    ViewData["Title"] = "Purchase Reports";
+    Layout = "_AdminLayout";
+
+    // =========================================================
+    // SYSTEM SETTINGS FOR PRINT REPORT
+    // =========================================================
+
+    var organisationName =
+        ViewData["OrganisationName"]?.ToString();
+
+    var branch =
+        ViewData["Branch"]?.ToString();
+
+    var address =
+        ViewData["Address"]?.ToString();
+
+    var phone =
+        ViewData["Phone"]?.ToString();
+
+    var email =
+        ViewData["Email"]?.ToString();
+
+    var gstin =
+        ViewData["GSTIN"]?.ToString();
+
+    var reportHeading =
+        ViewData["ReportHeading"]?.ToString();
+
+    var fromDateLabel =
+        ViewData["FromDateLabel"]?.ToString() ?? "From";
+
+    var toDateLabel =
+        ViewData["ToDateLabel"]?.ToString() ?? "To";
+
+    var authorisedSignatory =
+        ViewData["AuthorisedSignatory"]?.ToString();
+
+    var authorisedDesignation =
+        ViewData["AuthorisedDesignation"]?.ToString();
+
+    var preparedBy =
+        User.Identity?.Name ?? "System User";
+
+    // If the service has the generic default "Report",
+    // use the professional Purchase Register title.
+    var printReportHeading =
+        string.IsNullOrWhiteSpace(reportHeading) ||
+        reportHeading.Equals("Report", StringComparison.OrdinalIgnoreCase)
+            ? "PURCHASE REGISTER"
+            : reportHeading.ToUpperInvariant();
+}
+
+
+<!-- =========================================================
+     PRINT-ONLY REPORT HEADER
+     ========================================================= -->
+
+<div class="purchase-print-header">
+
+    <div class="organisation-name">
+
+        @if (!string.IsNullOrWhiteSpace(organisationName))
+        {
+            @organisationName
+        }
+        else
+        {
+            @:ABC TRADING PVT. LTD.
+        }
+
+    </div>
+
+
+    @if (!string.IsNullOrWhiteSpace(branch))
+    {
+        <div class="branch-name">
+            @branch
+        </div>
+    }
+
+
+    @if (!string.IsNullOrWhiteSpace(address))
+    {
+        <div class="organisation-address">
+            @address
+        </div>
+    }
+
+
+    @if (!string.IsNullOrWhiteSpace(phone) ||
+        !string.IsNullOrWhiteSpace(email) ||
+        !string.IsNullOrWhiteSpace(gstin))
+    {
+        <div class="organisation-contact">
+
+            @if (!string.IsNullOrWhiteSpace(phone))
+            {
+                <span>
+                    @phone
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(phone) &&
+                    !string.IsNullOrWhiteSpace(email))
+            {
+                <span class="contact-separator">|</span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(email))
+            {
+                <span>
+                    @email
+                </span>
+            }
+
+            @if ((!string.IsNullOrWhiteSpace(phone) ||
+                    !string.IsNullOrWhiteSpace(email)) &&
+                    !string.IsNullOrWhiteSpace(gstin))
+            {
+                <span class="contact-separator">|</span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(gstin))
+            {
+                <span>
+                    GSTIN: @gstin
+                </span>
+            }
+
+        </div>
+    }
+
+
+    <div class="report-title">
+        @printReportHeading
+    </div>
+
+
+    <div class="report-date-range">
+
+        <span>
+            @fromDateLabel:
+            <strong>
+                @(Model.FromDate?.ToString("dd-MMM-yyyy") ?? "-")
+            </strong>
+        </span>
+
+        <span class="date-gap"></span>
+
+        <span>
+            @toDateLabel:
+            <strong>
+                @(Model.ToDate?.ToString("dd-MMM-yyyy") ?? "-")
+            </strong>
+        </span>
+
+    </div>
+
+
+    <div class="report-line"></div>
+
+</div>
+
+
+<div class="container-fluid">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-cart-plus text-primary me-2"></i>
+
+                Purchase Reports
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Purchase order analysis and transaction report
+
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="window.print()">
+
+                <i class="bi bi-printer me-1"></i>
+
+                Print
+
+            </button>
+
+
+            <a asp-controller="Reports"
+               asp-action="Dashboard"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTER CARD
+         ===================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4 no-print">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-funnel me-2"></i>
+
+                Purchase Report Filters
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form asp-controller="Reports"
+                  asp-action="Purchases"
+                  method="get">
+
+                <div class="row g-3">
+
+
+                    <!-- FROM DATE -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            From Date
+                        </label>
+
+                        <input type="date"
+                               name="fromDate"
+                               class="form-control"
+                               value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+
+                    </div>
+
+
+                    <!-- TO DATE -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            To Date
+                        </label>
+
+                        <input type="date"
+                               name="toDate"
+                               class="form-control"
+                               value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+
+                    </div>
+
+
+                    <!-- SUPPLIER -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Supplier
+                        </label>
+
+                        <select name="supplierId"
+                                class="form-select">
+
+                            <option value="">
+                                All Suppliers
+                            </option>
+
+                            @foreach (var supplier in Model.Suppliers)
+                            {
+                                if (Model.SupplierId == supplier.Id)
+                                {
+                                    <option value="@supplier.Id"
+                                            selected>
+                                        @supplier.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@supplier.Id">
+                                        @supplier.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Status
+                        </label>
+
+                        <select name="status"
+                                class="form-select">
+
+                            <option value="">
+                                All Status
+                            </option>
+
+                            <option value="Draft"
+                                    selected="@(Model.Status == "Draft")">
+                                Draft
+                            </option>
+
+                            <option value="Approved"
+                                    selected="@(Model.Status == "Approved")">
+                                Approved
+                            </option>
+
+                            <option value="Received"
+                                    selected="@(Model.Status == "Received")">
+                                Received
+                            </option>
+
+                            <option value="Cancelled"
+                                    selected="@(Model.Status == "Cancelled")">
+                                Cancelled
+                            </option>
+
+                            <option value="PartiallyReceived"
+                                    selected="@(Model.Status == "PartiallyReceived")">
+                                Partially Received
+                            </option>
+
+                            <option value="FullyReceived"
+                                    selected="@(Model.Status == "FullyReceived")">
+                                Fully Received
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div class="col-12">
+
+                        <hr />
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search me-1"></i>
+
+                            Generate Report
+
+                        </button>
+
+
+                        <a asp-controller="Reports"
+                           asp-action="Purchases"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         WEB SUMMARY CARDS
+         Hidden during printing
+         ===================================================== -->
+
+    <div class="row g-3 mb-4 no-print">
+
+
+        <!-- TOTAL ORDERS -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total Purchase Orders
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                @Model.TotalOrders
+                            </h3>
+
+                        </div>
+
+                        <div class="text-primary fs-2">
+
+                            <i class="bi bi-file-earmark-text"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL PURCHASE -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total Purchase
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                ₹@Model.TotalPurchase.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-success fs-2">
+
+                            <i class="bi bi-currency-rupee"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL TAX -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total GST
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                ₹@Model.TotalTax.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-warning fs-2">
+
+                            <i class="bi bi-percent"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL DISCOUNT -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total Discount
+                            </div>
+
+                            <h3 class="fw-bold mt-2 mb-0">
+                                ₹@Model.TotalDiscount.ToString("N2")
+                            </h3>
+
+                        </div>
+
+                        <div class="text-danger fs-2">
+
+                            <i class="bi bi-tag"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT-ONLY SUMMARY
+         ===================================================== -->
+
+    <div class="print-summary">
+
+        <div class="print-summary-item">
+
+            <div class="print-summary-label">
+                Purchase Orders
+            </div>
+
+            <div class="print-summary-value">
+                @Model.TotalOrders
+            </div>
+
+        </div>
+
+
+        <div class="print-summary-item">
+
+            <div class="print-summary-label">
+                Total Purchase
+            </div>
+
+            <div class="print-summary-value">
+                ₹@Model.TotalPurchase.ToString("N2")
+            </div>
+
+        </div>
+
+
+        <div class="print-summary-item">
+
+            <div class="print-summary-label">
+                Total GST
+            </div>
+
+            <div class="print-summary-value">
+                ₹@Model.TotalTax.ToString("N2")
+            </div>
+
+        </div>
+
+
+        <div class="print-summary-item">
+
+            <div class="print-summary-label">
+                Total Discount
+            </div>
+
+            <div class="print-summary-value">
+                ₹@Model.TotalDiscount.ToString("N2")
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PURCHASE TABLE
+         ===================================================== -->
+
+    <div class="card shadow-sm border-0 purchase-table-card">
+
+        <!-- TABLE HEADER -->
+
+        <div class="card-header bg-white no-print">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-table me-2"></i>
+
+                    Purchase Order Details
+
+                </h5>
+
+
+                <div class="d-flex gap-2">
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-success"
+                            onclick="exportExcel()">
+
+                        <i class="bi bi-file-earmark-excel me-1"></i>
+
+                        Excel
+
+                    </button>
+
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="window.print()">
+
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+
+                        PDF / Print
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+
+            <!-- PRINT-ONLY TABLE TITLE -->
+
+            <div class="print-table-title">
+
+                PURCHASE DETAILS
+
+            </div>
+
+
+            <div class="table-responsive print-table-wrapper">
+
+                <table id="purchaseReportTable"
+                       class="table table-bordered table-hover align-middle w-100">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                PO Number
+                            </th>
+
+                            <th>
+                                Order Date
+                            </th>
+
+                            <th>
+                                Expected Date
+                            </th>
+
+                            <th>
+                                Supplier
+                            </th>
+
+                            <th class="text-end">
+                                Sub Total
+                            </th>
+
+                            <th class="text-end">
+                                Discount
+                            </th>
+
+                            <th class="text-end">
+                                GST
+                            </th>
+
+                            <th class="text-end">
+                                Grand Total
+                            </th>
+
+                            <th class="text-center">
+                                Status
+                            </th>
+
+                            <th class="text-center no-print">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model.Orders != null &&
+                                                Model.Orders.Any())
+                        {
+                            var index = 1;
+
+                            foreach (var order in Model.Orders)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @index
+                                    </td>
+
+
+                                    <td>
+
+                                        <strong>
+                                            @order.PONumber
+                                        </strong>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @order.OrderDate.ToString("dd-MMM-yyyy")
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @order.ExpectedDate.ToString("dd-MMM-yyyy")
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @order.SupplierName
+
+                                    </td>
+
+
+                                    <td class="text-end">
+
+                                        ₹@order.SubTotal.ToString("N2")
+
+                                    </td>
+
+
+                                    <td class="text-end">
+
+                                        ₹@order.Discount.ToString("N2")
+
+                                    </td>
+
+
+                                    <td class="text-end">
+
+                                        ₹@order.TaxAmount.ToString("N2")
+
+                                    </td>
+
+
+                                    <td class="text-end">
+
+                                        <strong>
+                                            ₹@order.GrandTotal.ToString("N2")
+                                        </strong>
+
+                                    </td>
+
+
+                                    <td class="text-center">
+
+                                        @switch (order.Status)
+                                        {
+                                            case "Draft":
+
+                                                <span class="badge bg-secondary">
+                                                    Draft
+                                                </span>
+
+                                                break;
+
+
+                                            case "Approved":
+
+                                                <span class="badge bg-success">
+                                                    Approved
+                                                </span>
+
+                                                break;
+
+
+                                            case "Received":
+
+                                                <span class="badge bg-primary">
+                                                    Received
+                                                </span>
+
+                                                break;
+
+
+                                            case "Cancelled":
+
+                                                <span class="badge bg-danger">
+                                                    Cancelled
+                                                </span>
+
+                                                break;
+
+
+                                            case "PartiallyReceived":
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Partially Received
+                                                </span>
+
+                                                break;
+
+
+                                            case "FullyReceived":
+
+                                                <span class="badge bg-success">
+                                                    Fully Received
+                                                </span>
+
+                                                break;
+
+
+                                            default:
+
+                                                <span class="badge bg-secondary">
+                                                    @order.Status
+                                                </span>
+
+                                                break;
+                                        }
+
+                                    </td>
+
+
+                                    <td class="text-center no-print">
+
+                                        <a asp-controller="PurchaseOrder"
+                                           asp-action="Details"
+                                           asp-route-id="@order.Id"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View Purchase Order">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="11"
+                                    class="text-center py-5">
+
+                                    <div class="text-muted">
+
+                                        <i class="bi bi-inbox fs-1"></i>
+
+                                        <h5 class="mt-3">
+
+                                            No Purchase Orders Found
+
+                                        </h5>
+
+                                        <p class="mb-0">
+
+                                            Try changing your report filters.
+
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+
+                    <!-- =================================================
+                         TOTAL
+                         ================================================= -->
+
+                    <tfoot class="table-light">
+
+                        <tr>
+
+                            <th colspan="5"
+                                class="text-end">
+
+                                Grand Total:
+
+                            </th>
+
+
+                            <th class="text-end">
+
+                                ₹@(Model.Orders?.Sum(x => x.SubTotal)
+                                                                .ToString("N2") ?? "0.00")
+
+                            </th>
+
+
+                            <th class="text-end">
+
+                                ₹@Model.TotalDiscount.ToString("N2")
+
+                            </th>
+
+
+                            <th class="text-end">
+
+                                ₹@Model.TotalTax.ToString("N2")
+
+                            </th>
+
+
+                            <th class="text-end">
+
+                                ₹@Model.TotalPurchase.ToString("N2")
+
+                            </th>
+
+
+                            <th colspan="2"></th>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT SIGNATURE SECTION
+         ===================================================== -->
+
+    <div class="report-signature">
+
+        <div class="prepared-by">
+
+            <div class="signature-heading">
+                Prepared By
+            </div>
+
+            <div class="signature-name">
+                @preparedBy
+            </div>
+
+            <div class="signature-line"></div>
+
+        </div>
+
+
+        <div class="authorised-signatory">
+
+            <div class="signature-heading">
+                Authorised Signatory
+            </div>
+
+
+            @if (!string.IsNullOrWhiteSpace(authorisedSignatory))
+            {
+                <div class="signature-name">
+                    @authorisedSignatory
+                </div>
+            }
+
+
+            @if (!string.IsNullOrWhiteSpace(authorisedDesignation))
+            {
+                <div class="signature-designation">
+                    @authorisedDesignation
+                </div>
+            }
+
+
+            <div class="signature-line"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PRINT STYLES
+     ========================================================= -->
+
+<style>
+
+    /* =========================================================
+           SCREEN
+           ========================================================= */
+
+    .purchase-print-header,
+    .print-summary,
+    .print-table-title,
+    .report-signature {
+        display: none;
+    }
+
+
+    /* =========================================================
+           PRINT
+           ========================================================= */
+
+    @@media print {
+        /* -----------------------------------------------------
+               A4 LANDSCAPE
+               ----------------------------------------------------- */
+
+        @@page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+
+        html,
+        body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+
+
+        body {
+            font-family: Arial, Helvetica, sans-serif !important;
+            color: #111 !important;
+            font-size: 9px !important;
+        }
+        /* -----------------------------------------------------
+               HIDE APPLICATION UI
+               ----------------------------------------------------- */
+
+        .sidebar,
+        .navbar,
+        .topbar,
+        .app-sidebar,
+        .admin-sidebar,
+        .main-sidebar,
+        .no-print,
+        .dataTables_length,
+        .dataTables_filter,
+        .dataTables_info,
+        .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dt-buttons,
+        button,
+        .btn {
+            display: none !important;
+        }
+        /* -----------------------------------------------------
+               REMOVE CONTAINER SPACING
+               ----------------------------------------------------- */
+
+        .container-fluid,
+        .container,
+        .main-content,
+        .content-wrapper,
+        .page-content {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* -----------------------------------------------------
+               PRINT HEADER
+               ----------------------------------------------------- */
+
+        .purchase-print-header {
+            display: block !important;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+
+        .organisation-name {
+            font-size: 19px !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            letter-spacing: 0.2px;
+        }
+
+
+        .branch-name {
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            margin-top: 2px;
+            line-height: 1.2 !important;
+        }
+
+
+        .organisation-address {
+            font-size: 8.5px !important;
+            margin-top: 3px;
+            line-height: 1.2 !important;
+        }
+
+
+        .organisation-contact {
+            font-size: 8px !important;
+            margin-top: 3px;
+            line-height: 1.2 !important;
+        }
+
+
+        .contact-separator {
+            margin: 0 5px;
+        }
+
+
+        .report-title {
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            margin-top: 7px;
+            line-height: 1.2 !important;
+        }
+
+
+        .report-date-range {
+            font-size: 9px !important;
+            margin-top: 5px;
+            line-height: 1.2 !important;
+        }
+
+
+        .date-gap {
+            display: inline-block;
+            width: 25px;
+        }
+
+
+        .report-line {
+            border-bottom: 1px solid #222 !important;
+            margin-top: 7px !important;
+            margin-bottom: 6px !important;
+            width: 100%;
+        }
+        /* -----------------------------------------------------
+               PRINT SUMMARY
+               ----------------------------------------------------- */
+
+        .print-summary {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr);
+            width: 100%;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            margin-bottom: 7px;
+        }
+
+
+        .print-summary-item {
+            text-align: center;
+            padding: 5px 8px;
+            border-right: 1px solid #bbb;
+        }
+
+
+            .print-summary-item:last-child {
+                border-right: none;
+            }
+
+
+        .print-summary-label {
+            font-size: 7.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+
+        .print-summary-value {
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+        /* -----------------------------------------------------
+               PURCHASE TABLE CONTAINER
+               ----------------------------------------------------- */
+
+        .purchase-table-card {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+
+            .purchase-table-card .card-body {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+
+        .print-table-title {
+            display: block !important;
+            text-align: center;
+            font-size: 9px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.4px;
+        }
+
+
+        .print-table-wrapper {
+            overflow: visible !important;
+            width: 100% !important;
+        }
+        /* -----------------------------------------------------
+               TABLE
+               ----------------------------------------------------- */
+
+        #purchaseReportTable {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+            margin: 0 !important;
+            font-size: 8px !important;
+        }
+
+
+            #purchaseReportTable thead {
+                display: table-header-group !important;
+            }
+
+
+            #purchaseReportTable tbody {
+                display: table-row-group !important;
+            }
+
+
+            #purchaseReportTable tfoot {
+                display: table-footer-group !important;
+            }
+
+
+            #purchaseReportTable tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+
+            #purchaseReportTable th,
+            #purchaseReportTable td {
+                border: 1px solid #333 !important;
+                padding: 4px 5px !important;
+                font-size: 8px !important;
+                line-height: 1.2 !important;
+                vertical-align: middle !important;
+            }
+
+
+            #purchaseReportTable th {
+                background: #eeeeee !important;
+                color: #111 !important;
+                font-weight: 700 !important;
+                text-align: center !important;
+            }
+
+
+            #purchaseReportTable td {
+                background: #fff !important;
+                color: #111 !important;
+            }
+                /* -----------------------------------------------------
+               COLUMN WIDTHS
+               Total approximately 100%
+               ----------------------------------------------------- */
+
+                #purchaseReportTable th:nth-child(1),
+                #purchaseReportTable td:nth-child(1) {
+                    width: 4% !important;
+                    text-align: center !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(2),
+                #purchaseReportTable td:nth-child(2) {
+                    width: 12% !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(3),
+                #purchaseReportTable td:nth-child(3) {
+                    width: 9% !important;
+                    text-align: center !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(4),
+                #purchaseReportTable td:nth-child(4) {
+                    width: 10% !important;
+                    text-align: center !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(5),
+                #purchaseReportTable td:nth-child(5) {
+                    width: 18% !important;
+                    white-space: normal !important;
+                    word-break: normal !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(6),
+                #purchaseReportTable td:nth-child(6) {
+                    width: 10% !important;
+                    text-align: right !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(7),
+                #purchaseReportTable td:nth-child(7) {
+                    width: 9% !important;
+                    text-align: right !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(8),
+                #purchaseReportTable td:nth-child(8) {
+                    width: 8% !important;
+                    text-align: right !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(9),
+                #purchaseReportTable td:nth-child(9) {
+                    width: 11% !important;
+                    text-align: right !important;
+                }
+
+
+                #purchaseReportTable th:nth-child(10),
+                #purchaseReportTable td:nth-child(10) {
+                    width: 9% !important;
+                    text-align: center !important;
+                }
+                /* -----------------------------------------------------
+               HIDE ACTION COLUMN
+               ----------------------------------------------------- */
+
+                #purchaseReportTable th:nth-child(11),
+                #purchaseReportTable td:nth-child(11) {
+                    display: none !important;
+                }
+            /* -----------------------------------------------------
+               STATUS BADGES
+               ----------------------------------------------------- */
+
+            #purchaseReportTable .badge {
+                display: inline-block !important;
+                border: 1px solid #555 !important;
+                background: #fff !important;
+                color: #111 !important;
+                font-size: 7px !important;
+                font-weight: 600 !important;
+                padding: 2px 4px !important;
+                border-radius: 2px !important;
+            }
+            /* -----------------------------------------------------
+               FOOTER TOTAL
+               ----------------------------------------------------- */
+
+            #purchaseReportTable tfoot th {
+                background: #eeeeee !important;
+                font-weight: 700 !important;
+            }
+        /* -----------------------------------------------------
+               SIGNATURE SECTION
+               ----------------------------------------------------- */
+
+        .report-signature {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-end !important;
+            width: 100%;
+            margin-top: 22px !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+
+        .prepared-by,
+        .authorised-signatory {
+            width: 220px !important;
+            text-align: center !important;
+        }
+
+
+        .signature-heading {
+            font-size: 8px !important;
+            font-weight: 600 !important;
+            margin-bottom: 18px !important;
+        }
+
+
+        .signature-name {
+            font-size: 8px !important;
+            font-weight: 600 !important;
+            min-height: 12px;
+        }
+
+
+        .signature-designation {
+            font-size: 7.5px !important;
+            margin-top: 2px;
+            min-height: 12px;
+        }
+
+
+        .signature-line {
+            border-top: 1px solid #222 !important;
+            margin-top: 18px !important;
+            width: 100%;
+        }
+        /* -----------------------------------------------------
+               REMOVE BOOTSTRAP EFFECTS
+               ----------------------------------------------------- */
+
+        .shadow,
+        .shadow-sm,
+        .card {
+            box-shadow: none !important;
+        }
+        /* -----------------------------------------------------
+               PAGE BREAK CONTROL
+               ----------------------------------------------------- */
+
+        .purchase-table-card {
+            page-break-inside: auto !important;
+        }
+
+
+        #purchaseReportTable tbody tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        /* -----------------------------------------------------
+               REMOVE LINKS / BUTTON DECORATION
+               ----------------------------------------------------- */
+
+        a {
+            color: #111 !important;
+            text-decoration: none !important;
+        }
+    }
+
+</style>
+
+
+@section Scripts {
+
+    <script>
+
+        // =====================================================
+        // DATATABLE
+        // =====================================================
+
+        let purchaseTable;
+
+
+        $(document).ready(function () {
+
+            purchaseTable =
+                $('#purchaseReportTable').DataTable({
+
+                    pageLength: 25,
+
+                    lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, "All"]
+                    ],
+
+                    order: [
+                        [2, 'desc']
+                    ],
+
+                    columnDefs: [
+
+                        {
+                            orderable: false,
+                            targets: [10]
+                        }
+
+                    ],
+
+                    language: {
+
+                        search: "Search:",
+
+                        lengthMenu:
+                            "Show _MENU_ records",
+
+                        info:
+                            "Showing _START_ to _END_ of _TOTAL_ purchase orders",
+
+                        emptyTable:
+                            "No purchase orders found."
+
+                    }
+
+                });
+
+        });
+
+
+        // =====================================================
+        // BEFORE PRINT
+        // SHOW ALL DATATABLE RECORDS
+        // =====================================================
+
+        window.addEventListener("beforeprint", function () {
+
+            if (purchaseTable) {
+
+                purchaseTable
+                    .page
+                    .len(-1)
+                    .draw(false);
+
+            }
+
+        });
+
+
+        // =====================================================
+        // AFTER PRINT
+        // RETURN TO NORMAL PAGINATION
+        // =====================================================
+
+        window.addEventListener("afterprint", function () {
+
+            if (purchaseTable) {
+
+                purchaseTable
+                    .page
+                    .len(25)
+                    .draw(false);
+
+            }
+
+        });
+
+
+        // =====================================================
+        // EXCEL EXPORT
+        // =====================================================
+
+        function exportExcel() {
+
+            const table =
+                document.getElementById(
+                    "purchaseReportTable"
+                );
+
+
+            let csv = [];
+
+
+            const rows =
+                table.querySelectorAll("tr");
+
+
+            rows.forEach(function (row) {
+
+                const columns =
+                    row.querySelectorAll(
+                        "th, td"
+                    );
+
+
+                const rowData = [];
+
+
+                columns.forEach(function (column) {
+
+                    let text =
+                        column.innerText
+                            .replace(/,/g, "")
+                            .replace(/\n/g, " ")
+                            .trim();
+
+
+                    rowData.push(
+                        '"' + text + '"'
+                    );
+
+                });
+
+
+                csv.push(
+                    rowData.join(",")
+                );
+
+            });
+
+
+            const csvFile =
+                new Blob(
+                    [csv.join("\n")],
+                    {
+                        type:
+                            "text/csv;charset=utf-8;"
+                    }
+                );
+
+
+            const downloadLink =
+                document.createElement("a");
+
+
+            downloadLink.href =
+                URL.createObjectURL(csvFile);
+
+
+            downloadLink.download =
+                "Purchase_Report.csv";
+
+
+            document.body.appendChild(
+                downloadLink
+            );
+
+
+            downloadLink.click();
+
+
+            document.body.removeChild(
+                downloadLink
+            );
+
+        }
+
+    </script>
+
+}
+

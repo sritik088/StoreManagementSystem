@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.29" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.29">
@@ -20,6 +21,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
+    <PackageReference Include="QuestPDF" Version="2026.8.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="8.0.0-nblumhardt-02322" />
   </ItemGroup>
@@ -28,6 +30,10 @@
     <ProjectReference Include="..\StoreManagementSystem.Application\StoreManagementSystem.Application.csproj" />
     <ProjectReference Include="..\StoreManagementSystem.Infrastructure\StoreManagementSystem.Infrastructure.csproj" />
     <ProjectReference Include="..\StoreManagementSystem.Shared\StoreManagementSystem.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 
 </Project>

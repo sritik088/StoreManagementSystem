@@ -1,0 +1,337 @@
+﻿@model IEnumerable<StoreManagementSystem.Domain.Entities.MainCategory>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Main Categories";
+}
+
+<div class="container-fluid">
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-diagram-3-fill text-primary"></i>
+
+                Main Categories
+
+            </h2>
+
+            <small class="text-muted">
+
+                Manage main product categories.
+
+            </small>
+
+        </div>
+
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-circle"></i>
+
+            New Main Category
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUCCESS MESSAGE
+         ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         ERROR MESSAGE
+         ========================================================= -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         SUMMARY
+         Only Main Categories count is shown.
+         ========================================================= -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <h6 class="text-muted">
+
+                                Total Main Categories
+
+                            </h6>
+
+                            <h2 class="fw-bold">
+
+                                @Model.Count()
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="text-primary fs-1">
+
+                            <i class="bi bi-folder"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MAIN CATEGORY TABLE
+         ========================================================= -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle"
+                       id="mainCategoryTable">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Main Category</th>
+
+                            <th width="220">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @{
+                            int no = 1;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <!-- =================================================
+                                     NUMBER
+                                     ================================================= -->
+
+                                <td>
+
+                                    @no
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     MAIN CATEGORY
+                                     ================================================= -->
+
+                                <td>
+
+                                    <strong>
+
+                                        @item.Name
+
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     ACTIONS
+                                     ================================================= -->
+
+                                <td>
+
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-info btn-sm">
+
+                                        <i class="bi bi-eye"></i>
+
+                                    </a>
+
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-warning btn-sm">
+
+                                        <i class="bi bi-pencil"></i>
+
+                                    </a>
+
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline deleteForm">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            no++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            // =====================================================
+            // DATATABLE
+            // =====================================================
+
+            $("#mainCategoryTable").DataTable({
+
+                responsive: true,
+
+                pageLength: 10,
+
+                lengthMenu: [10, 25, 50, 100],
+
+                dom: "Bfrtip",
+
+                buttons: [
+                    "copy",
+                    "excel",
+                    "pdf",
+                    "print"
+                ]
+
+            });
+
+
+            // =====================================================
+            // DELETE CONFIRMATION
+            // =====================================================
+
+            $(".deleteForm").submit(function (e) {
+
+                e.preventDefault();
+
+                let form = this;
+
+                Swal.fire({
+
+                    title: "Delete Main Category?",
+
+                    text: "The Main Category can only be deleted if it has no Categories.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete"
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        form.submit();
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

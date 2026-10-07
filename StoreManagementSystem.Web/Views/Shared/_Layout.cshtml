@@ -2,62 +2,165 @@
 <html lang="en">
 
 <head>
+
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] - Store Management System</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
 
-    <!-- Bootstrap 5 -->
+    <title>
+        @ViewData["Title"] - Store Management System
+    </title>
+
+
+    <!-- ========================================================= -->
+    <!-- BOOTSTRAP 5 -->
+    <!-- ========================================================= -->
+
     <link rel="stylesheet"
           href="~/lib/bootstrap/dist/css/bootstrap.min.css"
           asp-append-version="true" />
 
-    <!-- Bootstrap Icons -->
+
+    <!-- ========================================================= -->
+    <!-- BOOTSTRAP ICONS -->
+    <!-- ========================================================= -->
+
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
-    <!-- Site CSS -->
+
+    <!-- ========================================================= -->
+    <!-- SITE CSS -->
+    <!-- ========================================================= -->
+
     <link rel="stylesheet"
           href="~/css/site.css"
           asp-append-version="true" />
 
-    <!-- Admin CSS -->
+
+    <!-- ========================================================= -->
+    <!-- ADMIN CSS -->
+    <!-- ========================================================= -->
+
     <link rel="stylesheet"
           href="~/css/admin.css"
           asp-append-version="true" />
 
-    <!-- Generated CSS -->
+
+    <!-- ========================================================= -->
+    <!-- GENERATED CSS -->
+    <!-- ========================================================= -->
+
     <link rel="stylesheet"
           href="~/StoreManagementSystem.Web.styles.css"
           asp-append-version="true" />
+
+
+    <!-- ========================================================= -->
+    <!-- PAGE-SPECIFIC STYLES -->
+    <!-- ========================================================= -->
+    @await RenderSectionAsync("Styles", required: false)
+
 </head>
+
 
 <body>
 
     <div class="wrapper">
 
-        <!-- Sidebar -->
+
+        <!-- ===================================================== -->
+        <!-- SIDEBAR -->
+        <!-- ===================================================== -->
         @if (User.Identity?.IsAuthenticated == true)
         {
             @await Html.PartialAsync("_Sidebar")
         }
 
+
+        <!-- ===================================================== -->
+        <!-- MAIN -->
+        <!-- ===================================================== -->
+
         <div class="main">
 
-            <!-- Navbar -->
+
+            <!-- ================================================= -->
+            <!-- NAVBAR -->
+            <!-- ================================================= -->
             @if (User.Identity?.IsAuthenticated == true)
             {
                 @await Html.PartialAsync("_Navbar")
             }
 
-            <!-- Main Content -->
+
+            <!-- ================================================= -->
+            <!-- MAIN CONTENT -->
+            <!-- ================================================= -->
+
             <main class="container-fluid py-4">
 
+
+                <!-- ============================================= -->
+                <!-- SUCCESS MESSAGE -->
+                <!-- ============================================= -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success
+                                    alert-dismissible
+                                    fade show"
+                         role="alert">
+
+                        <i class="bi bi-check-circle me-2"></i>
+
+                        @TempData["Success"]
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close">
+                        </button>
+
+                    </div>
+                }
+
+
+                <!-- ============================================= -->
+                <!-- ERROR MESSAGE -->
+                <!-- ============================================= -->
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger
+                                    alert-dismissible
+                                    fade show"
+                         role="alert">
+
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+
+                        @TempData["Error"]
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close">
+                        </button>
+
+                    </div>
+                }
+
+
+                <!-- ============================================= -->
+                <!-- PAGE BODY -->
+                <!-- ============================================= -->
                 @RenderBody()
 
             </main>
 
-            <!-- Footer -->
+
+            <!-- ================================================= -->
+            <!-- FOOTER -->
+            <!-- ================================================= -->
             @if (User.Identity?.IsAuthenticated == true)
             {
                 @await Html.PartialAsync("_Footer")
@@ -67,19 +170,36 @@
 
     </div>
 
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================================================= -->
     <!-- jQuery -->
+
     <script src="~/lib/jquery/dist/jquery.min.js"
-            asp-append-version="true"></script>
+            asp-append-version="true">
+    </script>
+
 
     <!-- Bootstrap -->
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"
-            asp-append-version="true"></script>
+            asp-append-version="true">
+    </script>
+
 
     <!-- Site JS -->
-    <script src="~/js/site.js"
-            asp-append-version="true"></script>
 
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+
+    <!-- ========================================================= -->
+    <!-- PAGE-SPECIFIC SCRIPTS -->
+    <!-- ========================================================= -->
     @await RenderSectionAsync("Scripts", required: false)
+
 
 </body>
 

@@ -130,5 +130,12 @@ public class WarehouseStockService : IWarehouseStockService
 
         return available >= quantity;
     }
+    
+public async Task<List<WarehouseStock>> GetAllAsync()
+    {
+        return await _repository.GetAllAsync();
+    }
+
+
 
 }

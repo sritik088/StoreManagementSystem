@@ -6,66 +6,278 @@ using StoreManagementSystem.Infrastructure.Data;
 
 namespace StoreManagementSystem.Infrastructure.Repositories
 {
-    public class PurchaseOrderRepository : IPurchaseOrderRepository
+    public class PurchaseOrderRepository
+        : IPurchaseOrderRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public PurchaseOrderRepository(ApplicationDbContext context)
+        public PurchaseOrderRepository(
+            ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<PurchaseOrder>> GetAllAsync()
+        // =====================================================
+        // GET ALL
+        // =====================================================
+        //
+        // IMPORTANT:
+        // Deleted Purchase Orders are intentionally included.
+        //
+        // This allows the Index page to show deleted POs
+        // with a Restore button.
+        //
+        // =====================================================
+
+        public async Task<IEnumerable<PurchaseOrder>>
+            GetAllAsync()
         {
             return await _context.PurchaseOrders
+
                 .Include(x => x.Supplier)
+
                 .Include(x => x.Items)
-                    .ThenInclude(i => i.Product)
-                .Where(x => !x.IsDeleted)
+                    .ThenInclude(x => x.Product)
+
                 .OrderByDescending(x => x.OrderDate)
+
                 .AsNoTracking()
+
                 .ToListAsync();
         }
 
-        public async Task<PurchaseOrder?> GetByIdAsync(int id)
+
+        // =====================================================
+        // GET LATEST UNIT PRICE FOR PRODUCT
+        // =====================================================
+
+        public async Task<decimal>
+            GetLatestUnitPriceAsync(
+                int productId)
         {
-            return await _context.PurchaseOrders
-                .Include(x => x.Supplier)
-                .Include(x => x.Items)
-                    .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var latestItem =
+                await _context.PurchaseOrderItems
+
+                    .Include(x => x.PurchaseOrder)
+
+                    .Where(x =>
+                        x.ProductId == productId &&
+
+                        x.PurchaseOrder != null &&
+
+                        !x.PurchaseOrder.IsDeleted &&
+
+                        x.PurchaseOrder.Status !=
+                            PurchaseOrderStatus.Draft &&
+
+                        x.PurchaseOrder.Status !=
+                            PurchaseOrderStatus.Cancelled)
+
+                    .OrderByDescending(x =>
+                        x.PurchaseOrder!.OrderDate)
+
+                    .ThenByDescending(x =>
+                        x.PurchaseOrder!.Id)
+
+                    .FirstOrDefaultAsync();
+
+            return latestItem?.UnitPrice ?? 0m;
         }
 
-        public async Task<string> GeneratePONumberAsync()
-        {
-            string prefix = $"PO-{DateTime.Now:yyyyMMdd}-";
 
-            var lastPo = await _context.PurchaseOrders
-                .Where(x => x.PONumber.StartsWith(prefix))
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefaultAsync();
+        // =====================================================
+        // GET BY ID
+        // =====================================================
+        //
+        // IMPORTANT:
+        // Do NOT filter IsDeleted here.
+        //
+        // Restore needs to load a deleted Purchase Order.
+        //
+        // =====================================================
+
+        public async Task<PurchaseOrder?>
+            GetByIdAsync(int id)
+        {
+            return await _context.PurchaseOrders
+
+                .Include(x => x.Supplier)
+
+                .Include(x => x.Items)
+                    .ThenInclude(x => x.Product)
+
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id);
+        }
+
+
+        // =====================================================
+        // GET WITH DETAILS
+        // =====================================================
+
+        public async Task<PurchaseOrder?>
+            GetByIdWithDetailsAsync(int id)
+        {
+            return await _context.PurchaseOrders
+
+                .Include(x => x.Supplier)
+
+                .Include(x => x.Items)
+                    .ThenInclude(x => x.Product)
+
+                .AsNoTracking()
+
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id);
+        }
+
+
+        // =====================================================
+        // GENERATE PO NUMBER
+        // =====================================================
+
+        public async Task<string>
+            GeneratePONumberAsync()
+        {
+            string prefix =
+                $"PO-{DateTime.Now:yyyyMMdd}-";
+
+            var lastPO =
+                await _context.PurchaseOrders
+
+                    .Where(x =>
+                        x.PONumber.StartsWith(prefix))
+
+                    .OrderByDescending(x => x.Id)
+
+                    .FirstOrDefaultAsync();
 
             int next = 1;
 
-            if (lastPo != null)
+            if (lastPO != null)
             {
-                string last = lastPo.PONumber.Substring(prefix.Length);
+                var number =
+                    lastPO.PONumber
+                        .Substring(prefix.Length);
 
-                if (int.TryParse(last, out int number))
-                    next = number + 1;
+                if (int.TryParse(
+                    number,
+                    out int lastNumber))
+                {
+                    next = lastNumber + 1;
+                }
             }
 
             return $"{prefix}{next:0000}";
         }
 
-        public async Task AddAsync(PurchaseOrder purchaseOrder)
+
+        // =====================================================
+        // ADD
+        // =====================================================
+
+        public async Task AddAsync(
+            PurchaseOrder purchaseOrder)
         {
-            using var transaction =
-                await _context.Database.BeginTransactionAsync();
+            await _context.PurchaseOrders
+                .AddAsync(purchaseOrder);
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // =====================================================
+        // UPDATE
+        // =====================================================
+
+        public async Task UpdateAsync(
+            PurchaseOrder purchaseOrder)
+        {
+            _context.PurchaseOrders
+                .Update(purchaseOrder);
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // =====================================================
+        // CHECK ACTIVE GOODS RECEIPTS
+        // =====================================================
+
+        public async Task<bool>
+            HasActiveGoodsReceiptsAsync(
+                int purchaseOrderId)
+        {
+            if (purchaseOrderId <= 0)
+                return false;
+
+            return await _context.GoodsReceipts
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.PurchaseOrderId ==
+                        purchaseOrderId &&
+
+                    !x.IsDeleted);
+        }
+
+
+        // =====================================================
+        // DELETE - SOFT DELETE
+        // =====================================================
+
+        public async Task DeleteAsync(int id)
+        {
+            await using var transaction =
+                await _context.Database
+                    .BeginTransactionAsync();
 
             try
             {
-                await _context.PurchaseOrders.AddAsync(purchaseOrder);
+                var purchaseOrder =
+                    await _context.PurchaseOrders
+
+                        .Include(x => x.Items)
+
+                        .FirstOrDefaultAsync(x =>
+                            x.Id == id);
+
+                if (purchaseOrder == null)
+                {
+                    await transaction.RollbackAsync();
+                    return;
+                }
+
+                // Already deleted
+                if (purchaseOrder.IsDeleted)
+                {
+                    await transaction.RollbackAsync();
+                    return;
+                }
+
+                // -------------------------------------------------
+                // FINAL ACTIVE GRN CHECK
+                // -------------------------------------------------
+
+                var hasActiveGRN =
+                    await _context.GoodsReceipts
+                        .AnyAsync(x =>
+                            x.PurchaseOrderId == id &&
+                            !x.IsDeleted);
+
+                if (hasActiveGRN)
+                {
+                    await transaction.RollbackAsync();
+                    return;
+                }
+
+                // -------------------------------------------------
+                // SOFT DELETE
+                // -------------------------------------------------
+
+                purchaseOrder.IsDeleted = true;
+
+                purchaseOrder.UpdatedDate =
+                    DateTime.Now;
 
                 await _context.SaveChangesAsync();
 
@@ -78,50 +290,97 @@ namespace StoreManagementSystem.Infrastructure.Repositories
             }
         }
 
-        public Task UpdateAsync(PurchaseOrder purchaseOrder)
+
+        // =====================================================
+        // RESTORE
+        // =====================================================
+
+        public async Task RestoreAsync(int id)
         {
-            _context.PurchaseOrders.Update(purchaseOrder);
-            return Task.CompletedTask;
+            var purchaseOrder =
+                await _context.PurchaseOrders
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == id);
 
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var po = await _context.PurchaseOrders.FindAsync(id);
-
-            if (po == null)
+            if (purchaseOrder == null)
                 return;
 
-            po.IsDeleted = true;
-            po.UpdatedDate = DateTime.Now;
+            // Already active
+            if (!purchaseOrder.IsDeleted)
+                return;
+
+            // -------------------------------------------------
+            // RESTORE
+            // -------------------------------------------------
+
+            purchaseOrder.IsDeleted = false;
+
+            purchaseOrder.UpdatedDate =
+                DateTime.Now;
 
             await _context.SaveChangesAsync();
         }
+
+
+        // =====================================================
+        // APPROVE
+        // =====================================================
 
         public async Task ApproveAsync(int id)
         {
-            var po = await _context.PurchaseOrders.FindAsync(id);
+            var purchaseOrder =
+                await _context.PurchaseOrders
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == id &&
+                        !x.IsDeleted);
 
-            if (po == null)
+            if (purchaseOrder == null)
                 return;
 
-            po.Status = PurchaseOrderStatus.Approved;
+            if (purchaseOrder.Status !=
+                PurchaseOrderStatus.Draft)
+            {
+                return;
+            }
 
-            po.UpdatedDate = DateTime.Now;
+            purchaseOrder.Status =
+                PurchaseOrderStatus.Approved;
+
+            purchaseOrder.UpdatedDate =
+                DateTime.Now;
 
             await _context.SaveChangesAsync();
         }
 
+
+        // =====================================================
+        // CANCEL
+        // =====================================================
+
         public async Task CancelAsync(int id)
         {
-            var po = await _context.PurchaseOrders.FindAsync(id);
+            var purchaseOrder =
+                await _context.PurchaseOrders
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == id &&
+                        !x.IsDeleted);
 
-            if (po == null)
+            if (purchaseOrder == null)
                 return;
 
-            po.Status = PurchaseOrderStatus.Cancelled;
+            if (purchaseOrder.Status ==
+                    PurchaseOrderStatus.PartiallyReceived ||
+                purchaseOrder.Status ==
+                    PurchaseOrderStatus.FullyReceived)
+            {
+                return;
+            }
 
-            po.UpdatedDate = DateTime.Now;
+            purchaseOrder.Status =
+                PurchaseOrderStatus.Cancelled;
+
+            purchaseOrder.UpdatedDate =
+                DateTime.Now;
 
             await _context.SaveChangesAsync();
         }

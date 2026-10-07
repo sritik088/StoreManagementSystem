@@ -1,83 +1,366 @@
-﻿<div class="sidebar">
+﻿@using StoreManagementSystem.Infrastructure.Identity
+@using StoreManagementSystem.Application.Interfaces
+@using StoreManagementSystem.Domain.Entities
 
-    <div class="logo">
+@inject ISystemSettingService SystemSettingService
+@inject ISidebarMenuService SidebarMenuService
 
-        <i class="bi bi-shop"></i>
 
-        Store ERP
+@{
+    // =========================================================
+    // SUPER ADMIN CHECK
+    // =========================================================
+    //
+    // SuperAdmin bypasses permission checks.
+    //
+    // IMPORTANT:
+    // SuperAdmin DOES NOT bypass system module settings.
+    //
+    // Therefore:
+    //
+    // Sales OFF     -> Sales hidden for everyone
+    // Customers OFF -> Customers hidden for everyone
+    //
+    // =========================================================
 
-    </div>
+    bool IsSuperAdmin =
+        User.IsInRole(RoleConstants.SuperAdmin);
 
-    <ul class="nav flex-column mt-3">
 
-        <li class="nav-item">
+    // =========================================================
+    // PERMISSION CHECK
+    // =========================================================
 
-            <a asp-controller="Dashboard"
-               asp-action="Index"
-               class="nav-link">
+    bool HasPermission(string? permission)
+    {
+        // -----------------------------------------------------
+        // SUPER ADMIN
+        // -----------------------------------------------------
+        // SuperAdmin has access to every permitted menu item.
+        // -----------------------------------------------------
 
-                <i class="bi bi-speedometer2"></i>
+        if (IsSuperAdmin)
+        {
+            return true;
+        }
 
-                <span> Dashboard</span>
 
-            </a>
+        // -----------------------------------------------------
+        // NO PERMISSION DEFINED
+        // -----------------------------------------------------
+        //
+        // If a menu item does not require a permission,
+        // authenticated users can see it.
+        //
+        // -----------------------------------------------------
 
-        </li>
+        if (string.IsNullOrWhiteSpace(permission))
+        {
+            return true;
+        }
 
-        <li class="nav-item">
 
-            <a asp-controller="Category"
-               asp-action="Index"
-               class="nav-link">
+        // -----------------------------------------------------
+        // NORMAL USER
+        // -----------------------------------------------------
 
-                <i class="bi bi-grid"></i>
+        return User.Claims.Any(x =>
+            x.Type == PermissionClaim.Type &&
+            x.Value == permission);
+    }
 
-                <span> Categories</span>
 
-            </a>
+    // =========================================================
+    // SYSTEM SETTINGS
+    // =========================================================
 
-        </li>
+    var locationLabel =
+        await SystemSettingService.GetLocationLabelAsync();
 
-        <li class="nav-item">
+    var locationPluralLabel =
+        await SystemSettingService.GetLocationPluralLabelAsync();
 
-            <a asp-controller="SubCategory"
-               asp-action="Index"
-               class="nav-link">
+    var salesOrderEnabled =
+        await SystemSettingService.IsSalesOrderEnabledAsync();
 
-                <i class="bi bi-diagram-3"></i>
+    var salesOrderPluralLabel =
+        await SystemSettingService.GetSalesOrderPluralLabelAsync();
 
-                <span> Sub Categories</span>
+    var customersEnabled =
+        await SystemSettingService.GetCustomersEnabledAsync();
 
-            </a>
 
-        </li>
+    // =========================================================
+    // DEFAULT LABELS
+    // =========================================================
 
-        <li class="nav-item">
+    if (string.IsNullOrWhiteSpace(locationLabel))
+    {
+        locationLabel = "Warehouse";
+    }
 
-            <a href="#"
-               class="nav-link">
+    if (string.IsNullOrWhiteSpace(locationPluralLabel))
+    {
+        locationPluralLabel = "Warehouses";
+    }
 
-                <i class="bi bi-box-seam"></i>
+    if (string.IsNullOrWhiteSpace(salesOrderPluralLabel))
+    {
+        salesOrderPluralLabel = "Sales Orders";
+    }
 
-                <span> Products</span>
 
-            </a>
+    // =========================================================
+    // LOAD SIDEBAR FROM DATABASE
+    // =========================================================
 
-        </li>
+    var sections =
+        await SidebarMenuService.GetSectionsAsync();
 
-        <li class="nav-item">
 
-            <a href="#"
-               class="nav-link">
+    // =========================================================
+    // DYNAMIC MENU LABELS
+    // =========================================================
 
-                <i class="bi bi-truck"></i>
+    foreach (var menuSection in sections)
+    {
+        foreach (var menuItem in menuSection.Items)
+        {
+            // -------------------------------------------------
+            // WAREHOUSE LABEL
+            // -------------------------------------------------
 
-                <span> Suppliers</span>
+            if (menuItem.Controller == "Warehouse")
+            {
+                menuItem.Name =
+                    locationPluralLabel;
+            }
 
-            </a>
 
-        </li>
+            // -------------------------------------------------
+            // WAREHOUSE STOCK LABEL
+            // -------------------------------------------------
 
-    </ul>
+            if (menuItem.Controller == "WarehouseStock")
+            {
+                menuItem.Name =
+                    $"{locationLabel} Stock";
+            }
+
+
+            // -------------------------------------------------
+            // SALES ORDER LABEL
+            // -------------------------------------------------
+
+            if (menuItem.Controller == "SalesOrder")
+            {
+                menuItem.Name =
+                    salesOrderPluralLabel;
+            }
+
+
+            // -------------------------------------------------
+            // SALES REPORT LABEL
+            // -------------------------------------------------
+
+            if (menuItem.Controller == "Reports" &&
+                menuItem.Action == "Sales")
+            {
+                menuItem.Name =
+                    $"{salesOrderPluralLabel} Report";
+            }
+        }
+    }
+
+
+    // =========================================================
+    // MODULE ENABLE / DISABLE CHECK
+    // =========================================================
+    //
+    // IMPORTANT:
+    //
+    // Module settings apply to EVERYONE, including SuperAdmin.
+    //
+    // SuperAdmin bypasses permission checks through
+    // HasPermission(), but cannot bypass these module settings.
+    //
+    // =========================================================
+
+    bool IsModuleEnabled(SidebarMenuItem menuItem)
+    {
+        // =====================================================
+        // CUSTOMER MODULE
+        // =====================================================
+
+        if (menuItem.Controller == "Customer")
+        {
+            return customersEnabled;
+        }
+
+
+        // Customer Outstanding
+
+        if (menuItem.Controller == "CustomerOutstanding")
+        {
+            return customersEnabled;
+        }
+
+
+        // Customer Receipts
+
+        if (menuItem.Controller == "CustomerReceipts")
+        {
+            return customersEnabled;
+        }
+
+
+        // Customer Ledger
+
+        if (menuItem.Controller == "CustomerLedger")
+        {
+            return customersEnabled;
+        }
+
+
+        // Accounts Receivable
+
+        if (menuItem.Controller == "AccountsReceivable")
+        {
+            return customersEnabled;
+        }
+
+
+        // Customer Report
+
+        if (menuItem.Controller == "Reports" &&
+            menuItem.Action == "Customers")
+        {
+            return customersEnabled;
+        }
+
+
+        // =====================================================
+        // SALES MODULE
+        // =====================================================
+
+        if (menuItem.Controller == "SalesOrder")
+        {
+            return salesOrderEnabled;
+        }
+
+
+        // Delivery Note
+
+        if (menuItem.Controller == "DeliveryNote")
+        {
+            return salesOrderEnabled;
+        }
+
+
+        // Sales Invoice
+
+        if (menuItem.Controller == "SalesInvoice")
+        {
+            return salesOrderEnabled;
+        }
+
+
+        // Sales Report
+
+        if (menuItem.Controller == "Reports" &&
+            menuItem.Action == "Sales")
+        {
+            return salesOrderEnabled;
+        }
+
+
+        // =====================================================
+        // EVERYTHING ELSE
+        // =====================================================
+
+        return true;
+    }
+}
+
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+
+<div class="sidebar">
+
+
+    @foreach (var menuSection in sections
+        .Where(x => x.IsActive)
+        .OrderBy(x => x.DisplayOrder)
+        .ThenBy(x => x.Id))
+    {
+
+        // =====================================================
+        // FILTER VISIBLE ITEMS
+        // =====================================================
+
+        var visibleItems =
+        menuSection.Items
+        .Where(menuItem =>
+        menuItem.IsActive &&
+        HasPermission(menuItem.Permission) &&
+        IsModuleEnabled(menuItem))
+        .OrderBy(menuItem => menuItem.DisplayOrder)
+        .ThenBy(menuItem => menuItem.Id)
+        .ToList();
+
+
+        // =====================================================
+        // HIDE EMPTY SECTION
+        // =====================================================
+
+        if (!visibleItems.Any())
+        {
+            continue;
+        }
+
+
+        // =====================================================
+        // SECTION HEADING
+        // =====================================================
+
+        <div class="sidebar-heading mt-3">
+
+            @menuSection.Name
+
+        </div>
+
+
+        // =====================================================
+        // MENU ITEMS
+        // =====================================================
+
+        <ul class="nav flex-column">
+
+            @foreach (var menuItem in visibleItems)
+            {
+                <li class="nav-item">
+
+                    <a asp-controller="@menuItem.Controller"
+                       asp-action="@menuItem.Action"
+                       class="nav-link">
+
+                        @if (!string.IsNullOrWhiteSpace(menuItem.Icon))
+                        {
+                            <i class="bi @menuItem.Icon me-2"></i>
+                        }
+
+                        <span>
+                            @menuItem.Name
+                        </span>
+
+                    </a>
+
+                </li>
+            }
+
+        </ul>
+    }
 
 </div>

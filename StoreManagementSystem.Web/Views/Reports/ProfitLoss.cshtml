@@ -1,0 +1,1407 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Reports.ProfitLossViewModel
+
+@{
+    ViewData["Title"] = "Profit & Loss Report";
+    Layout = "_AdminLayout";
+
+    var preparedBy =
+        User.Identity?.Name ?? "System User";
+
+    var salesOrderEnabled =
+        ViewData["SalesOrderEnabled"] is bool enabled && enabled;
+
+    var reportHeading =
+        string.IsNullOrWhiteSpace(Model.ReportHeading)
+            ? "PROFIT & LOSS REPORT"
+            : Model.ReportHeading.ToUpperInvariant();
+
+    var fromLabel =
+        string.IsNullOrWhiteSpace(Model.FromDateLabel)
+            ? "From"
+            : Model.FromDateLabel;
+
+    var toLabel =
+        string.IsNullOrWhiteSpace(Model.ToDateLabel)
+            ? "To"
+            : Model.ToDateLabel;
+}
+
+<div class="container-fluid profit-loss-page">
+
+    <!-- =========================================================
+         PRINT REPORT
+         ========================================================= -->
+
+    <div class="profit-print-report">
+
+        <!-- COMPANY HEADER -->
+
+        <div class="profit-print-company">
+
+            @if (!string.IsNullOrWhiteSpace(Model.OrganisationName))
+            {
+                <div class="profit-print-organisation">
+                    @Model.OrganisationName.ToUpperInvariant()
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Branch))
+            {
+                <div class="profit-print-branch">
+                    @Model.Branch.ToUpperInvariant()
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Address))
+            {
+                <div class="profit-print-address">
+                    @Model.Address
+                </div>
+            }
+
+            <div class="profit-print-contact">
+
+                @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                {
+                    <span>@Model.Phone</span>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                {
+                    <span>@Model.Email</span>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.GSTIN))
+                {
+                    <span>GSTIN: @Model.GSTIN</span>
+                }
+
+            </div>
+
+        </div>
+
+
+        <div class="profit-print-main-line"></div>
+
+
+        <!-- REPORT HEADING -->
+
+        <div class="profit-print-heading">
+            @reportHeading
+        </div>
+
+
+        <!-- DATE RANGE -->
+
+        <div class="profit-print-date-range">
+
+            @fromLabel:
+
+            @if (Model.FromDate.HasValue)
+            {
+                @Model.FromDate.Value.ToString("dd/MM/yyyy")
+            }
+
+            <span class="profit-date-gap">-</span>
+
+            @toLabel:
+
+            @if (Model.ToDate.HasValue)
+            {
+                @Model.ToDate.Value.ToString("dd/MM/yyyy")
+            }
+
+        </div>
+
+
+        <div class="profit-print-main-line"></div>
+
+
+        @if (salesOrderEnabled)
+        {
+            <!-- =================================================
+                 SUMMARY
+                 ================================================= -->
+
+            <div class="profit-print-section-title">
+                PROFIT &amp; LOSS SUMMARY
+            </div>
+
+
+            <table class="profit-summary-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            TOTAL SALES
+                        </th>
+
+                        <th>
+                            COST OF GOODS SOLD
+                        </th>
+
+                        <th>
+                            GROSS PROFIT
+                        </th>
+
+                        <th>
+                            NET PROFIT
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            ₹@Model.TotalSales.ToString("N2")
+                        </td>
+
+                        <td>
+                            ₹@Model.CostOfGoodsSold.ToString("N2")
+                        </td>
+
+                        <td>
+                            ₹@Model.GrossProfit.ToString("N2")
+                        </td>
+
+                        <td>
+                            ₹@Model.NetProfit.ToString("N2")
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <div class="profit-print-main-line"></div>
+
+
+            <!-- =================================================
+                 DETAILS
+                 ================================================= -->
+
+            <div class="profit-print-section-title">
+                PROFIT &amp; LOSS DETAILS
+            </div>
+
+
+            <table class="profit-details-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="profit-number-column">
+                            #
+                        </th>
+
+                        <th>
+                            PARTICULAR
+                        </th>
+
+                        <th class="profit-amount-column">
+                            AMOUNT
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    <!-- TOTAL SALES -->
+
+                    <tr>
+
+                        <td class="text-center">
+                            1
+                        </td>
+
+                        <td>
+                            Total Sales
+                        </td>
+
+                        <td class="text-end">
+                            ₹@Model.TotalSales.ToString("N2")
+                        </td>
+
+                    </tr>
+
+
+                    <!-- COGS -->
+
+                    <tr>
+
+                        <td class="text-center">
+                            2
+                        </td>
+
+                        <td>
+                            Less: Cost of Goods Sold
+                        </td>
+
+                        <td class="text-end">
+                            ₹@Model.CostOfGoodsSold.ToString("N2")
+                        </td>
+
+                    </tr>
+
+
+                    <!-- GROSS PROFIT -->
+
+                    <tr class="profit-highlight-row">
+
+                        <td class="text-center">
+                            3
+                        </td>
+
+                        <td>
+                            <strong>Gross Profit</strong>
+                        </td>
+
+                        <td class="text-end">
+                            <strong>
+                                ₹@Model.GrossProfit.ToString("N2")
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <!-- EXPENSES -->
+
+                    <tr>
+
+                        <td class="text-center">
+                            4
+                        </td>
+
+                        <td>
+                            Less: Expenses
+                        </td>
+
+                        <td class="text-end">
+                            ₹@Model.Expenses.ToString("N2")
+                        </td>
+
+                    </tr>
+
+
+                    <!-- NET PROFIT -->
+
+                    <tr class="profit-net-row">
+
+                        <td class="text-center">
+                            5
+                        </td>
+
+                        <td>
+                            <strong>Net Profit</strong>
+                        </td>
+
+                        <td class="text-end">
+                            <strong>
+                                ₹@Model.NetProfit.ToString("N2")
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <!-- GRAND TOTAL -->
+
+                    <tr class="profit-grand-total-row">
+
+                        <td colspan="2" class="text-end">
+                            <strong>Grand Total:</strong>
+                        </td>
+
+                        <td class="text-end">
+                            <strong>
+                                ₹@Model.NetProfit.ToString("N2")
+                            </strong>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- PROFIT CALCULATION -->
+
+            <div class="profit-calculation">
+
+                <div class="calculation-title">
+                    PROFIT CALCULATION
+                </div>
+
+                <div>
+                    Gross Profit = Total Sales − Cost of Goods Sold
+                </div>
+
+                <div>
+                    Net Profit = Gross Profit − Expenses
+                </div>
+
+            </div>
+        }
+
+
+        <!-- SIGNATURE SECTION -->
+
+        <div class="profit-print-signatures">
+
+            <div class="profit-signature-block">
+
+                <div class="profit-signature-title">
+                    Prepared By
+                </div>
+
+                <div class="profit-signature-space">
+                    &nbsp;
+                </div>
+
+                <div class="profit-signature-name">
+                    @preparedBy
+                </div>
+
+                <div class="profit-signature-line">
+                    ______________________
+                </div>
+
+            </div>
+
+
+            <div class="profit-signature-block authorised">
+
+                <div class="profit-signature-title">
+                    Authorised Signatory
+                </div>
+
+                <div class="profit-signature-space">
+                    &nbsp;
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.AuthorisedSignatory))
+                {
+                    <div class="profit-signature-name">
+                        @Model.AuthorisedSignatory
+                    </div>
+                }
+                else
+                {
+                    <div class="profit-signature-name">
+                        &nbsp;
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.AuthorisedDesignation))
+                {
+                    <div class="profit-signature-designation">
+                        @Model.AuthorisedDesignation
+                    </div>
+                }
+
+                <div class="profit-signature-line">
+                    ______________________
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="profit-print-footer">
+
+            <span>
+                © @DateTime.Now.Year Store Management ERP
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         NORMAL WEB PAGE
+         ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-graph-up-arrow me-2"></i>
+
+                Profit &amp; Loss Report
+
+            </h2>
+
+            <p class="text-muted mb-0">
+                Overview of sales, cost, expenses and profitability.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="window.print()">
+
+                <i class="bi bi-printer me-1"></i>
+
+                Print
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    @if (salesOrderEnabled)
+    {
+        <!-- =====================================================
+             SUMMARY CARDS
+             ===================================================== -->
+
+        <div class="row g-4 mb-4 no-print">
+
+
+            <!-- TOTAL SALES -->
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <p class="text-muted mb-1">
+                                    Total Sales
+                                </p>
+
+                                <h3 class="fw-bold mb-0">
+                                    ₹ @Model.TotalSales.ToString("N2")
+                                </h3>
+
+                            </div>
+
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+
+                                <i class="bi bi-cart-check fs-4 text-primary"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COGS -->
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <p class="text-muted mb-1">
+                                    Cost of Goods Sold
+                                </p>
+
+                                <h3 class="fw-bold mb-0">
+                                    ₹ @Model.CostOfGoodsSold.ToString("N2")
+                                </h3>
+
+                            </div>
+
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+
+                                <i class="bi bi-box-seam fs-4 text-warning"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- GROSS PROFIT -->
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <p class="text-muted mb-1">
+                                    Gross Profit
+                                </p>
+
+                                <h3 class="fw-bold mb-0 text-success">
+                                    ₹ @Model.GrossProfit.ToString("N2")
+                                </h3>
+
+                            </div>
+
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3">
+
+                                <i class="bi bi-graph-up fs-4 text-success"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- NET PROFIT -->
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <p class="text-muted mb-1">
+                                    Net Profit
+                                </p>
+
+                                <h3 class="fw-bold mb-0
+                                        @(Model.NetProfit >= 0
+                                                                            ? "text-success"
+                                                                            : "text-danger")">
+
+                                    ₹ @Model.NetProfit.ToString("N2")
+
+                                </h3>
+
+                            </div>
+
+                            <div class="rounded-circle
+                                    @(Model.NetProfit >= 0
+                                                                     ? "bg-success bg-opacity-10"
+                                                                     : "bg-danger bg-opacity-10") p-3">
+
+                                <i class="bi
+                                        @(Model.NetProfit >= 0
+                                                                           ? "bi-currency-rupee text-success"
+                                                                           : "bi-exclamation-triangle text-danger")
+                                    fs-4">
+                            </i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             PROFIT & LOSS STATEMENT
+             ===================================================== -->
+
+        <div class="row g-4 no-print">
+
+            <div class="col-lg-8">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white border-0 py-3">
+
+                        <h5 class="mb-0 fw-bold">
+
+                            <i class="bi bi-file-earmark-bar-graph me-2"></i>
+
+                            Profit &amp; Loss Statement
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered align-middle mb-0">
+
+                                <thead class="table-light">
+
+                                    <tr>
+
+                                        <th>
+                                            Particular
+                                        </th>
+
+                                        <th class="text-end">
+                                            Amount
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    <tr>
+
+                                        <td>
+                                            <i class="bi bi-cart-check me-2 text-primary"></i>
+                                            Total Sales
+                                        </td>
+
+                                        <td class="text-end fw-semibold">
+                                            ₹ @Model.TotalSales.ToString("N2")
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <td>
+                                            <i class="bi bi-box-seam me-2 text-warning"></i>
+                                            Less: Cost of Goods Sold
+                                        </td>
+
+                                        <td class="text-end fw-semibold text-warning">
+                                            ₹ @Model.CostOfGoodsSold.ToString("N2")
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr class="table-success">
+
+                                        <td class="fw-bold">
+
+                                            <i class="bi bi-graph-up me-2"></i>
+
+                                            Gross Profit
+
+                                        </td>
+
+                                        <td class="text-end fw-bold">
+
+                                            ₹ @Model.GrossProfit.ToString("N2")
+
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <td>
+
+                                            <i class="bi bi-wallet2 me-2 text-danger"></i>
+
+                                            Less: Expenses
+
+                                        </td>
+
+                                        <td class="text-end fw-semibold text-danger">
+
+                                            ₹ @Model.Expenses.ToString("N2")
+
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr class="@(Model.NetProfit >= 0
+                                                                                ? "table-success"
+                                                                                : "table-danger")">
+
+                                        <td class="fw-bold fs-5">
+
+                                            <i class="bi
+                                                    @(Model.NetProfit >= 0
+                                                                                                   ? "bi-check-circle"
+                                                                                                   : "bi-exclamation-circle")
+                                                                                                                                  me-2">
+                                                                                                                          </i>
+
+                                            Net Profit
+
+                                        </td>
+
+                                        <td class="text-end fw-bold fs-5">
+
+                                            ₹ @Model.NetProfit.ToString("N2")
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROFITABILITY SUMMARY -->
+
+            <div class="col-lg-4">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-white border-0 py-3">
+
+                        <h5 class="mb-0 fw-bold">
+
+                            <i class="bi bi-pie-chart me-2"></i>
+
+                            Profitability Summary
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="mb-4">
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Sales
+                                </span>
+
+                                <span class="fw-bold">
+                                    ₹ @Model.TotalSales.ToString("N2")
+                                </span>
+
+                            </div>
+
+                            <div class="progress" style="height: 8px;">
+
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width: 100%;">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mb-4">
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Cost of Goods Sold
+                                </span>
+
+                                <span class="fw-bold text-warning">
+                                    ₹ @Model.CostOfGoodsSold.ToString("N2")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mb-4">
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Gross Profit
+                                </span>
+
+                                <span class="fw-bold text-success">
+                                    ₹ @Model.GrossProfit.ToString("N2")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mb-4">
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Expenses
+                                </span>
+
+                                <span class="fw-bold text-danger">
+                                    ₹ @Model.Expenses.ToString("N2")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted fw-semibold">
+                                    Net Profit
+                                </span>
+
+                                <span class="fw-bold
+                                        @(Model.NetProfit >= 0
+                                                                              ? "text-success"
+                                                                              : "text-danger")">
+
+                                ₹ @Model.NetProfit.ToString("N2")
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CALCULATION
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm mt-4 no-print">
+
+            <div class="card-body">
+
+                <h6 class="fw-bold mb-3">
+
+                    <i class="bi bi-calculator me-2"></i>
+
+                    Profit Calculation
+
+                </h6>
+
+
+                <div class="text-muted">
+
+                    <span class="fw-semibold">
+                        Gross Profit
+                    </span>
+
+                    = Total Sales − Cost of Goods Sold
+
+                    <br />
+
+                    <span class="fw-semibold">
+                        Net Profit
+                    </span>
+
+                    = Gross Profit − Expenses
+
+                </div>
+
+            </div>
+
+        </div>
+        }
+
+
+    @if (!salesOrderEnabled)
+    {
+        <!-- =====================================================
+             SALES MODULE DISABLED
+             ===================================================== -->
+
+        <div class="card border-0 shadow-sm no-print">
+
+            <div class="card-body text-center py-5">
+
+                <i class="bi bi-bar-chart-line fs-1 text-muted mb-3"></i>
+
+                <h5 class="fw-bold">
+                    Profit &amp; Loss is unavailable
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Enable the Sales Order module to generate
+                    the Profit &amp; Loss report.
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         WEB FOOTER
+         ========================================================= -->
+
+    <div class="text-muted small mt-4 no-print">
+
+        <i class="bi bi-clock me-1"></i>
+
+        Report generated on
+        @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")
+
+    </div>
+
+</div>
+
+
+<style>
+
+    /* =========================================================
+           NORMAL WEB PAGE
+           ========================================================= */
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .progress {
+        border-radius: 10px;
+    }
+
+
+    /* =========================================================
+           PRINT REPORT
+           ========================================================= */
+
+    .profit-print-report {
+        display: none;
+    }
+
+
+    /* =========================================================
+           COMPANY HEADER
+           ========================================================= */
+
+    .profit-print-company {
+        width: 100%;
+        text-align: center;
+    }
+
+    .profit-print-organisation {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+
+    .profit-print-branch {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.2;
+        margin-bottom: 3px;
+    }
+
+    .profit-print-address {
+        font-size: 11px;
+        line-height: 1.3;
+        margin-bottom: 2px;
+    }
+
+    .profit-print-contact {
+        font-size: 10px;
+        line-height: 1.3;
+    }
+
+        .profit-print-contact span:not(:last-child)::after {
+            content: " | ";
+            margin: 0 5px;
+        }
+
+
+    /* =========================================================
+           MAIN SEPARATOR
+           ========================================================= */
+
+    .profit-print-main-line {
+        width: 100%;
+        border-top: 2px solid #222;
+        margin: 6px 0;
+    }
+
+
+    /* =========================================================
+           REPORT HEADING
+           ========================================================= */
+
+    .profit-print-heading {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 3px 0;
+    }
+
+    .profit-print-date-range {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .profit-date-gap {
+        display: inline-block;
+        margin: 0 12px;
+    }
+
+
+    /* =========================================================
+           SECTION TITLE
+           ========================================================= */
+
+    .profit-print-section-title {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .4px;
+        margin: 5px 0;
+    }
+
+
+    /* =========================================================
+           SUMMARY TABLE
+           ========================================================= */
+
+    .profit-summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .profit-summary-table th,
+        .profit-summary-table td {
+            width: 25%;
+            text-align: center;
+            padding: 4px 6px;
+        }
+
+        .profit-summary-table th {
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .profit-summary-table td {
+            font-size: 11px;
+            font-weight: 700;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #222;
+        }
+
+            .profit-summary-table th:not(:last-child),
+            .profit-summary-table td:not(:last-child) {
+                border-right: 1px solid #aaa;
+            }
+
+
+    /* =========================================================
+           DETAILS TABLE
+           ========================================================= */
+
+    .profit-details-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .profit-details-table th,
+        .profit-details-table td {
+            border: 1px solid #555;
+            padding: 5px 7px;
+            font-size: 10px;
+        }
+
+        .profit-details-table th {
+            background: #f1f1f1;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+    .profit-number-column {
+        width: 8%;
+    }
+
+    .profit-details-table th:nth-child(2),
+    .profit-details-table td:nth-child(2) {
+        width: 67%;
+    }
+
+    .profit-amount-column {
+        width: 25%;
+        text-align: right;
+    }
+
+    .profit-highlight-row td {
+        border-top: 2px solid #222;
+        font-weight: 700;
+    }
+
+    .profit-net-row td {
+        border-top: 2px solid #222;
+        font-weight: 700;
+    }
+
+    .profit-grand-total-row td {
+        border-top: 2px solid #222;
+        border-bottom: 2px solid #222;
+        font-weight: 700;
+        background: #f7f7f7;
+    }
+
+
+    /* =========================================================
+           PROFIT CALCULATION
+           ========================================================= */
+
+    .profit-calculation {
+        font-size: 9px;
+        line-height: 1.5;
+        margin-top: 7px;
+    }
+
+    .calculation-title {
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+
+    /* =========================================================
+           SIGNATURE SECTION
+           ========================================================= */
+
+    .profit-print-signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 25px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .profit-signature-block {
+        width: 38%;
+        font-size: 10px;
+    }
+
+        .profit-signature-block.authorised {
+            text-align: right;
+        }
+
+    .profit-signature-title {
+        font-size: 10px;
+        font-weight: 600;
+        margin-bottom: 23px;
+    }
+
+    .profit-signature-space {
+        height: 0;
+    }
+
+    .profit-signature-name {
+        font-size: 10px;
+        font-weight: 700;
+        min-height: 14px;
+    }
+
+    .profit-signature-designation {
+        font-size: 9px;
+        margin-top: 1px;
+    }
+
+    .profit-signature-line {
+        font-size: 10px;
+        margin-top: 5px;
+    }
+
+
+    /* =========================================================
+           FOOTER
+           ========================================================= */
+
+    .profit-print-footer {
+        width: 100%;
+        border-top: 1px solid #aaa;
+        text-align: center;
+        font-size: 8px;
+        color: #555;
+        margin-top: 18px;
+        padding-top: 7px;
+    }
+
+
+    /* =========================================================
+           PRINT
+           ========================================================= */
+
+    @@media print {
+
+        @@page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
+        }
+
+        html,
+        body {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            color: #000 !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+
+        body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .no-print,
+        .btn,
+        nav,
+        .navbar,
+        .sidebar,
+        .topbar,
+        footer,
+        header {
+            display: none !important;
+        }
+
+        .profit-print-report {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .profit-loss-page {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+            .profit-loss-page > *:not(.profit-print-report) {
+                display: none !important;
+            }
+
+        .profit-summary-table,
+        .profit-details-table {
+            width: 100% !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+            .profit-details-table tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .profit-details-table th,
+            .profit-details-table td {
+                color: #000 !important;
+            }
+
+            .profit-details-table th {
+                background: #f1f1f1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+        .profit-print-company,
+        .profit-print-heading,
+        .profit-print-date-range,
+        .profit-print-section-title,
+        .profit-print-signatures,
+        .profit-print-footer,
+        .profit-calculation {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .text-muted,
+        .text-primary,
+        .text-success,
+        .text-warning,
+        .text-danger {
+            color: #000 !important;
+        }
+    }
+
+</style>

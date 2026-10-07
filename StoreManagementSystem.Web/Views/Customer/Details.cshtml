@@ -1,0 +1,343 @@
+﻿@model StoreManagementSystem.Domain.Entities.Customer
+
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<div class="container-fluid">
+
+    ```
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">Customer Details</h2>
+            <p class="text-muted mb-0">
+                View customer information and credit settings.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Edit"
+               asp-route-id="@Model.Id"
+               class="btn btn-primary">
+
+                <i class="bi bi-pencil me-1"></i>
+                Edit
+
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-4">
+
+        <!-- Customer Information -->
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-person-circle me-2"></i>
+
+                        Customer Information
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-4">
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                Customer Name
+                            </small>
+
+                            <div class="fw-semibold fs-5">
+                                @Model.Name
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                Contact Person
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.ContactPerson ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                Mobile
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.Mobile ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                Email
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.Email ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-12">
+
+                            <small class="text-muted">
+                                Address
+                            </small>
+
+                            <div class="fw-semibold">
+
+                                @(Model.Address ?? "N/A")
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <small class="text-muted">
+                                City
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.City ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <small class="text-muted">
+                                State
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.State ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <small class="text-muted">
+                                Postal Code
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.PostalCode ?? "N/A")
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Tax Information -->
+
+            <div class="card border-0 shadow-sm mt-4">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-receipt me-2"></i>
+
+                        Tax Information
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-4">
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                GST Number
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.GSTNumber ?? "N/A")
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <small class="text-muted">
+                                PAN Number
+                            </small>
+
+                            <div class="fw-semibold">
+                                @(Model.PANNumber ?? "N/A")
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Right Side -->
+
+        <div class="col-lg-4">
+
+            <!-- Status -->
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+                        Customer Status
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body text-center">
+
+                    @if (Model.IsActive)
+                    {
+                        <div class="text-success fs-1">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+
+                        <h5 class="text-success">
+                            Active
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Customer is currently active.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="text-danger fs-1">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+
+                        <h5 class="text-danger">
+                            Inactive
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Customer is currently inactive.
+                        </p>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <!-- Credit -->
+
+            <div class="card border-0 shadow-sm mt-4">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-credit-card me-2"></i>
+
+                        Credit Settings
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="mb-4">
+
+                        <small class="text-muted">
+                            Credit Limit
+                        </small>
+
+                        <h4 class="fw-bold mb-0">
+                            ₹@Model.CreditLimit.ToString("N2")
+                        </h4>
+
+                    </div>
+
+
+                    <div>
+
+                        <small class="text-muted">
+                            Credit Period
+                        </small>
+
+                        <h5 class="fw-semibold mb-0">
+                            @Model.CreditDays Days
+                        </h5>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    ```
+
+</div>

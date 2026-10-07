@@ -1,0 +1,3937 @@
+﻿@model StoreManagementSystem.Web.ViewModels.Analytics.AnalyticsDashboardViewModel
+
+@using System.Text.Json
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Analytics Dashboard";
+    Layout = "_AdminLayout";
+
+    // =========================================================
+    // SALES ORDER SETTINGS
+    // =========================================================
+
+    var salesOrderEnabled =
+        ViewData["SalesOrderEnabled"] is bool enabled && enabled;
+
+    var salesOrderLabel =
+        ViewData["SalesOrderLabel"]?.ToString() ?? "Sales Order";
+
+    var salesOrderPluralLabel =
+        ViewData["SalesOrderPluralLabel"]?.ToString() ?? "Sales Orders";
+
+    var salesOrderUses =
+        ViewData["SalesOrderUses"]?.ToString() ?? "Order";
+
+
+    // =========================================================
+    // SAFE COLLECTIONS
+    // =========================================================
+
+    var categoryAnalytics =
+        Model.CategoryAnalytics
+        ?? new List<StoreManagementSystem.Web.ViewModels.Analytics.CategoryAnalyticsRowViewModel>();
+
+    var warehouses =
+        Model.Warehouses
+        ?? new List<StoreManagementSystem.Web.ViewModels.Analytics.WarehouseAnalyticsRowViewModel>();
+
+    var insights =
+        Model.Insights
+        ?? new List<StoreManagementSystem.Web.ViewModels.Analytics.AnalyticsInsightViewModel>();
+
+
+    // =========================================================
+    // MAIN CATEGORY DATA
+    // =========================================================
+
+    var categoryLabels =
+        Model.CategoryChartLabels
+        ?? new List<string>();
+
+    var categorySalesValues =
+        Model.CategorySalesValues
+        ?? new List<decimal>();
+
+    var categoryPurchaseValues =
+        Model.CategoryPurchaseValues
+        ?? new List<decimal>();
+
+    var categoryGrossProfitValues =
+        Model.CategoryGrossProfitValues
+        ?? new List<decimal>();
+
+    var categoryInventoryValues =
+        Model.CategoryInventoryValues
+        ?? new List<decimal>();
+
+
+    // =========================================================
+    // ALIGN CATEGORY ARRAYS
+    // =========================================================
+
+    var categoryChartCount =
+        new[]
+        {
+            categoryLabels.Count,
+            categorySalesValues.Count,
+            categoryPurchaseValues.Count,
+            categoryGrossProfitValues.Count,
+            categoryInventoryValues.Count
+        }.Min();
+
+
+    var finalCategoryLabels =
+        categoryLabels
+            .Take(categoryChartCount)
+            .ToList();
+
+    var finalCategorySalesValues =
+        categorySalesValues
+            .Take(categoryChartCount)
+            .ToList();
+
+    var finalCategoryPurchaseValues =
+        categoryPurchaseValues
+            .Take(categoryChartCount)
+            .ToList();
+
+    var finalCategoryGrossProfitValues =
+        categoryGrossProfitValues
+            .Take(categoryChartCount)
+            .ToList();
+
+    var finalCategoryInventoryValues =
+        categoryInventoryValues
+            .Take(categoryChartCount)
+            .ToList();
+
+
+    // =========================================================
+    // JSON DATA
+    // =========================================================
+
+    var categoryLabelsJson =
+        JsonSerializer.Serialize(finalCategoryLabels);
+
+    var categorySalesValuesJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? finalCategorySalesValues
+                : new List<decimal>());
+
+    var categoryPurchaseValuesJson =
+        JsonSerializer.Serialize(finalCategoryPurchaseValues);
+
+    var categoryProfitValuesJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? finalCategoryGrossProfitValues
+                : new List<decimal>());
+
+    var categoryInventoryValuesJson =
+        JsonSerializer.Serialize(finalCategoryInventoryValues);
+
+
+    // =========================================================
+    // TREND DATA
+    // =========================================================
+
+    var salesTrendLabelsJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.SalesTrendLabels ?? new List<string>()
+                : new List<string>());
+
+    var salesTrendValuesJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.SalesTrendValues ?? new List<decimal>()
+                : new List<decimal>());
+
+    var purchaseTrendLabelsJson =
+        JsonSerializer.Serialize(
+            Model.PurchaseTrendLabels
+            ?? new List<string>());
+
+    var purchaseTrendValuesJson =
+        JsonSerializer.Serialize(
+            Model.PurchaseTrendValues
+            ?? new List<decimal>());
+
+    var profitTrendLabelsJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.ProfitTrendLabels ?? new List<string>()
+                : new List<string>());
+
+    var profitTrendValuesJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.ProfitTrendValues ?? new List<decimal>()
+                : new List<decimal>());
+
+
+    // =========================================================
+    // WAREHOUSE DATA
+    // =========================================================
+
+    var warehouseLabelsJson =
+        JsonSerializer.Serialize(
+            Model.WarehouseLabels
+            ?? new List<string>());
+
+    var warehouseStockValuesJson =
+        JsonSerializer.Serialize(
+            Model.WarehouseStockValues
+            ?? new List<decimal>());
+
+
+    // =========================================================
+    // INVENTORY HEALTH
+    // =========================================================
+
+    var inventoryHealthValuesJson =
+        JsonSerializer.Serialize(
+            new[]
+            {
+                Model.InStockProducts,
+                Model.LowStockProducts,
+                Model.OutOfStockProducts
+            });
+
+
+    // =========================================================
+    // STOCK MOVEMENT
+    // =========================================================
+
+    var stockMovementLabels =
+        new List<string>
+        {
+            "Purchase Receipt"
+        };
+
+    var stockMovementValues =
+        new List<decimal>
+        {
+            Model.PurchaseReceiptQuantity
+        };
+
+    // SALES ISSUE ONLY WHEN SALES MODULE IS ENABLED
+    if (salesOrderEnabled)
+    {
+        stockMovementLabels.Add("Sales Issue");
+        stockMovementValues.Add(Model.SalesIssueQuantity);
+    }
+
+    stockMovementLabels.Add("Sales Return");
+    stockMovementValues.Add(Model.SalesReturnQuantity);
+
+    stockMovementLabels.Add("Purchase Return");
+    stockMovementValues.Add(Model.PurchaseReturnQuantity);
+
+    stockMovementLabels.Add("Transfer In");
+    stockMovementValues.Add(Model.TransferInQuantity);
+
+    stockMovementLabels.Add("Transfer Out");
+    stockMovementValues.Add(Model.TransferOutQuantity);
+
+    stockMovementLabels.Add("Adjustment");
+    stockMovementValues.Add(Model.AdjustmentQuantity);
+
+    var stockMovementLabelsJson =
+        JsonSerializer.Serialize(stockMovementLabels);
+
+    var stockMovementValuesJson =
+        JsonSerializer.Serialize(stockMovementValues);
+
+
+    // =========================================================
+    // KPI TOTALS
+    // =========================================================
+
+    var netSalesJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.NetSales
+                : 0m);
+
+    var purchasesJson =
+        JsonSerializer.Serialize(Model.Purchases);
+
+    var grossProfitJson =
+        JsonSerializer.Serialize(
+            salesOrderEnabled
+                ? Model.GrossProfit
+                : 0m);
+
+    var inventoryValueJson =
+        JsonSerializer.Serialize(Model.InventoryValue);
+
+    var salesOrderPluralLabelJson =
+        JsonSerializer.Serialize(salesOrderPluralLabel);
+
+
+    // =========================================================
+    // CATEGORY SUMMARY
+    // =========================================================
+
+    var totalCategoryDamage =
+        categoryAnalytics.Sum(x => x.Damage);
+
+    var totalCategoryOpening =
+        categoryAnalytics.Sum(x => x.OpeningBalance);
+
+    var totalCategoryPurchases =
+        categoryAnalytics.Sum(x => x.PurchaseBalance);
+
+    var totalCategorySales =
+        salesOrderEnabled
+            ? categoryAnalytics.Sum(x => x.SaleBalance)
+            : 0m;
+}
+
+<style>
+    /* =========================================================
+           GENERAL
+           ========================================================= */
+
+    .analytics-card {
+        border: 0;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    }
+
+
+    /* =========================================================
+           KPI CARDS
+           ========================================================= */
+
+    .kpi-card {
+        min-height: 500px;
+        overflow: hidden;
+    }
+
+    .kpi-chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: 330px;
+        margin-top: 10px;
+    }
+
+        .kpi-chart-wrapper canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+
+    /* =========================================================
+           BUSINESS PERFORMANCE
+           ========================================================= */
+
+    .business-performance-wrapper {
+        position: relative;
+        width: 100%;
+        height: 380px;
+    }
+
+        .business-performance-wrapper canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+
+    /* =========================================================
+           BUSINESS BAR
+           ========================================================= */
+
+    .business-bar-wrapper {
+        width: 100%;
+    }
+
+    .business-bar {
+        position: relative;
+        width: 100%;
+        height: 46px;
+        display: flex;
+        overflow: hidden;
+        border-radius: 10px;
+        background: #f1f3f5;
+        border: 1px solid #e5e7eb;
+    }
+
+    .business-segment {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 700;
+        transition: opacity 0.2s ease;
+    }
+
+        .business-segment:hover {
+            opacity: 0.82;
+        }
+
+    .business-opening {
+        background: #fff3cd;
+        color: #664d03;
+        border-right: 1px solid #ffe69c;
+    }
+
+    .business-purchase {
+        background: #d1e7dd;
+        color: #0f5132;
+        border-right: 1px solid #a3cfbb;
+    }
+
+    .business-sale {
+        background: #cfe2ff;
+        color: #084298;
+        border-right: 1px solid #9ec5fe;
+    }
+
+    .business-damage {
+        background: #f8d7da;
+        color: #842029;
+        border-right: 1px solid #f1aeb5;
+    }
+
+    .business-closing {
+        background: #e2e3e5;
+        color: #41464b;
+    }
+
+
+    /* =========================================================
+           BUSINESS LEGEND
+           ========================================================= */
+
+    .business-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .business-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .business-legend-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid transparent;
+    }
+
+    .legend-opening {
+        background: #fff3cd;
+        border-color: #ffe69c;
+    }
+
+    .legend-purchase {
+        background: #d1e7dd;
+        border-color: #a3cfbb;
+    }
+
+    .legend-sale {
+        background: #cfe2ff;
+        border-color: #9ec5fe;
+    }
+
+    .legend-damage {
+        background: #f8d7da;
+        border-color: #f1aeb5;
+    }
+
+    .legend-closing {
+        background: #e2e3e5;
+        border-color: #c4c8cb;
+    }
+
+
+    /* =========================================================
+           CALCULATION
+           ========================================================= */
+
+    .business-calculation {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 7px;
+    }
+
+        .business-calculation strong {
+            color: #212529;
+        }
+
+    .text-purple {
+        color: #6f42c1 !important;
+    }
+
+
+    /* =========================================================
+           CATEGORY
+           ========================================================= */
+
+    .category-business-row {
+        padding: 16px 0;
+        border-bottom: 1px solid #edf0f2;
+    }
+
+        .category-business-row:last-child {
+            border-bottom: 0;
+        }
+
+
+    /* =========================================================
+           METRIC
+           ========================================================= */
+
+    .metric-box {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        height: 100%;
+    }
+
+
+    /* =========================================================
+           TABLE
+           ========================================================= */
+
+    .analytics-table th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+    }
+
+    .analytics-table td {
+        vertical-align: middle;
+    }
+
+
+    /* =========================================================
+           INSIGHTS
+           ========================================================= */
+
+    .insight-box {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 16px;
+        height: 100%;
+    }
+
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .kpi-card {
+            min-height: 470px;
+        }
+
+        .kpi-chart-wrapper {
+            height: 310px;
+        }
+
+        .business-performance-wrapper {
+            height: 300px;
+        }
+
+        .business-segment {
+            font-size: 10px;
+        }
+
+        .business-bar {
+            height: 40px;
+        }
+
+        .business-legend {
+            gap: 10px;
+        }
+    }
+</style>
+
+
+<!-- =========================================================
+     PAGE HEADER
+     ========================================================= -->
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+    <div class="d-flex align-items-center gap-3">
+
+        <div class="bg-primary text-white rounded-3 p-3">
+            <i class="bi bi-bar-chart-line fs-4"></i>
+        </div>
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+                Analytics Dashboard
+            </h3>
+
+            <div class="text-muted small">
+                Business performance, inventory intelligence and operational insights
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <form method="get"
+          asp-controller="Analytics"
+          asp-action="Index"
+          class="d-flex flex-wrap align-items-end gap-2">
+
+        <div>
+
+            <label class="form-label small text-muted mb-1">
+                From Date
+            </label>
+
+            <input type="date"
+                   name="fromDate"
+                   value="@Model.FromDate.ToString("yyyy-MM-dd")"
+                   class="form-control" />
+
+        </div>
+
+        <div>
+
+            <label class="form-label small text-muted mb-1">
+                To Date
+            </label>
+
+            <input type="date"
+                   name="toDate"
+                   value="@Model.ToDate.ToString("yyyy-MM-dd")"
+                   class="form-control" />
+
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+
+            <i class="bi bi-filter me-1"></i>
+            Apply
+
+        </button>
+
+        <a asp-controller="Analytics"
+           asp-action="Index"
+           class="btn btn-light border"
+           title="Reset">
+
+            <i class="bi bi-arrow-clockwise"></i>
+
+        </a>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     PERIOD
+     ========================================================= -->
+
+<div class="alert alert-light border rounded-3 mb-4">
+
+    <div class="d-flex align-items-center gap-2">
+
+        <i class="bi bi-calendar3 text-primary"></i>
+
+        <div>
+
+            <span class="text-muted">
+                Analytics period:
+            </span>
+
+            <strong>
+                @Model.FromDate.ToString("dd MMM yyyy")
+            </strong>
+
+            <span class="text-muted mx-1">
+                to
+            </span>
+
+            <strong>
+                @Model.ToDate.ToString("dd MMM yyyy")
+            </strong>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PRIMARY KPI
+     ========================================================= -->
+
+<div class="row g-4 mb-4">
+
+    <!-- =====================================================
+         NET SALES
+         SALES MODULE ONLY
+         ===================================================== -->
+    @if (salesOrderEnabled)
+    {
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card analytics-card kpi-card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <div class="text-muted small fw-semibold">
+                                NET SALES
+                            </div>
+
+                            <div class="fs-3 fw-bold mt-2">
+                                ₹@Model.NetSales.ToString("N2")
+                            </div>
+
+                            <div class="small text-muted mt-1">
+                                Main Category-wise Sales
+                            </div>
+
+                        </div>
+
+                        <div class="rounded-3 bg-primary-subtle text-primary p-3">
+                            <i class="bi bi-currency-rupee fs-4"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="kpi-chart-wrapper">
+                        <canvas id="netSalesKpiChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- =====================================================
+         PURCHASES
+         ===================================================== -->
+
+    <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-6") col-md-6">
+
+        <div class="card analytics-card kpi-card h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <div class="text-muted small fw-semibold">
+                            PURCHASES
+                        </div>
+
+                        <div class="fs-3 fw-bold mt-2">
+                            ₹@Model.Purchases.ToString("N2")
+                        </div>
+
+                        <div class="small text-muted mt-1">
+                            Main Category-wise Purchases
+                        </div>
+
+                    </div>
+
+                    <div class="rounded-3 bg-success-subtle text-success p-3">
+                        <i class="bi bi-cart-check fs-4"></i>
+                    </div>
+
+                </div>
+
+                <div class="kpi-chart-wrapper">
+                    <canvas id="purchaseKpiChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         GROSS PROFIT
+         SALES MODULE ONLY
+         ===================================================== -->
+    @if (salesOrderEnabled)
+    {
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card analytics-card kpi-card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <div class="text-muted small fw-semibold">
+                                GROSS PROFIT
+                            </div>
+
+                            <div class="fs-3 fw-bold mt-2">
+                                ₹@Model.GrossProfit.ToString("N2")
+                            </div>
+
+                            <div class="small text-muted mt-1">
+                                Main Category-wise Gross Profit
+                            </div>
+
+                        </div>
+
+                        <div class="rounded-3 bg-warning-subtle text-warning p-3">
+                            <i class="bi bi-graph-up-arrow fs-4"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="kpi-chart-wrapper">
+                        <canvas id="profitKpiChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- =====================================================
+         INVENTORY
+         ===================================================== -->
+
+    <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-6") col-md-6">
+
+        <div class="card analytics-card kpi-card h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <div class="text-muted small fw-semibold">
+                            INVENTORY VALUE
+                        </div>
+
+                        <div class="fs-3 fw-bold mt-2">
+                            ₹@Model.InventoryValue.ToString("N2")
+                        </div>
+
+                        <div class="small text-muted mt-1">
+                            Main Category-wise Inventory Value
+                        </div>
+
+                    </div>
+
+                    <div class="rounded-3 bg-info-subtle text-info p-3">
+                        <i class="bi bi-box-seam fs-4"></i>
+                    </div>
+
+                </div>
+
+                <div class="kpi-chart-wrapper">
+                    <canvas id="inventoryKpiChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SECONDARY KPI
+     ========================================================= -->
+
+<div class="row g-4 mb-4">
+
+    <!-- SALES ORDER COUNT -->
+    @if (salesOrderEnabled)
+    {
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card analytics-card h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small fw-semibold">
+                        @salesOrderPluralLabel.ToUpper()
+                    </div>
+
+                    <div class="fs-4 fw-bold mt-2">
+                        @Model.TotalOrders.ToString("N0")
+                    </div>
+
+                    <div class="small mt-1 @(Model.OrdersChangePercent >= 0 ? "text-success" : "text-danger")">
+
+                        @(Model.OrdersChangePercent >= 0 ? "+" : "")
+                        @Model.OrdersChangePercent.ToString("N1")%
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AVERAGE SALES ORDER -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card analytics-card h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small fw-semibold">
+                        AVERAGE @salesOrderLabel.ToUpper()
+                    </div>
+
+                    <div class="fs-4 fw-bold mt-2">
+                        ₹@Model.AverageOrderValue.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted mt-1">
+                        Per @salesOrderUses.ToLower()
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- =====================================================
+         GROSS MARGIN
+         SALES MODULE ONLY
+         ===================================================== -->
+    @if (salesOrderEnabled)
+    {
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card analytics-card h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small fw-semibold">
+                        GROSS MARGIN
+                    </div>
+
+                    <div class="fs-4 fw-bold mt-2">
+                        @Model.GrossMarginPercent.ToString("N1")%
+                    </div>
+
+                    <div class="small text-muted mt-1">
+                        Profitability
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- AVAILABLE STOCK -->
+    <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-6") col-md-6">
+
+        <div class="card analytics-card h-100">
+
+            <div class="card-body">
+
+                <div class="text-muted small fw-semibold">
+                    AVAILABLE STOCK
+                </div>
+
+                <div class="fs-4 fw-bold mt-2">
+                    @((Model.TotalStockQuantity - Model.ReservedStockQuantity).ToString("N2"))
+                </div>
+
+                <div class="small text-muted mt-1">
+                    Units available
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     BUSINESS PERFORMANCE
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <h5 class="fw-bold mb-1">
+            Business Performance
+        </h5>
+
+        <div class="small text-muted">
+
+            @if (salesOrderEnabled)
+            {
+                <span>@salesOrderPluralLabel</span>
+                <span>, purchases and gross profit trend</span>
+            }
+            else
+            {
+                <span>Purchases and operational trend</span>
+            }
+
+        </div>
+
+    </div>
+
+    <div class="card-body px-4">
+
+        <div class="business-performance-wrapper">
+            <canvas id="businessTrendChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     INVENTORY HEALTH
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <h5 class="fw-bold mb-1">
+            Inventory Health
+        </h5>
+
+        <div class="small text-muted">
+            Current stock condition
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-6">
+
+                <div style="height:280px;">
+                    <canvas id="inventoryHealthChart"></canvas>
+                </div>
+
+            </div>
+
+            <div class="col-lg-6">
+
+                <div class="row g-3 text-center">
+
+                    <div class="col-4">
+
+                        <div class="border rounded-3 p-3">
+
+                            <div class="fs-4 fw-bold text-success">
+                                @Model.InStockProducts
+                            </div>
+
+                            <div class="small text-muted">
+                                In Stock
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-4">
+
+                        <div class="border rounded-3 p-3">
+
+                            <div class="fs-4 fw-bold text-warning">
+                                @Model.LowStockProducts
+                            </div>
+
+                            <div class="small text-muted">
+                                Low Stock
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-4">
+
+                        <div class="border rounded-3 p-3">
+
+                            <div class="fs-4 fw-bold text-danger">
+                                @Model.OutOfStockProducts
+                            </div>
+
+                            <div class="small text-muted">
+                                Out
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="row g-3 mt-2">
+
+                    <div class="col-6">
+
+                        <div class="metric-box">
+
+                            <div class="small text-muted">
+                                RESERVED
+                            </div>
+
+                            <div class="fs-5 fw-bold mt-1">
+                                @Model.ReservedStockQuantity.ToString("N2")
+                            </div>
+
+                            <div class="small text-muted">
+                                units
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-6">
+
+                        <div class="metric-box">
+
+                            <div class="small text-muted">
+                                DAMAGE VALUE
+                            </div>
+
+                            <div class="fs-5 fw-bold mt-1 text-danger">
+                                ₹@Model.DamageValue.ToString("N2")
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CATEGORY BUSINESS STOCK FLOW
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+            <div>
+
+                <h5 class="fw-bold mb-1">
+
+                    <i class="bi bi-bar-chart-fill text-primary me-2"></i>
+
+                    Category Business Stock Flow
+
+                </h5>
+
+                <div class="small text-muted">
+
+                    One business bar per category showing
+                    Opening,
+                    Purchases,
+
+                    @if (salesOrderEnabled)
+                    {
+                        <span>Sales,</span>
+                    }
+
+                    Damage and Closing Stock
+
+                </div>
+
+            </div>
+
+            <span class="badge bg-light text-dark border">
+                @categoryAnalytics.Count Categories
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-body px-4">
+
+        <div class="business-legend">
+
+            <div class="business-legend-item">
+                <span class="business-legend-dot legend-opening"></span>
+                Opening
+            </div>
+
+            <div class="business-legend-item">
+                <span class="business-legend-dot legend-purchase"></span>
+                Purchases
+            </div>
+
+            @if (salesOrderEnabled)
+            {
+                <div class="business-legend-item">
+                    <span class="business-legend-dot legend-sale"></span>
+                    Sales
+                </div>
+            }
+
+            <div class="business-legend-item">
+                <span class="business-legend-dot legend-damage"></span>
+                Damage
+            </div>
+
+            <div class="business-legend-item">
+                <span class="business-legend-dot legend-closing"></span>
+                Closing Stock
+            </div>
+
+        </div>
+
+
+        @if (categoryAnalytics.Any())
+        {
+            foreach (var category in categoryAnalytics)
+            {
+                var opening =
+                Math.Max(category.OpeningBalance, 0m);
+
+                var purchase =
+                Math.Max(category.PurchaseBalance, 0m);
+
+                var sales =
+                salesOrderEnabled
+                ? Math.Max(category.SaleBalance, 0m)
+                : 0m;
+
+                var damage =
+                Math.Max(category.Damage, 0m);
+
+                var closing =
+                Math.Max(category.CalculatedClosingBalance, 0m);
+
+                var totalBarValue =
+                opening +
+                purchase +
+                sales +
+                damage +
+                closing;
+
+                if (totalBarValue <= 0)
+                {
+                    totalBarValue = 1m;
+                }
+
+                var openingWidth =
+                opening / totalBarValue * 100m;
+
+                var purchaseWidth =
+                purchase / totalBarValue * 100m;
+
+                var salesWidth =
+                sales / totalBarValue * 100m;
+
+                var damageWidth =
+                damage / totalBarValue * 100m;
+
+                var closingWidth =
+                closing / totalBarValue * 100m;
+
+
+                <div class="category-business-row">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+
+                        <div class="fw-bold">
+
+                            <i class="bi bi-folder2-open text-primary me-2"></i>
+
+                            @category.CategoryName
+
+                        </div>
+
+                        <div class="small">
+
+                            <span class="text-muted">
+                                Actual Stock:
+                            </span>
+
+                            <strong>
+                                @category.StockBalance.ToString("N2")
+                            </strong>
+
+                            <span class="text-muted ms-2">
+                                units
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="business-bar-wrapper">
+
+                        <div class="business-bar"
+                             title="@category.CategoryName">
+
+                            @if (opening > 0)
+                            {
+                                <div class="business-segment business-opening"
+                                     style="width:@openingWidth.ToString("0.##", CultureInfo.InvariantCulture)%"
+                                     title="Opening Stock: @opening.ToString("N2") units">
+
+                                    @if (openingWidth >= 8)
+                                    {
+                                        @opening.ToString("N0")
+                                    }
+
+                                </div>
+                            }
+
+                            @if (purchase > 0)
+                            {
+                                <div class="business-segment business-purchase"
+                                     style="width:@purchaseWidth.ToString("0.##", CultureInfo.InvariantCulture)%"
+                                     title="Purchases: @purchase.ToString("N2") units">
+
+                                    @if (purchaseWidth >= 8)
+                                    {
+                                        @purchase.ToString("N0")
+                                    }
+
+                                </div>
+                            }
+
+                            @if (salesOrderEnabled && sales > 0)
+                            {
+                                <div class="business-segment business-sale"
+                                     style="width:@salesWidth.ToString("0.##", CultureInfo.InvariantCulture)%"
+                                     title="Sales: @sales.ToString("N2") units">
+
+                                    @if (salesWidth >= 8)
+                                    {
+                                        @sales.ToString("N0")
+                                    }
+
+                                </div>
+                            }
+
+                            @if (damage > 0)
+                            {
+                                <div class="business-segment business-damage"
+                                     style="width:@damageWidth.ToString("0.##", CultureInfo.InvariantCulture)%"
+                                     title="Damage: @damage.ToString("N2") units">
+
+                                    @if (damageWidth >= 8)
+                                    {
+                                        @damage.ToString("N0")
+                                    }
+
+                                </div>
+                            }
+
+                            @if (closing > 0)
+                            {
+                                <div class="business-segment business-closing"
+                                     style="width:@closingWidth.ToString("0.##", CultureInfo.InvariantCulture)%"
+                                     title="Calculated Closing Stock: @closing.ToString("N2") units">
+
+                                    @if (closingWidth >= 8)
+                                    {
+                                        @closing.ToString("N0")
+                                    }
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="business-calculation">
+
+                        <strong>
+                            Calculation:
+                        </strong>
+
+                        <span class="ms-1">
+                            @category.OpeningBalance.ToString("N2")
+                        </span>
+
+                        <span class="text-muted">
+                            +
+                        </span>
+
+                        <span class="text-success">
+                            @category.PurchaseBalance.ToString("N2")
+                        </span>
+
+                        @if (salesOrderEnabled)
+                        {
+                            <span class="text-muted">
+                                −
+                            </span>
+
+                            <span class="text-primary">
+                                @category.SaleBalance.ToString("N2")
+                            </span>
+                        }
+
+                        <span class="text-muted">
+                            −
+                        </span>
+
+                        <span class="text-danger">
+                            @category.Damage.ToString("N2")
+                        </span>
+
+                        <span class="text-muted">
+                            =
+                        </span>
+
+                        <strong class="text-purple">
+                            @category.CalculatedClosingBalance.ToString("N2")
+                            units
+                        </strong>
+
+                        <span class="text-muted ms-2">
+                            calculated closing
+                        </span>
+
+                    </div>
+
+
+                    <div class="row g-2 mt-2">
+
+                        <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-4") col-md-6">
+
+                            <div class="small text-muted">
+                                Purchase Value
+                            </div>
+
+                            <div class="fw-semibold">
+                                ₹@category.PurchaseValue.ToString("N2")
+                            </div>
+
+                        </div>
+
+
+                        @if (salesOrderEnabled)
+                        {
+                            <div class="col-xl-3 col-md-6">
+
+                                <div class="small text-muted">
+                                    Sales Value
+                                </div>
+
+                                <div class="fw-semibold">
+                                    ₹@category.SalesValue.ToString("N2")
+                                </div>
+
+                            </div>
+                        }
+
+
+                        <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-4") col-md-6">
+
+                            <div class="small text-muted">
+                                Actual Stock Value
+                            </div>
+
+                            <div class="fw-semibold">
+                                ₹@category.StockValue.ToString("N2")
+                            </div>
+
+                        </div>
+
+
+                        <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-4") col-md-6">
+
+                            <div class="small text-muted">
+                                Stock Difference
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @{
+                                    var stockDifference =
+                                    category.StockBalance -
+                                    category.CalculatedClosingBalance;
+                                }
+
+                                <span class="@(Math.Abs(stockDifference) < 0.01m
+                                                                          ? "text-success"
+                                                                          : "text-warning")">
+
+                            @stockDifference.ToString("N2")
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                }
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+
+                <i class="bi bi-bar-chart fs-1 d-block mb-3"></i>
+
+                <div class="fw-semibold">
+                    No category business data available.
+                </div>
+
+                <div class="small mt-1">
+                    Category stock movement will appear here when data is available.
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CATEGORY SUMMARY
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <h5 class="fw-bold mb-1">
+            Category Summary
+        </h5>
+
+        <div class="small text-muted">
+            Detailed category stock movement and valuation
+        </div>
+
+    </div>
+
+
+    <div class="card-body">
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="metric-box">
+
+                    <div class="small text-muted">
+                        OPENING
+                    </div>
+
+                    <div class="fs-5 fw-bold mt-1">
+                        @totalCategoryOpening.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted">
+                        units
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="metric-box">
+
+                    <div class="small text-muted">
+                        PURCHASES
+                    </div>
+
+                    <div class="fs-5 fw-bold mt-1 text-success">
+                        @totalCategoryPurchases.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted">
+                        units
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            @if (salesOrderEnabled)
+            {
+                <div class="col-xl-3 col-md-6">
+
+                    <div class="metric-box">
+
+                        <div class="small text-muted">
+                            SALES
+                        </div>
+
+                        <div class="fs-5 fw-bold mt-1 text-primary">
+                            @totalCategorySales.ToString("N2")
+                        </div>
+
+                        <div class="small text-muted">
+                            units
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+
+            <div class="@(salesOrderEnabled ? "col-xl-3" : "col-xl-6") col-md-6">
+
+                <div class="metric-box">
+
+                    <div class="small text-muted">
+                        DAMAGE
+                    </div>
+
+                    <div class="fs-5 fw-bold mt-1 text-danger">
+                        @totalCategoryDamage.ToString("N2")
+                    </div>
+
+                    <div class="small text-muted">
+                        units
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table id="categoryInventoryReportTable"
+                   class="table table-hover align-middle analytics-table mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th class="text-end">
+                            Opening
+                        </th>
+
+                        <th class="text-end">
+                            Purchases
+                        </th>
+
+                        @if (salesOrderEnabled)
+                        {
+                            <th class="text-end">
+                                Sales
+                            </th>
+                        }
+
+                        <th class="text-end">
+                            Damage
+                        </th>
+
+                        <th class="text-end">
+                            Calculated Closing
+                        </th>
+
+                        <th class="text-end">
+                            Actual Stock
+                        </th>
+
+                        <th class="text-end">
+                            Inventory Value
+                        </th>
+
+                        <th class="text-end">
+                            % Total
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (categoryAnalytics.Any())
+                    {
+                        foreach (var category in categoryAnalytics)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    <div class="fw-semibold">
+
+                                        <span class="d-inline-block rounded-circle bg-primary me-2"
+                                              style="width:8px;height:8px;">
+                                        </span>
+
+                                        @category.CategoryName
+
+                                    </div>
+
+                                </td>
+
+                                <td class="text-end">
+                                    @category.OpeningBalance.ToString("N2")
+                                </td>
+
+                                <td class="text-end text-success">
+                                    @category.PurchaseBalance.ToString("N2")
+                                </td>
+
+                                @if (salesOrderEnabled)
+                                {
+                                    <td class="text-end text-primary">
+                                        @category.SaleBalance.ToString("N2")
+                                    </td>
+                                }
+
+                                <td class="text-end text-danger">
+                                    @category.Damage.ToString("N2")
+                                </td>
+
+                                <td class="text-end fw-semibold">
+                                    @category.CalculatedClosingBalance.ToString("N2")
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    @category.StockBalance.ToString("N2")
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    ₹@category.StockValue.ToString("N2")
+                                </td>
+
+                                <td class="text-end">
+                                    @category.PercentageOfTotal.ToString("0.0")%
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="@(salesOrderEnabled ? 9 : 8)"
+                                class="text-center text-muted py-5">
+
+                                No category data available.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="d-flex justify-content-end mt-3">
+
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    onclick="exportCategoryReport()">
+
+                <i class="bi bi-download me-1"></i>
+                Export CSV
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     WAREHOUSE PERFORMANCE
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+            <div>
+
+                <h5 class="fw-bold mb-1">
+
+                    <i class="bi bi-buildings text-primary me-2"></i>
+
+                    Warehouse Performance
+
+                </h5>
+
+                <div class="small text-muted">
+
+                    Warehouse-wise inventory,
+
+                    @if (salesOrderEnabled)
+                    {
+                        <span>sales and </span>
+                    }
+
+                    purchase activity
+
+                </div>
+
+            </div>
+
+            <span class="badge bg-light text-dark border">
+                @warehouses.Count Active Warehouses
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle analytics-table mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th class="ps-4">
+                            Warehouse
+                        </th>
+
+                        <th class="text-end">
+                            Stock Qty
+                        </th>
+
+                        <th class="text-end">
+                            Stock Value
+                        </th>
+
+                        @if (salesOrderEnabled)
+                        {
+                            <th class="text-end">
+                                Sales
+                            </th>
+                        }
+
+                        <th class="text-end pe-4">
+                            Purchases
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (warehouses.Any())
+                    {
+                        foreach (var warehouse in warehouses)
+                        {
+                            <tr>
+
+                                <td class="ps-4">
+
+                                    <div class="fw-semibold">
+
+                                        <i class="bi bi-building text-primary me-2"></i>
+
+                                        @warehouse.WarehouseName
+
+                                    </div>
+
+                                </td>
+
+                                <td class="text-end">
+                                    @warehouse.StockQuantity.ToString("N2")
+                                </td>
+
+                                <td class="text-end fw-semibold">
+                                    ₹@warehouse.StockValue.ToString("N2")
+                                </td>
+
+                                @if (salesOrderEnabled)
+                                {
+                                    <td class="text-end">
+                                        ₹@warehouse.SalesValue.ToString("N2")
+                                    </td>
+                                }
+
+                                <td class="text-end pe-4">
+                                    ₹@warehouse.PurchaseValue.ToString("N2")
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="@(salesOrderEnabled ? 5 : 4)"
+                                class="text-center text-muted py-5">
+
+                                No warehouse data available.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     WAREHOUSE + STOCK MOVEMENT
+     ========================================================= -->
+
+<div class="row g-4 mb-4">
+
+    <!-- WAREHOUSE CHART -->
+
+    <div class="col-xl-6">
+
+        <div class="card analytics-card h-100">
+
+            <div class="card-header bg-white border-0 pt-4 px-4">
+
+                <h5 class="fw-bold mb-1">
+                    Inventory by Warehouse
+                </h5>
+
+                <div class="small text-muted">
+                    Current inventory value by warehouse
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (warehouses.Any())
+                {
+                    <div style="height:330px;">
+                        <canvas id="warehouseChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center align-items-center text-muted"
+                         style="height:330px;">
+
+                        No warehouse inventory data available.
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- STOCK MOVEMENT -->
+
+    <div class="col-xl-6">
+
+        <div class="card analytics-card h-100">
+
+            <div class="card-header bg-white border-0 pt-4 px-4">
+
+                <h5 class="fw-bold mb-1">
+                    Stock Movement
+                </h5>
+
+                <div class="small text-muted">
+                    Stock transactions during selected period
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                <div style="height:330px;">
+                    <canvas id="stockMovementChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MANAGEMENT INSIGHTS
+     ========================================================= -->
+
+<div class="card analytics-card mb-4">
+
+    <div class="card-header bg-white border-0 pt-4 px-4">
+
+        <h5 class="fw-bold mb-1">
+
+            <i class="bi bi-lightbulb text-warning me-2"></i>
+
+            Management Insights
+
+        </h5>
+
+        <div class="small text-muted">
+            Key observations from the selected period
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        @if (insights.Any())
+        {
+            <div class="row g-3">
+
+                @foreach (var insight in insights)
+                {
+                    var backgroundClass =
+                    insight.Type switch
+                    {
+                        "success" => "bg-success-subtle",
+                        "warning" => "bg-warning-subtle",
+                        "danger" => "bg-danger-subtle",
+                        _ => "bg-info-subtle"
+                    };
+
+                    var textClass =
+                    insight.Type switch
+                    {
+                        "success" => "text-success",
+                        "warning" => "text-warning",
+                        "danger" => "text-danger",
+                        _ => "text-info"
+                    };
+
+                    <div class="col-xl-4 col-md-6">
+
+                        <div class="insight-box">
+
+                            <div class="d-flex gap-3">
+
+                                <div class="@backgroundClass @textClass rounded-3 p-2 align-self-start">
+
+                                    <i class="bi @insight.Icon fs-5"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="fw-semibold mb-1">
+                                        @insight.Title
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        @insight.Description
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+
+                <i class="bi bi-info-circle fs-2 d-block mb-2"></i>
+
+                No management insights are available for this period.
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<script>
+    /*
+     * =========================================================
+     * SALES MODULE STATE
+     * =========================================================
+     *
+     * This value is generated by Razor.
+     *
+     * true  = Sales enabled
+     * false = Sales disabled
+     */
+    const salesOrderEnabled = @salesOrderEnabled.ToString().ToLowerInvariant();
+
+
+    /*
+     * =========================================================
+     * ANALYTICS DATA
+     * =========================================================
+     */
+
+    const categoryLabels =
+        @Html.Raw(categoryLabelsJson);
+
+    const categorySalesValues =
+        @Html.Raw(categorySalesValuesJson);
+
+    const categoryPurchaseValues =
+        @Html.Raw(categoryPurchaseValuesJson);
+
+    const categoryProfitValues =
+        @Html.Raw(categoryProfitValuesJson);
+
+    const categoryInventoryValues =
+        @Html.Raw(categoryInventoryValuesJson);
+
+
+    const salesTrendLabels =
+        @Html.Raw(salesTrendLabelsJson);
+
+    const salesTrendValues =
+        @Html.Raw(salesTrendValuesJson);
+
+    const purchaseTrendLabels =
+        @Html.Raw(purchaseTrendLabelsJson);
+
+    const purchaseTrendValues =
+        @Html.Raw(purchaseTrendValuesJson);
+
+    const profitTrendLabels =
+        @Html.Raw(profitTrendLabelsJson);
+
+    const profitTrendValues =
+        @Html.Raw(profitTrendValuesJson);
+
+
+    const warehouseLabels =
+        @Html.Raw(warehouseLabelsJson);
+
+    const warehouseStockValues =
+        @Html.Raw(warehouseStockValuesJson);
+
+    const inventoryHealthValues =
+        @Html.Raw(inventoryHealthValuesJson);
+
+    const stockMovementLabels =
+        @Html.Raw(stockMovementLabelsJson);
+
+    const stockMovementValues =
+        @Html.Raw(stockMovementValuesJson);
+
+
+    const netSales =
+        @Html.Raw(netSalesJson);
+
+    const purchases =
+        @Html.Raw(purchasesJson);
+
+    const grossProfit =
+        @Html.Raw(grossProfitJson);
+
+    const inventoryValue =
+        @Html.Raw(inventoryValueJson);
+
+
+</script>
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            "use strict";
+
+
+            // =========================================================
+            // SALES ORDER SETTINGS
+            // =========================================================
+
+            const salesOrderEnabled =
+                @Html.Raw(JsonSerializer.Serialize(salesOrderEnabled));
+
+            const salesOrderPluralLabel =
+                @Html.Raw(salesOrderPluralLabelJson);
+
+
+            // =========================================================
+            // KPI TOTALS
+            // =========================================================
+
+            const netSalesTotal =
+                @Html.Raw(netSalesJson);
+
+            const purchasesTotal =
+                @Html.Raw(purchasesJson);
+
+            const grossProfitTotal =
+                @Html.Raw(grossProfitJson);
+
+            const inventoryTotal =
+                @Html.Raw(inventoryValueJson);
+
+
+            // =========================================================
+            // CATEGORY DATA
+            // =========================================================
+
+            const categoryLabels =
+                @Html.Raw(categoryLabelsJson);
+
+            const categorySalesValues =
+                @Html.Raw(categorySalesValuesJson);
+
+            const categoryPurchaseValues =
+                @Html.Raw(categoryPurchaseValuesJson);
+
+            const categoryProfitValues =
+                @Html.Raw(categoryProfitValuesJson);
+
+            const categoryInventoryValues =
+                @Html.Raw(categoryInventoryValuesJson);
+
+
+            // =========================================================
+            // TREND DATA
+            // =========================================================
+
+            const salesLabels =
+                @Html.Raw(salesTrendLabelsJson);
+
+            const salesValues =
+                @Html.Raw(salesTrendValuesJson);
+
+            const purchaseLabels =
+                @Html.Raw(purchaseTrendLabelsJson);
+
+            const purchaseValues =
+                @Html.Raw(purchaseTrendValuesJson);
+
+            const profitLabels =
+                @Html.Raw(profitTrendLabelsJson);
+
+            const profitValues =
+                @Html.Raw(profitTrendValuesJson);
+
+
+            // =========================================================
+            // WAREHOUSE DATA
+            // =========================================================
+
+            const warehouseLabels =
+                @Html.Raw(warehouseLabelsJson);
+
+            const warehouseValues =
+                @Html.Raw(warehouseStockValuesJson);
+
+
+            // =========================================================
+            // INVENTORY HEALTH
+            // =========================================================
+
+            const inventoryHealthValues =
+                @Html.Raw(inventoryHealthValuesJson);
+
+
+            // =========================================================
+            // STOCK MOVEMENT
+            // =========================================================
+
+            const stockMovementLabels =
+                @Html.Raw(stockMovementLabelsJson);
+
+            const stockMovementValues =
+                @Html.Raw(stockMovementValuesJson);
+
+
+            // =========================================================
+            // CHART.JS CHECK
+            // =========================================================
+
+            if (typeof Chart === "undefined") {
+
+                console.error("Chart.js is not loaded.");
+
+                return;
+            }
+
+
+            // =========================================================
+            // GLOBAL DEFAULTS
+            // =========================================================
+
+            Chart.defaults.font.family =
+                "Inter, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
+
+            Chart.defaults.font.size = 11;
+
+            Chart.defaults.plugins.tooltip.padding = 10;
+
+            Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+            Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+
+            // =========================================================
+            // COLORS
+            // =========================================================
+
+            const netSalesColors = [
+                "#0d6efd",
+                "#20c997",
+                "#6610f2",
+                "#d63384",
+                "#fd7e14",
+                "#ffc107",
+                "#198754",
+                "#0dcaf0",
+                "#6f42c1",
+                "#dc3545",
+                "#6c757d",
+                "#343a40"
+            ];
+
+            const purchaseColors = [
+                "#198754",
+                "#20c997",
+                "#0d6efd",
+                "#6610f2",
+                "#ffc107",
+                "#fd7e14",
+                "#d63384",
+                "#0dcaf0",
+                "#6f42c1",
+                "#dc3545",
+                "#6c7576",
+                "#343a40"
+            ];
+
+            const profitColors = [
+                "#fd7e14",
+                "#ffc107",
+                "#198754",
+                "#20c997",
+                "#0d6efd",
+                "#6610f2",
+                "#d63384",
+                "#0dcaf0",
+                "#6f42c1",
+                "#dc3545",
+                "#6c7576",
+                "#343a40"
+            ];
+
+            const inventoryColors = [
+                "#6f42c1",
+                "#0d6efd",
+                "#20c997",
+                "#198754",
+                "#ffc107",
+                "#fd7e14",
+                "#dc3545",
+                "#d63384",
+                "#6610f2",
+                "#0dcaf0",
+                "#6c7576",
+                "#343a40"
+            ];
+
+
+            // =========================================================
+            // DOUGHNUT PLUGIN
+            // =========================================================
+
+            const doughnutInfoPlugin = {
+
+                id: "doughnutInfoPlugin",
+
+                afterDraw(chart, args, pluginOptions) {
+
+                    const dataset =
+                        chart.data.datasets[0];
+
+                    if (!dataset ||
+                        !dataset.data ||
+                        !dataset.data.length) {
+
+                        return;
+                    }
+
+                    const meta =
+                        chart.getDatasetMeta(0);
+
+                    const values =
+                        dataset.data.map(function (value) {
+
+                            return Math.max(
+                                Number(value) || 0,
+                                0
+                            );
+
+                        });
+
+                    const total =
+                        values.reduce(
+                            function (sum, value) {
+                                return sum + value;
+                            },
+                            0
+                        );
+
+                    if (total <= 0) {
+                        return;
+                    }
+
+                    const ctx =
+                        chart.ctx;
+
+                    ctx.save();
+
+
+                    // =====================================================
+                    // SLICE LABELS
+                    // =====================================================
+
+                    meta.data.forEach(function (arc, index) {
+
+                        const value =
+                            values[index];
+
+                        if (value <= 0) {
+                            return;
+                        }
+
+                        const percent =
+                            (value / total) * 100;
+
+                        if (percent < 5) {
+                            return;
+                        }
+
+                        const angle =
+                            (arc.startAngle + arc.endAngle) / 2;
+
+                        const radius =
+                            arc.innerRadius +
+                            (arc.outerRadius - arc.innerRadius) * 0.52;
+
+                        const x =
+                            arc.x +
+                            Math.cos(angle) * radius;
+
+                        const y =
+                            arc.y +
+                            Math.sin(angle) * radius;
+
+                        const label =
+                            chart.data.labels[index] || "";
+
+                        const shortLabel =
+                            label.length > 12
+                                ? label.substring(0, 10) + "…"
+                                : label;
+
+
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+
+                        ctx.fillStyle = "#ffffff";
+
+                        ctx.font =
+                            "600 9px Inter, Arial, sans-serif";
+
+                        ctx.fillText(
+                            shortLabel,
+                            x,
+                            y - 6
+                        );
+
+                        ctx.font =
+                            "700 9px Inter, Arial, sans-serif";
+
+                        ctx.fillText(
+                            percent.toFixed(1) + "%",
+                            x,
+                            y + 6
+                        );
+
+                    });
+
+
+                    // =====================================================
+                    // CENTER TEXT
+                    // =====================================================
+
+                    const centerX =
+                        chart.chartArea.left +
+                        (chart.chartArea.right -
+                         chart.chartArea.left) / 2;
+
+                    const centerY =
+                        chart.chartArea.top +
+                        (chart.chartArea.bottom -
+                         chart.chartArea.top) / 2;
+
+                    const centerTitle =
+                        pluginOptions?.centerTitle || "";
+
+                    const centerValue =
+                        pluginOptions?.centerValue || "";
+
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+
+                    ctx.fillStyle = "#6c757d";
+
+                    ctx.font =
+                        "600 9px Inter, Arial, sans-serif";
+
+                    ctx.fillText(
+                        centerTitle,
+                        centerX,
+                        centerY - 8
+                    );
+
+                    ctx.fillStyle = "#212529";
+
+                    ctx.font =
+                        "700 12px Inter, Arial, sans-serif";
+
+                    ctx.fillText(
+                        centerValue,
+                        centerX,
+                        centerY + 9
+                    );
+
+                    ctx.restore();
+                }
+            };
+
+
+            Chart.register(
+                doughnutInfoPlugin
+            );
+
+
+            // =========================================================
+            // FORMATTERS
+            // =========================================================
+
+            function formatCurrency(value) {
+
+                return "₹" +
+                    Number(value || 0).toLocaleString(
+                        "en-IN",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
+            }
+
+
+            function formatNumber(value) {
+
+                return Number(value || 0).toLocaleString(
+                    "en-IN",
+                    {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2
+                    }
+                );
+            }
+
+
+            function cleanArray(values) {
+
+                if (!Array.isArray(values)) {
+                    return [];
+                }
+
+                return values.map(function (value) {
+
+                    return Number(value) || 0;
+
+                });
+            }
+
+
+            // =========================================================
+            // KPI CANVAS
+            // =========================================================
+
+            function prepareKpiCanvas(canvas) {
+
+                if (!canvas) {
+                    return;
+                }
+
+                const parent =
+                    canvas.parentElement;
+
+                if (!parent) {
+                    return;
+                }
+
+                parent.style.position = "relative";
+                parent.style.width = "100%";
+                parent.style.height = "250px";
+                parent.style.minHeight = "250px";
+
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
+            }
+
+
+            // =========================================================
+            // KPI DOUGHNUT
+            // =========================================================
+
+            function createKpiDoughnut(
+                canvasId,
+                labels,
+                values,
+                colors,
+                centerTitle,
+                centerValue
+            ) {
+
+                const canvas =
+                    document.getElementById(canvasId);
+
+                if (!canvas) {
+                    return;
+                }
+
+                prepareKpiCanvas(canvas);
+
+                const safeLabels =
+                    Array.isArray(labels)
+                        ? labels
+                        : [];
+
+                const safeValues =
+                    cleanArray(values);
+
+                const count =
+                    Math.min(
+                        safeLabels.length,
+                        safeValues.length
+                    );
+
+                const finalLabels = [];
+                const finalValues = [];
+
+
+                // =====================================================
+                // KEEP EVERY CATEGORY
+                // =====================================================
+
+                for (let i = 0; i < count; i++) {
+
+                    const label =
+                        String(
+                            safeLabels[i] ?? "Uncategorized"
+                        ).trim() ||
+                        "Uncategorized";
+
+                    const value =
+                        Number(safeValues[i]) || 0;
+
+                    finalLabels.push(label);
+
+                    finalValues.push(
+                        Math.max(value, 0)
+                    );
+                }
+
+
+                const total =
+                    finalValues.reduce(
+                        function (sum, value) {
+
+                            return sum +
+                                Math.max(
+                                    Number(value) || 0,
+                                    0
+                                );
+
+                        },
+                        0
+                    );
+
+
+                // =====================================================
+                // NO DATA
+                // =====================================================
+
+                if (!finalLabels.length ||
+                    !finalValues.length ||
+                    total <= 0) {
+
+                    const parent =
+                        canvas.parentElement;
+
+                    if (parent) {
+
+                        parent.innerHTML =
+                            '<div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">' +
+                            '<i class="bi bi-pie-chart fs-2 mb-2"></i>' +
+                            '<span class="small">No category data available</span>' +
+                            '</div>';
+
+                    }
+
+                    return;
+                }
+
+
+                // =====================================================
+                // DESTROY OLD CHART
+                // =====================================================
+
+                const existingChart =
+                    Chart.getChart(canvas);
+
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+
+
+                // =====================================================
+                // CREATE CHART
+                // =====================================================
+
+                new Chart(
+                    canvas,
+                    {
+                        type: "doughnut",
+
+                        data: {
+
+                            labels: finalLabels,
+
+                            datasets: [
+                                {
+
+                                    data: finalValues,
+
+                                    backgroundColor:
+                                        finalLabels.map(
+                                            function (_, index) {
+
+                                                return colors[
+                                                    index %
+                                                    colors.length
+                                                ];
+
+                                            }
+                                        ),
+
+                                    borderColor: "#ffffff",
+
+                                    borderWidth: 2,
+
+                                    hoverOffset: 6,
+
+                                    spacing: 1
+                                }
+                            ]
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            cutout: "62%",
+
+                            radius: "88%",
+
+                            animation: {
+                                duration: 700
+                            },
+
+                            layout: {
+
+                                padding: {
+                                    top: 4,
+                                    bottom: 4,
+                                    left: 4,
+                                    right: 4
+                                }
+
+                            },
+
+                            plugins: {
+
+                                legend: {
+
+                                    display: true,
+
+                                    position: "bottom",
+
+                                    align: "center",
+
+                                    maxHeight: 65,
+
+                                    labels: {
+
+                                        usePointStyle: true,
+
+                                        pointStyle: "circle",
+
+                                        padding: 8,
+
+                                        boxWidth: 8,
+
+                                        boxHeight: 8,
+
+                                        font: {
+                                            size: 10
+                                        }
+
+                                    }
+
+                                },
+
+                                doughnutInfoPlugin: {
+
+                                    centerTitle: centerTitle,
+
+                                    centerValue: centerValue
+
+                                },
+
+                                tooltip: {
+
+                                    callbacks: {
+
+                                        label:
+                                            function (context) {
+
+                                                const value =
+                                                    Number(
+                                                        context.raw || 0
+                                                    );
+
+                                                const totalValue =
+                                                    context.dataset.data.reduce(
+                                                        function (
+                                                            sum,
+                                                            item
+                                                        ) {
+
+                                                            return sum +
+                                                                Math.max(
+                                                                    Number(item) || 0,
+                                                                    0
+                                                                );
+
+                                                        },
+                                                        0
+                                                    );
+
+                                                const percentage =
+                                                    totalValue > 0
+                                                        ? (
+                                                            value /
+                                                            totalValue
+                                                        ) * 100
+                                                        : 0;
+
+                                                return (
+                                                    " " +
+                                                    context.label +
+                                                    ": " +
+                                                    formatCurrency(value) +
+                                                    " (" +
+                                                    percentage.toFixed(1) +
+                                                    "%)"
+                                                );
+
+                                            }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+            }
+
+
+            // =========================================================
+            // KPI CHARTS
+            // =========================================================
+
+            // ---------------------------------------------------------
+            // NET SALES
+            // ---------------------------------------------------------
+
+            if (salesOrderEnabled) {
+
+                createKpiDoughnut(
+                    "netSalesKpiChart",
+                    categoryLabels,
+                    categorySalesValues,
+                    netSalesColors,
+                    "NET SALES",
+                    formatCurrency(netSalesTotal)
+                );
+
+            }
+
+
+            // ---------------------------------------------------------
+            // PURCHASES
+            // ---------------------------------------------------------
+
+            createKpiDoughnut(
+                "purchaseKpiChart",
+                categoryLabels,
+                categoryPurchaseValues,
+                purchaseColors,
+                "PURCHASES",
+                formatCurrency(purchasesTotal)
+            );
+
+
+            // ---------------------------------------------------------
+            // GROSS PROFIT
+            // ---------------------------------------------------------
+
+            if (salesOrderEnabled) {
+
+                createKpiDoughnut(
+                    "profitKpiChart",
+                    categoryLabels,
+                    categoryProfitValues,
+                    profitColors,
+                    "GROSS PROFIT",
+                    formatCurrency(grossProfitTotal)
+                );
+
+            }
+
+
+            // ---------------------------------------------------------
+            // INVENTORY
+            // ---------------------------------------------------------
+
+            createKpiDoughnut(
+                "inventoryKpiChart",
+                categoryLabels,
+                categoryInventoryValues,
+                inventoryColors,
+                "INVENTORY",
+                formatCurrency(inventoryTotal)
+            );
+
+
+            // =========================================================
+            // BUSINESS PERFORMANCE
+            // =========================================================
+
+            const businessTrendCanvas =
+                document.getElementById("businessTrendChart");
+
+            if (businessTrendCanvas) {
+
+                const datasets = [];
+
+
+                // -----------------------------------------------------
+                // SALES
+                // -----------------------------------------------------
+
+                if (salesOrderEnabled) {
+
+                    datasets.push({
+
+                        label: salesOrderPluralLabel,
+
+                        data: cleanArray(salesValues),
+
+                        borderColor: "#0d6efd",
+
+                        backgroundColor:
+                            "rgba(13,110,253,0.10)",
+
+                        borderWidth: 3,
+
+                        tension: 0.35,
+
+                        fill: true,
+
+                        pointRadius: 3,
+
+                        pointHoverRadius: 6
+
+                    });
+
+                }
+
+
+                // -----------------------------------------------------
+                // PURCHASES
+                // -----------------------------------------------------
+
+                datasets.push({
+
+                    label: "Purchases",
+
+                    data: cleanArray(purchaseValues),
+
+                    borderColor: "#198754",
+
+                    backgroundColor:
+                        "rgba(25,135,84,0.08)",
+
+                    borderWidth: 3,
+
+                    tension: 0.35,
+
+                    fill: true,
+
+                    pointRadius: 3,
+
+                    pointHoverRadius: 6
+
+                });
+
+
+                // -----------------------------------------------------
+                // GROSS PROFIT
+                // -----------------------------------------------------
+
+                if (salesOrderEnabled) {
+
+                    datasets.push({
+
+                        label: "Gross Profit",
+
+                        data: cleanArray(profitValues),
+
+                        borderColor: "#fd7e14",
+
+                        backgroundColor:
+                            "rgba(253,126,20,0.08)",
+
+                        borderWidth: 3,
+
+                        tension: 0.35,
+
+                        fill: true,
+
+                        pointRadius: 3,
+
+                        pointHoverRadius: 6
+
+                    });
+
+                }
+
+
+                // -----------------------------------------------------
+                // TREND LABELS
+                // -----------------------------------------------------
+
+                let trendLabels = [];
+
+
+                if (salesOrderEnabled &&
+                    Array.isArray(salesLabels) &&
+                    salesLabels.length > 0) {
+
+                    trendLabels = salesLabels;
+
+                }
+                else if (
+                    Array.isArray(purchaseLabels) &&
+                    purchaseLabels.length > 0
+                ) {
+
+                    trendLabels = purchaseLabels;
+
+                }
+
+
+                if (!trendLabels.length) {
+
+                    const parent =
+                        businessTrendCanvas.parentElement;
+
+                    if (parent) {
+
+                        parent.innerHTML =
+                            '<div class="d-flex align-items-center justify-content-center h-100 text-muted small">' +
+                            'No trend data available' +
+                            '</div>';
+
+                    }
+
+                }
+                else {
+
+                    const existingChart =
+                        Chart.getChart(
+                            businessTrendCanvas
+                        );
+
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+
+
+                    new Chart(
+                        businessTrendCanvas,
+                        {
+
+                            type: "line",
+
+                            data: {
+
+                                labels: trendLabels,
+
+                                datasets: datasets
+
+                            },
+
+                            options: {
+
+                                responsive: true,
+
+                                maintainAspectRatio: false,
+
+                                interaction: {
+
+                                    mode: "index",
+
+                                    intersect: false
+
+                                },
+
+                                plugins: {
+
+                                    legend: {
+
+                                        position: "top",
+
+                                        align: "end"
+
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label:
+                                                function (context) {
+
+                                                    return (
+                                                        " " +
+                                                        context.dataset.label +
+                                                        ": " +
+                                                        formatCurrency(
+                                                            context.raw
+                                                        )
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                },
+
+                                scales: {
+
+                                    x: {
+
+                                        grid: {
+                                            display: false
+                                        }
+
+                                    },
+
+                                    y: {
+
+                                        beginAtZero: true,
+
+                                        ticks: {
+
+                                            callback:
+                                                function (value) {
+
+                                                    return formatCurrency(
+                                                        value
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+
+
+            // =========================================================
+            // INVENTORY HEALTH
+            // =========================================================
+
+            const inventoryHealthCanvas =
+                document.getElementById(
+                    "inventoryHealthChart"
+                );
+
+            if (inventoryHealthCanvas) {
+
+                const healthValues =
+                    cleanArray(
+                        inventoryHealthValues
+                    );
+
+                const healthLabels = [
+                    "In Stock",
+                    "Low Stock",
+                    "Out of Stock"
+                ];
+
+                const healthTotal =
+                    healthValues.reduce(
+                        function (sum, value) {
+
+                            return sum +
+                                Math.max(value, 0);
+
+                        },
+                        0
+                    );
+
+
+                if (healthTotal <= 0) {
+
+                    const parent =
+                        inventoryHealthCanvas.parentElement;
+
+                    if (parent) {
+
+                        parent.innerHTML =
+                            '<div class="d-flex align-items-center justify-content-center h-100 text-muted small">' +
+                            'No inventory health data available' +
+                            '</div>';
+
+                    }
+
+                }
+                else {
+
+                    const existingChart =
+                        Chart.getChart(
+                            inventoryHealthCanvas
+                        );
+
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+
+
+                    new Chart(
+                        inventoryHealthCanvas,
+                        {
+
+                            type: "doughnut",
+
+                            data: {
+
+                                labels: healthLabels,
+
+                                datasets: [
+                                    {
+
+                                        data: healthValues,
+
+                                        backgroundColor: [
+                                            "#198754",
+                                            "#ffc107",
+                                            "#dc3545"
+                                        ],
+
+                                        borderColor: "#ffffff",
+
+                                        borderWidth: 2,
+
+                                        hoverOffset: 6
+
+                                    }
+                                ]
+
+                            },
+
+                            options: {
+
+                                responsive: true,
+
+                                maintainAspectRatio: false,
+
+                                cutout: "60%",
+
+                                plugins: {
+
+                                    legend: {
+
+                                        display: true,
+
+                                        position: "bottom",
+
+                                        labels: {
+
+                                            usePointStyle: true,
+
+                                            pointStyle: "circle",
+
+                                            padding: 15
+
+                                        }
+
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label:
+                                                function (context) {
+
+                                                    const value =
+                                                        Number(
+                                                            context.raw || 0
+                                                        );
+
+                                                    const percentage =
+                                                        healthTotal > 0
+                                                            ? (
+                                                                value /
+                                                                healthTotal
+                                                            ) * 100
+                                                            : 0;
+
+                                                    return (
+                                                        " " +
+                                                        context.label +
+                                                        ": " +
+                                                        formatNumber(value) +
+                                                        " (" +
+                                                        percentage.toFixed(1) +
+                                                        "%)"
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+
+
+            // =========================================================
+            // WAREHOUSE CHART
+            // =========================================================
+
+            const warehouseCanvas =
+                document.getElementById(
+                    "warehouseChart"
+                );
+
+            if (warehouseCanvas) {
+
+                const safeWarehouseLabels =
+                    Array.isArray(warehouseLabels)
+                        ? warehouseLabels
+                        : [];
+
+                const safeWarehouseValues =
+                    cleanArray(warehouseValues);
+
+                const warehouseCount =
+                    Math.min(
+                        safeWarehouseLabels.length,
+                        safeWarehouseValues.length
+                    );
+
+                const finalWarehouseLabels =
+                    safeWarehouseLabels.slice(
+                        0,
+                        warehouseCount
+                    );
+
+                const finalWarehouseValues =
+                    safeWarehouseValues.slice(
+                        0,
+                        warehouseCount
+                    );
+
+
+                if (!finalWarehouseLabels.length) {
+
+                    const parent =
+                        warehouseCanvas.parentElement;
+
+                    if (parent) {
+
+                        parent.innerHTML =
+                            '<div class="d-flex align-items-center justify-content-center h-100 text-muted small">' +
+                            'No warehouse data available' +
+                            '</div>';
+
+                    }
+
+                }
+                else {
+
+                    const existingChart =
+                        Chart.getChart(
+                            warehouseCanvas
+                        );
+
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+
+
+                    new Chart(
+                        warehouseCanvas,
+                        {
+
+                            type: "bar",
+
+                            data: {
+
+                                labels:
+                                    finalWarehouseLabels,
+
+                                datasets: [
+                                    {
+
+                                        label:
+                                            "Inventory Value",
+
+                                        data:
+                                            finalWarehouseValues,
+
+                                        backgroundColor: [
+                                            "#6f42c1",
+                                            "#0d6efd",
+                                            "#20c997",
+                                            "#198754",
+                                            "#ffc107",
+                                            "#fd7e14",
+                                            "#dc3545",
+                                            "#d63384",
+                                            "#6610f2",
+                                            "#0dcaf0"
+                                        ],
+
+                                        borderRadius: 8,
+
+                                        borderSkipped: false
+
+                                    }
+                                ]
+
+                            },
+
+                            options: {
+
+                                responsive: true,
+
+                                maintainAspectRatio: false,
+
+                                plugins: {
+
+                                    legend: {
+                                        display: false
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label:
+                                                function (context) {
+
+                                                    return (
+                                                        " Inventory Value: " +
+                                                        formatCurrency(
+                                                            context.raw
+                                                        )
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                },
+
+                                scales: {
+
+                                    x: {
+
+                                        grid: {
+                                            display: false
+                                        }
+
+                                    },
+
+                                    y: {
+
+                                        beginAtZero: true,
+
+                                        ticks: {
+
+                                            callback:
+                                                function (value) {
+
+                                                    return formatCurrency(
+                                                        value
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+
+
+            // =========================================================
+            // STOCK MOVEMENT
+            // =========================================================
+
+            const stockMovementCanvas =
+                document.getElementById(
+                    "stockMovementChart"
+                );
+
+            if (stockMovementCanvas) {
+
+                const safeMovementLabels =
+                    Array.isArray(stockMovementLabels)
+                        ? stockMovementLabels
+                        : [];
+
+                const movementValues =
+                    cleanArray(
+                        stockMovementValues
+                    );
+
+                const movementCount =
+                    Math.min(
+                        safeMovementLabels.length,
+                        movementValues.length
+                    );
+
+                const finalMovementLabels =
+                    safeMovementLabels.slice(
+                        0,
+                        movementCount
+                    );
+
+                const finalMovementValues =
+                    movementValues.slice(
+                        0,
+                        movementCount
+                    );
+
+
+                if (!finalMovementLabels.length) {
+
+                    const parent =
+                        stockMovementCanvas.parentElement;
+
+                    if (parent) {
+
+                        parent.innerHTML =
+                            '<div class="d-flex align-items-center justify-content-center h-100 text-muted small">' +
+                            'No stock movement data available' +
+                            '</div>';
+
+                    }
+
+                }
+                else {
+
+                    const existingChart =
+                        Chart.getChart(
+                            stockMovementCanvas
+                        );
+
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+
+
+                    new Chart(
+                        stockMovementCanvas,
+                        {
+
+                            type: "bar",
+
+                            data: {
+
+                                labels:
+                                    finalMovementLabels,
+
+                                datasets: [
+                                    {
+
+                                        label:
+                                            "Quantity",
+
+                                        data:
+                                            finalMovementValues,
+
+                                        backgroundColor: [
+                                            "#198754",
+                                            "#0d6efd",
+                                            "#20c997",
+                                            "#dc3545",
+                                            "#6f42c1",
+                                            "#fd7e14",
+                                            "#6c757d"
+                                        ],
+
+                                        borderRadius: 8,
+
+                                        borderSkipped: false
+
+                                    }
+                                ]
+
+                            },
+
+                            options: {
+
+                                responsive: true,
+
+                                maintainAspectRatio: false,
+
+                                plugins: {
+
+                                    legend: {
+                                        display: false
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label:
+                                                function (context) {
+
+                                                    return (
+                                                        " Quantity: " +
+                                                        formatNumber(
+                                                            context.raw
+                                                        )
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                },
+
+                                scales: {
+
+                                    x: {
+
+                                        grid: {
+                                            display: false
+                                        }
+
+                                    },
+
+                                    y: {
+
+                                        beginAtZero: true,
+
+                                        ticks: {
+
+                                            callback:
+                                                function (value) {
+
+                                                    return formatNumber(
+                                                        value
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+
+
+            // =========================================================
+            // CSV EXPORT
+            // =========================================================
+
+            window.exportCategoryReport =
+                function () {
+
+                    const table =
+                        document.getElementById(
+                            "categoryInventoryReportTable"
+                        );
+
+                    if (!table) {
+                        return;
+                    }
+
+
+                    const rows =
+                        Array.from(
+                            table.querySelectorAll("tr")
+                        );
+
+
+                    const csvRows =
+                        rows.map(function (row) {
+
+                            const cells =
+                                Array.from(
+                                    row.querySelectorAll(
+                                        "th, td"
+                                    )
+                                );
+
+                            return cells
+                                .map(function (cell) {
+
+                                    let value =
+                                        cell.innerText
+                                            .replace(
+                                                /\s+/g,
+                                                " "
+                                            )
+                                            .trim();
+
+                                    value =
+                                        value.replace(
+                                            /"/g,
+                                            '""'
+                                        );
+
+                                    return '"' +
+                                        value +
+                                        '"';
+
+                                })
+                                .join(",");
+
+                        });
+
+
+                    const csv =
+                        csvRows.join("\n");
+
+
+                    const blob =
+                        new Blob(
+                            [csv],
+                            {
+                                type:
+                                    "text/csv;charset=utf-8;"
+                            }
+                        );
+
+
+                    const url =
+                        URL.createObjectURL(blob);
+
+
+                    const link =
+                        document.createElement("a");
+
+                    link.href = url;
+
+                    link.download =
+                        "category-analytics-" +
+                        new Date()
+                            .toISOString()
+                            .slice(0, 10) +
+                        ".csv";
+
+
+                    document.body.appendChild(link);
+
+                    link.click();
+
+                    document.body.removeChild(link);
+
+                    URL.revokeObjectURL(url);
+
+                };
+
+        });
+
+    </script>
+
+}
