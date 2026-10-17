@@ -6,7 +6,7 @@ using StoreManagementSystem.Web.ViewModels.Sidebar;
 
 namespace StoreManagementSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "SuperAdmin")]
     public class SidebarController : Controller
     {
         private readonly ISidebarMenuService _sidebarMenuService;

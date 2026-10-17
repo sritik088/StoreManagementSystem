@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
 using StoreManagementSystem.Web.ViewModels.MainCategory;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class MainCategoryController : Controller
     {
         private readonly IMainCategoryService _service;
@@ -154,17 +156,17 @@ namespace StoreManagementSystem.Web.Controllers
         // DETAILS
         // =========================
 
-        [HttpGet]
-        public async Task<IActionResult> Details(int id)
-        {
-            var mainCategory =
-                await _service.GetByIdAsync(id);
+        //[HttpGet]
+        //public async Task<IActionResult> Details(int id)
+        //{
+        //    var mainCategory =
+        //        await _service.GetByIdAsync(id);
 
-            if (mainCategory == null)
-                return NotFound();
+        //    if (mainCategory == null)
+        //        return NotFound();
 
-            return View(mainCategory);
-        }
+        //    return View(mainCategory);
+        //}
 
         // =========================
         // DELETE

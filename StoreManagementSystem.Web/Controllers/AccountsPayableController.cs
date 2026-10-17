@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using StoreManagementSystem.Domain.Entities;
@@ -8,6 +9,7 @@ using StoreManagementSystem.Web.ViewModels.AccountsPayable;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class AccountsPayableController : Controller
     {
         private readonly ApplicationDbContext _context;

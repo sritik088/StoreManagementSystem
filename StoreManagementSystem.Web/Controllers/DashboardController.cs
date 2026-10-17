@@ -10,6 +10,7 @@ using StoreManagementSystem.Web.ViewModels.Dashboard;
 namespace StoreManagementSystem.Web.Controllers
 {
     [Authorize]
+    
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;

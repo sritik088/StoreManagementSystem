@@ -1,4 +1,23 @@
-﻿<nav class="navbar navbar-expand-lg px-4 mb-4">
+﻿
+@using Microsoft.AspNetCore.Identity
+@using StoreManagementSystem.Infrastructure.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+
+    var displayName = currentUser is null
+        ? "User"
+        : $"{currentUser.FirstName} {currentUser.LastName}".Trim();
+
+    if (string.IsNullOrWhiteSpace(displayName))
+    {
+        displayName = currentUser?.UserName ?? "User";
+    }
+}
+
+<nav class="navbar navbar-expand-lg px-4 mb-4">
 
     <div class="container-fluid">
 

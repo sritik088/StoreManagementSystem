@@ -1,33 +1,18 @@
 ﻿@{
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
     ViewData["Title"] = "Access Denied";
 }
 
-<div class="container mt-5">
+<div class="text-center">
+    <h2 class="account-title mb-3">Access Denied</h2>
 
-    <div class="alert alert-danger">
+    <p class="text-muted mb-4">
+        You don't have permission to access this page.
+        Please sign in with an authorized account.
+    </p>
 
-        <h2>
-
-            Access Denied
-
-        </h2>
-
-        <hr />
-
-        <p>
-
-            You don't have permission to access this page.
-
-        </p>
-
-        <a asp-controller="Dashboard"
-           asp-action="Index"
-           class="btn btn-primary">
-
-            Back to Dashboard
-
-        </a>
-
-    </div>
-
+    <a href="@Url.Content("~/Account/Login")"
+       class="btn btn-primary w-100">
+        Back to Login
+    </a>
 </div>

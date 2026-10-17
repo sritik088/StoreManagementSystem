@@ -1,0 +1,453 @@
+﻿/* =========================================================
+   GOODS RECEIPT DETAILS
+   ========================================================= */
+
+.grn-details-page {
+    padding: 24px 0 40px;
+}
+
+.grn-card {
+    border: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Header */
+
+.grn-header {
+    padding: 24px 28px;
+    border-bottom: 1px solid #e9ecef;
+    background: #fff;
+}
+
+.grn-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+}
+
+.grn-subtitle {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.grn-number {
+    font-size: 15px;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Badges */
+
+.grn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-received {
+    background: #d1e7dd;
+    color: #146c43;
+}
+
+/* Information */
+
+.info-section {
+    padding: 24px 28px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 18px;
+}
+
+.info-box {
+    background: #f8f9fa;
+    border: 1px solid #edf0f2;
+    border-radius: 10px;
+    padding: 15px 16px;
+    height: 100%;
+}
+
+.info-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+    overflow-wrap: anywhere;
+}
+
+    .info-value.muted {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+/* Items table */
+
+.items-section {
+    padding: 24px 28px 10px;
+}
+
+.items-table-wrapper {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.items-table {
+    width: 100%;
+    min-width: 950px;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+    .items-table thead th {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        color: #495057;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.35px;
+        padding: 13px 12px;
+        white-space: nowrap;
+    }
+
+    .items-table tbody td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #edf0f2;
+        vertical-align: middle;
+        font-size: 13px;
+        color: #343a40;
+    }
+
+    .items-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+.item-number {
+    width: 45px;
+    color: #6c757d !important;
+    font-weight: 600;
+    text-align: center;
+}
+
+.product-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 3px;
+}
+
+.product-sku {
+    font-size: 11px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.quantity {
+    font-weight: 600;
+    color: #343a40;
+    white-space: nowrap;
+}
+
+.money {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.total-cell {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #198754 !important;
+}
+
+/* Summary */
+
+.summary-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 28px 28px;
+}
+
+.summary-box {
+    width: 360px;
+    max-width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 16px;
+    font-size: 13px;
+}
+
+.summary-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.summary-value {
+    color: #343a40;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.summary-grand {
+    margin-top: 4px;
+    padding: 15px 16px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+    .summary-grand .summary-label {
+        color: #212529;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .summary-grand .summary-value {
+        color: #198754;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+/* Remarks */
+
+.remarks-section {
+    padding: 0 28px 28px;
+}
+
+.remarks-box {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px 16px;
+}
+
+.remarks-text {
+    margin: 0;
+    color: #495057;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Footer */
+
+.grn-footer {
+    padding: 18px 28px;
+    border-top: 1px solid #e9ecef;
+    background: #fafafa;
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+    @page {
+        size: auto;
+        margin: 12mm;
+    }
+
+    html,
+    body {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+        overflow: visible !important;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Hide navigation and action buttons */
+
+    .sidebar,
+    .navbar,
+    .admin-sidebar,
+    .top-navbar,
+    .grn-footer,
+    .no-print,
+    #printGrnButton {
+        display: none !important;
+    }
+
+    /* Remove application layout constraints */
+
+    .container,
+    .container-fluid,
+    main,
+    .main-content,
+    .admin-content,
+    .content-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        overflow: visible !important;
+    }
+
+    .grn-details-page {
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .grn-card {
+        width: 100% !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    .grn-header,
+    .info-section,
+    .items-section,
+    .remarks-section {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .grn-header {
+        padding-top: 0 !important;
+    }
+
+    .items-table-wrapper {
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+    }
+
+    .items-table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: auto;
+    }
+
+        .items-table thead {
+            display: table-header-group;
+        }
+
+        .items-table tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .items-table thead th,
+        .items-table tbody td {
+            border-color: #000 !important;
+            color: #000 !important;
+        }
+
+    .summary-wrapper {
+        padding-right: 0 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .summary-box {
+        border-color: #000 !important;
+    }
+
+    .summary-grand {
+        border-color: #000 !important;
+    }
+
+        .total-cell,
+        .summary-grand .summary-value {
+            color: #000 !important;
+        }
+
+    .info-box,
+    .remarks-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .grn-details-page {
+        padding: 12px 0 25px;
+    }
+
+    .grn-header,
+    .info-section {
+        padding: 18px;
+    }
+
+    .items-section {
+        padding: 18px 18px 5px;
+    }
+
+    .summary-wrapper {
+        padding: 18px;
+    }
+
+    .remarks-section {
+        padding: 0 18px 18px;
+    }
+
+    .grn-footer {
+        padding: 15px 18px;
+    }
+
+    .grn-title {
+        font-size: 20px;
+    }
+
+    .grn-badge {
+        font-size: 11px;
+        padding: 6px 9px;
+    }
+
+    .summary-box {
+        width: 100%;
+    }
+}

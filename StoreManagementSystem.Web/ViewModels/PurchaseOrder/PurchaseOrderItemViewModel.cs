@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
 {
@@ -9,7 +10,10 @@ namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
         [Required(ErrorMessage = "Please select a product.")]
         public int ProductId { get; set; }
 
+        // Product information displayed separately
         public string ProductName { get; set; } = string.Empty;
+
+        public string SKU { get; set; } = string.Empty;
 
         [Range(0.01, 999999)]
         public decimal Quantity { get; set; } = 1;
@@ -17,34 +21,19 @@ namespace StoreManagementSystem.Web.ViewModels.PurchaseOrder
         [Range(0, 999999)]
         public decimal UnitPrice { get; set; }
 
-        // =====================================================
-        // DISCOUNT
-        // =====================================================
-
-        // Discount percentage entered by the user in the UI
+        // Discount
         [Range(0, 100)]
         public decimal DiscountPercent { get; set; }
 
-        // Actual discount amount in ₹
-        // This is what should be stored in the database
         public decimal Discount { get; set; }
 
-        // =====================================================
-        // TAX
-        // =====================================================
-
-        // Tax percentage entered by the user in the UI
+        // Tax
         [Range(0, 100)]
         public decimal TaxPercent { get; set; }
 
-        // Actual tax amount in ₹
-        // This is what should be stored in the database
         public decimal TaxAmount { get; set; }
 
-        // =====================================================
-        // TOTAL
-        // =====================================================
-
+        // Total
         public decimal Total { get; set; }
     }
 }

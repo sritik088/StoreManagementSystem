@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using StoreManagementSystem.Application.Interfaces;
@@ -9,7 +10,7 @@ using StoreManagementSystem.Web.ViewModels.Product;
 
 namespace StoreManagementSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "SuperAdmin")]
     [PermissionAuthorize(PermissionConstants.ProductView)]
     public class ProductController : Controller
     {
@@ -36,21 +37,20 @@ namespace StoreManagementSystem.Web.Controllers
             _warehouseService = warehouseService;
         }
 
-        // =========================
+        // =========================================================
         // INDEX
-        // =========================
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             var products = await _productService.GetAllAsync();
-
             return View(products);
         }
 
-        // =========================
+        // =========================================================
         // CREATE - GET
-        // =========================
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -62,67 +62,73 @@ namespace StoreManagementSystem.Web.Controllers
             return View(model);
         }
 
-        // =========================
+        // =========================================================
         // CREATE - POST
-        // =========================
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            ProductViewModel model)
+        public async Task<IActionResult> Create(ProductViewModel model)
         {
+            NormalizeModel(model);
+
             if (!ModelState.IsValid)
             {
                 await LoadDropdownsAsync(model);
+                return View(model);
+            }
 
+            if (!await ValidateProductReferencesAsync(model))
+            {
+                await LoadDropdownsAsync(model);
                 return View(model);
             }
 
             var product = new Product
             {
-                MainCategoryId = model.MainCategoryId,
-                CategoryId = model.CategoryId,
-                SubCategoryId = model.SubCategoryId,
-
+                Title = model.Title.Trim(),
                 SKU = model.SKU.Trim(),
 
                 Barcode = string.IsNullOrWhiteSpace(model.Barcode)
                     ? null
                     : model.Barcode.Trim(),
 
+                MainCategoryId = model.MainCategoryId,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
+
                 SupplierId = model.SupplierId,
                 WarehouseId = model.WarehouseId
             };
 
-            var result =
-                await _productService.CreateAsync(product);
+            var result = await _productService.CreateAsync(product);
 
             if (!result)
             {
                 ModelState.AddModelError(
-                    "",
-                    "SKU or Barcode already exists.");
+                    string.Empty,
+                    "The product could not be created. Check whether the SKU or Barcode already exists.");
 
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
-            TempData["Success"] =
-                "Product created successfully.";
+            TempData["Success"] = "Product created successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        // =========================
+        // =========================================================
         // EDIT - GET
-        // =========================
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var product =
-                await _productService.GetByIdAsync(id);
+            if (id <= 0)
+                return BadRequest();
+
+            var product = await _productService.GetByIdAsync(id);
 
             if (product == null)
                 return NotFound();
@@ -130,27 +136,16 @@ namespace StoreManagementSystem.Web.Controllers
             var model = new ProductViewModel
             {
                 Id = product.Id,
+                Title = product.Title,
+                SKU = product.SKU,
+                Barcode = product.Barcode,
 
-                MainCategoryId =
-                    product.MainCategoryId,
+                MainCategoryId = product.MainCategoryId,
+                CategoryId = product.CategoryId,
+                SubCategoryId = product.SubCategoryId,
 
-                CategoryId =
-                    product.CategoryId,
-
-                SubCategoryId =
-                    product.SubCategoryId,
-
-                SKU =
-                    product.SKU,
-
-                Barcode =
-                    product.Barcode,
-
-                SupplierId =
-                    product.SupplierId,
-
-                WarehouseId =
-                    product.WarehouseId
+                SupplierId = product.SupplierId,
+                WarehouseId = product.WarehouseId
             };
 
             await LoadDropdownsAsync(model);
@@ -158,107 +153,116 @@ namespace StoreManagementSystem.Web.Controllers
             return View(model);
         }
 
-        // =========================
+        // =========================================================
         // EDIT - POST
-        // =========================
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            ProductViewModel model)
+        public async Task<IActionResult> Edit(ProductViewModel model)
         {
+            NormalizeModel(model);
+
+            if (model.Id <= 0)
+            {
+                return BadRequest();
+            }
+
             if (!ModelState.IsValid)
             {
                 await LoadDropdownsAsync(model);
+                return View(model);
+            }
 
+            var existingProduct =
+                await _productService.GetByIdAsync(model.Id);
+
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            if (!await ValidateProductReferencesAsync(model))
+            {
+                await LoadDropdownsAsync(model);
                 return View(model);
             }
 
             var product = new Product
             {
                 Id = model.Id,
+                Title = model.Title.Trim(),
+                SKU = model.SKU.Trim(),
 
-                MainCategoryId =
-                    model.MainCategoryId,
+                Barcode = string.IsNullOrWhiteSpace(model.Barcode)
+                    ? null
+                    : model.Barcode.Trim(),
 
-                CategoryId =
-                    model.CategoryId,
+                MainCategoryId = model.MainCategoryId,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
 
-                SubCategoryId =
-                    model.SubCategoryId,
-
-                SKU =
-                    model.SKU.Trim(),
-
-                Barcode =
-                    string.IsNullOrWhiteSpace(model.Barcode)
-                        ? null
-                        : model.Barcode.Trim(),
-
-                SupplierId =
-                    model.SupplierId,
-
-                WarehouseId =
-                    model.WarehouseId
+                SupplierId = model.SupplierId,
+                WarehouseId = model.WarehouseId
             };
 
-            var result =
-                await _productService.UpdateAsync(product);
+            var result = await _productService.UpdateAsync(product);
 
             if (!result)
             {
                 ModelState.AddModelError(
-                    "",
-                    "SKU or Barcode already exists, or Product was not found.");
+                    string.Empty,
+                    "The product could not be updated. Check whether the SKU or Barcode already exists.");
 
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
-            TempData["Success"] =
-                "Product updated successfully.";
+            TempData["Success"] = "Product updated successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        // =========================
+        // =========================================================
         // DELETE
-        // =========================
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var result =
-                await _productService.DeleteAsync(id);
+            if (id <= 0)
+            {
+                TempData["Error"] = "Invalid product ID.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var result = await _productService.DeleteAsync(id);
 
             if (result)
             {
-                TempData["Success"] =
-                    "Product deleted successfully.";
+                TempData["Success"] = "Product deleted successfully.";
             }
             else
             {
                 TempData["Error"] =
-                    "Product not found.";
+                    "Product not found or could not be deleted.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // =========================
-        // AJAX - GET CATEGORIES
-        // =========================
+        // =========================================================
+        // AJAX: GET CATEGORIES BY MAIN CATEGORY
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> GetCategories(int mainCategoryId)
         {
             if (mainCategoryId <= 0)
-                return Json(new List<object>());
+                return Json(Array.Empty<object>());
 
-            var categories =
-                await _categoryService.GetAllAsync();
+            var categories = await _categoryService.GetAllAsync();
 
             var result = categories
                 .Where(x => x.MainCategoryId == mainCategoryId)
@@ -272,19 +276,17 @@ namespace StoreManagementSystem.Web.Controllers
             return Json(result);
         }
 
-
-        // =========================
-        // AJAX - GET SUB CATEGORIES
-        // =========================
+        // =========================================================
+        // AJAX: GET SUBCATEGORIES BY CATEGORY
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> GetSubCategories(int categoryId)
         {
             if (categoryId <= 0)
-                return Json(new List<object>());
+                return Json(Array.Empty<object>());
 
-            var subCategories =
-                await _subCategoryService.GetAllAsync();
+            var subCategories = await _subCategoryService.GetAllAsync();
 
             var result = subCategories
                 .Where(x => x.CategoryId == categoryId)
@@ -298,101 +300,164 @@ namespace StoreManagementSystem.Web.Controllers
             return Json(result);
         }
 
-        // =========================
-        // LOAD DROPDOWNS
-        // =========================
+        // =========================================================
+        // NORMALIZE INPUT
+        // =========================================================
 
-        private async Task LoadDropdownsAsync(
-    ProductViewModel model)
+        private static void NormalizeModel(ProductViewModel model)
         {
-            // =========================
-            // MAIN CATEGORY
-            // =========================
+            model.Title = model.Title?.Trim() ?? string.Empty;
+            model.SKU = model.SKU?.Trim() ?? string.Empty;
 
+            model.Barcode = string.IsNullOrWhiteSpace(model.Barcode)
+                ? null
+                : model.Barcode.Trim();
+        }
+
+        // =========================================================
+        // VALIDATE CATEGORY, SUPPLIER AND WAREHOUSE REFERENCES
+        // =========================================================
+
+        private async Task<bool> ValidateProductReferencesAsync(
+            ProductViewModel model)
+        {
             var mainCategories =
                 await _mainCategoryService.GetAllAsync();
 
-            model.MainCategories =
-                mainCategories.Select(x =>
-                    new SelectListItem
-                    {
-                        Value = x.Id.ToString(),
-                        Text = x.Name,
-                        Selected = x.Id == model.MainCategoryId
-                    });
+            var mainCategoryExists = mainCategories.Any(
+                x => x.Id == model.MainCategoryId);
 
+            if (!mainCategoryExists)
+            {
+                ModelState.AddModelError(
+                    nameof(model.MainCategoryId),
+                    "Please select a valid Main Category.");
+            }
 
-            // =========================
-            // CATEGORY
-            // =========================
+            var categories = await _categoryService.GetAllAsync();
 
-            var Categories =
-               await _categoryService.GetAllAsync();
+            var categoryExists = categories.Any(
+                x => x.Id == model.CategoryId &&
+                     x.MainCategoryId == model.MainCategoryId);
 
-            model.Categories =
-                mainCategories.Select(x =>
-                    new SelectListItem
-                    {
-                        Value = x.Id.ToString(),
-                        Text = x.Name,
-                        Selected = x.Id == model.CategoryId
-                    });
+            if (!categoryExists)
+            {
+                ModelState.AddModelError(
+                    nameof(model.CategoryId),
+                    "Please select a Category belonging to the selected Main Category.");
+            }
 
+            var subCategories =
+                await _subCategoryService.GetAllAsync();
 
-            // =========================
-            // SUB CATEGORY
-            // =========================
+            var subCategoryExists = subCategories.Any(
+                x => x.Id == model.SubCategoryId &&
+                     x.CategoryId == model.CategoryId);
 
-           
-                var subCategories =
-                    await _subCategoryService.GetAllAsync();
+            if (!subCategoryExists)
+            {
+                ModelState.AddModelError(
+                    nameof(model.SubCategoryId),
+                    "Please select a Sub Category belonging to the selected Category.");
+            }
 
-            model.Categories =
-            mainCategories.Select(x =>
-                new SelectListItem
+            var suppliers = await _supplierService.GetAllAsync();
+
+            if (!suppliers.Any(x => x.Id == model.SupplierId))
+            {
+                ModelState.AddModelError(
+                    nameof(model.SupplierId),
+                    "Please select a valid Supplier.");
+            }
+
+            var warehouses = await _warehouseService.GetAllAsync();
+
+            if (!warehouses.Any(x => x.Id == model.WarehouseId))
+            {
+                ModelState.AddModelError(
+                    nameof(model.WarehouseId),
+                    "Please select a valid Warehouse.");
+            }
+
+            return ModelState.IsValid;
+        }
+
+        // =========================================================
+        // LOAD DROPDOWNS
+        // =========================================================
+
+        private async Task LoadDropdownsAsync(ProductViewModel model)
+        {
+            // Main Categories
+            var mainCategories =
+                await _mainCategoryService.GetAllAsync();
+
+            model.MainCategories = mainCategories
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == model.MainCategoryId
+                })
+                .ToList();
+
+            // Categories belonging to selected Main Category
+            var categories =
+                await _categoryService.GetAllAsync();
+
+            model.Categories = categories
+                .Where(x =>
+                    model.MainCategoryId > 0 &&
+                    x.MainCategoryId == model.MainCategoryId)
+                .Select(x => new SelectListItem
                 {
                     Value = x.Id.ToString(),
                     Text = x.Name,
                     Selected = x.Id == model.CategoryId
-                });
+                })
+                .ToList();
 
+            // Subcategories belonging to selected Category
+            var subCategories =
+                await _subCategoryService.GetAllAsync();
 
+            model.SubCategories = subCategories
+                .Where(x =>
+                    model.CategoryId > 0 &&
+                    x.CategoryId == model.CategoryId)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == model.SubCategoryId
+                })
+                .ToList();
 
-
-
-
-            // =========================
-            // SUPPLIER
-            // =========================
-
+            // Suppliers
             var suppliers =
                 await _supplierService.GetAllAsync();
 
-            model.Suppliers =
-                suppliers.Select(x =>
-                    new SelectListItem
-                    {
-                        Value = x.Id.ToString(),
-                        Text = x.Name,
-                        Selected = x.Id == model.SupplierId
-                    });
+            model.Suppliers = suppliers
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == model.SupplierId
+                })
+                .ToList();
 
-
-            // =========================
-            // WAREHOUSE
-            // =========================
-
+            // Warehouses
             var warehouses =
                 await _warehouseService.GetAllAsync();
 
-            model.Warehouses =
-                warehouses.Select(x =>
-                    new SelectListItem
-                    {
-                        Value = x.Id.ToString(),
-                        Text = x.Name,
-                        Selected = x.Id == model.WarehouseId
-                    });
+            model.Warehouses = warehouses
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == model.WarehouseId
+                })
+                .ToList();
         }
     }
 }

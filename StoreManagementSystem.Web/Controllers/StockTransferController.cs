@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
@@ -6,6 +7,7 @@ using StoreManagementSystem.Web.ViewModels.StockTransfer;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class StockTransferController : Controller
     {
         private readonly IStockTransferService _transferService;

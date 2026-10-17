@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace StoreManagementSystem.Domain.Entities
 {
@@ -34,10 +35,16 @@ namespace StoreManagementSystem.Domain.Entities
         public SubCategory? SubCategory { get; set; }
 
         // =========================
-        // Identification
+        // Product Identification
         // =========================
 
-        [Required]
+        [Required(ErrorMessage = "Product Title is required.")]
+        [StringLength(
+            150,
+            ErrorMessage = "Product Title cannot exceed 150 characters.")]
+        public string Title { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "SKU is required.")]
         [StringLength(50)]
         public string SKU { get; set; } = string.Empty;
 
@@ -62,8 +69,11 @@ namespace StoreManagementSystem.Domain.Entities
 
         public Warehouse? Warehouse { get; set; }
 
-        public bool IsDeleted { get; set; } = false;
+        // =========================
+        // Soft Delete
+        // =========================
 
+        public bool IsDeleted { get; set; } = false;
 
         // =========================
         // Navigation Collections
@@ -76,6 +86,6 @@ namespace StoreManagementSystem.Domain.Entities
             = new List<WarehouseStock>();
 
         public ICollection<StockLedger> StockLedgers { get; set; }
-    = new List<StockLedger>();
+            = new List<StockLedger>();
     }
 }

@@ -378,150 +378,101 @@
                                 </tr>
 
 
-                                <!-- ========================================== -->
-                                <!-- WAREHOUSE PRODUCT ROWS -->
-                                <!-- ========================================== -->
+                    
+<!-- ========================================== -->
+<!-- WAREHOUSE PRODUCT ROWS -->
+<!-- ========================================== -->
 
-                                <tr id="@collapseId"
-                                    class="warehouse-detail-row"
-                                    style="display:none;">
+<tr id="@collapseId"
+    class="warehouse-detail-row"
+    style="display:none;">
 
-                                    <td colspan="4"
-                                        class="p-0 bg-light">
+    <td colspan="4" class="p-0 bg-light">
 
-                                        @if (warehouseStocks.Any())
+        @if (warehouseStocks.Any())
+        {
+            <div class="p-3">
+
+                <div class="table-responsive">
+
+                    <table class="table table-sm table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Product Title</th>
+                                <th>Barcode</th>
+                                <th class="text-end">Closing Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in warehouseStocks)
+                            {
+                                <tr>
+
+                                    <!-- PRODUCT TITLE -->
+                                    <td class="fw-semibold">
+                                        @(string.IsNullOrWhiteSpace(item.Title)
+                                            ? "-"
+                                            : item.Title)
+                                    </td>
+
+                                    <!-- BARCODE -->
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(item.Barcode))
                                         {
-                                            <div class="p-3">
-
-                                                <div class="table-responsive">
-
-                                                    <table class="table table-sm table-hover align-middle mb-0">
-
-                                                        <thead>
-
-                                                            <tr>
-
-                                                                <th>
-                                                                    SKU
-                                                                </th>
-
-                                                                <th>
-                                                                    Barcode
-                                                                </th>
-
-                                                                <th class="text-end">
-                                                                    Closing Balance
-                                                                </th>
-
-                                                                <th>
-                                                                    Status
-                                                                </th>
-
-                                                            </tr>
-
-                                                        </thead>
-
-
-                                                        <tbody>
-
-                                                            @foreach (var item in warehouseStocks)
-                                                            {
-                                                                <tr>
-
-                                                                    <!-- SKU -->
-
-                                                                    <td>
-
-                                                                        @if (!string.IsNullOrWhiteSpace(item.SKU))
-                                                                        {
-                                                                            <span class="badge bg-white text-dark border">
-
-                                                                                @item.SKU
-
-                                                                            </span>
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <span class="text-muted">
-                                                                                -
-                                                                            </span>
-                                                                        }
-
-                                                                    </td>
-
-
-                                                                    <!-- Barcode -->
-
-                                                                    <td>
-
-                                                                        @if (!string.IsNullOrWhiteSpace(item.Barcode))
-                                                                        {
-                                                                            @item.Barcode
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <span class="text-muted">
-                                                                                -
-                                                                            </span>
-                                                                        }
-
-                                                                    </td>
-
-
-                                                                    <!-- Closing Balance -->
-
-                                                                    <td class="text-end">
-
-                                                                        <span class="fw-bold">
-
-                                                                            @item.ClosingBalance.ToString("N2")
-
-                                                                        </span>
-
-                                                                    </td>
-
-
-                                                                    <!-- Status -->
-
-                                                                    <td>
-
-                                                                        <span class="badge @item.StockStatusClass">
-
-                                                                            @item.StockStatus
-
-                                                                        </span>
-
-                                                                    </td>
-
-                                                                </tr>
-                                                            }
-
-                                                        </tbody>
-
-                                                    </table>
-
-                                                </div>
-
-                                            </div>
+                                            <span class="font-monospace">
+                                                @item.Barcode
+                                            </span>
                                         }
                                         else
                                         {
-                                            <div class="text-center py-4">
-
-                                                <i class="bi bi-box-seam fs-3 text-muted"></i>
-
-                                                <p class="text-muted mb-0 mt-2">
-
-                                                    No stock available in this warehouse.
-
-                                                </p>
-
-                                            </div>
+                                            <span class="text-muted">-</span>
                                         }
+                                    </td>
 
+                                    <!-- CLOSING BALANCE -->
+                                    <td class="text-end">
+                                        <span class="fw-bold">
+                                            @item.ClosingBalance.ToString("N2")
+                                        </span>
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        <span class="badge @item.StockStatusClass">
+                                            @item.StockStatus
+                                        </span>
                                     </td>
 
                                 </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-box-seam fs-3 text-muted"></i>
+
+                <p class="text-muted mb-0 mt-2">
+                    No stock available in this warehouse.
+                </p>
+            </div>
+        }
+
+    </td>
+
+</tr>
+
                             }
 
                         </tbody>

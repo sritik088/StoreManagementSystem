@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreManagementSystem.Domain.Entities;
 using StoreManagementSystem.Infrastructure.Data;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class DamageController : Controller
     {
         private readonly ApplicationDbContext _context;

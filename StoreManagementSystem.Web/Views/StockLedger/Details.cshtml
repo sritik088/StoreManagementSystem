@@ -5,204 +5,147 @@
     Layout = "_AdminLayout";
 }
 
-<div class="card shadow-sm">
+<div class="container-fluid py-4">
 
-    <div class="card-header">
-
-        <h4 class="mb-0">
-
-            <i class="bi bi-journal-text"></i>
-
-            Stock Ledger Details
-
-        </h4>
-
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-journal-text me-2"></i>
+                Stock Ledger Details
+            </h2>
+            <p class="text-muted mb-0">
+                View product, warehouse, and transaction information.
+            </p>
+        </div>
     </div>
 
-    <div class="card-body">
+    <div class="card border-0 shadow-sm">
 
-        <div class="row">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-info-circle me-2 text-primary"></i>
+                Transaction Information
+            </h5>
+        </div>
 
-            <!-- Product -->
+        <div class="card-body p-4">
 
-            <div class="col-md-6 mb-3">
+            <div class="row g-3">
 
-                <label class="fw-bold">
-                    Product
-                </label>
+                <!-- PRODUCT TITLE -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Product Title
+                    </label>
+                    <input class="form-control"
+                           value="@(Model.Product?.Title ?? "—")"
+                           readonly />
+                </div>
 
-                <input class="form-control"
-                       value="@Model.Product?.SKU"
-                       readonly />
+                <!-- WAREHOUSE -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Warehouse
+                    </label>
+                    <input class="form-control"
+                           value="@(Model.Warehouse?.Name ?? "—")"
+                           readonly />
+                </div>
 
-            </div>
+                <!-- TRANSACTION TYPE -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Transaction Type
+                    </label>
+                    <input class="form-control"
+                           value="@Model.TransactionType"
+                           readonly />
+                </div>
 
+                <!-- QUANTITY -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Quantity
+                    </label>
+                    <input class="form-control"
+                           value="@Model.Quantity.ToString("N2")"
+                           readonly />
+                </div>
 
-            <!-- SKU -->
+                <!-- BALANCE -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Balance After Transaction
+                    </label>
+                    <input class="form-control fw-bold"
+                           value="@Model.BalanceAfterTransaction.ToString("N2")"
+                           readonly />
+                </div>
 
-            <div class="col-md-6 mb-3">
+                <!-- UNIT COST -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Unit Cost
+                    </label>
+                    <input class="form-control"
+                           value="₹ @Model.UnitCost.ToString("N2")"
+                           readonly />
+                </div>
 
-                <label class="fw-bold">
-                    SKU
-                </label>
+                <!-- REFERENCE NUMBER -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Reference Number
+                    </label>
+                    <input class="form-control"
+                           value="@(Model.ReferenceNo ?? "—")"
+                           readonly />
+                </div>
 
-                <input class="form-control"
-                       value="@Model.Product?.SKU"
-                       readonly />
+                <!-- TRANSACTION DATE -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Transaction Date
+                    </label>
+                    <input class="form-control"
+                           value="@Model.TransactionDate.ToString("dd-MMM-yyyy HH:mm")"
+                           readonly />
+                </div>
 
-            </div>
+                <!-- CREATED BY -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Created By
+                    </label>
+                    <input class="form-control"
+                           value="@(Model.CreatedBy ?? "—")"
+                           readonly />
+                </div>
 
-
-            <!-- Warehouse -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Warehouse
-                </label>
-
-                <input class="form-control"
-                       value="@Model.Warehouse?.Name"
-                       readonly />
-
-            </div>
-
-
-            <!-- Transaction -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Transaction Type
-                </label>
-
-                <input class="form-control"
-                       value="@Model.TransactionType"
-                       readonly />
-
-            </div>
-
-
-            <!-- Quantity -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Quantity
-                </label>
-
-                <input class="form-control"
-                       value="@Model.Quantity"
-                       readonly />
-
-            </div>
-
-
-            <!-- Balance -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Balance After Transaction
-                </label>
-
-                <input class="form-control fw-bold"
-                       value="@Model.BalanceAfterTransaction"
-                       readonly />
-
-            </div>
-
-
-            <!-- Unit Cost -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Unit Cost
-                </label>
-
-                <input class="form-control"
-                       value="₹ @Model.UnitCost.ToString("N2")"
-                       readonly />
-
-            </div>
-
-
-            <!-- Reference -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Reference Number
-                </label>
-
-                <input class="form-control"
-                       value="@Model.ReferenceNo"
-                       readonly />
+                <!-- REMARKS -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold">
+                        Remarks
+                    </label>
+                    <textarea class="form-control"
+                              rows="3"
+                              readonly>@(Model.Remarks ?? string.Empty)</textarea>
+                </div>
 
             </div>
 
-
-            <!-- Date -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Transaction Date
-                </label>
-
-                <input class="form-control"
-                       value="@Model.TransactionDate.ToString("dd-MMM-yyyy HH:mm")"
-                       readonly />
-
-            </div>
-
-
-            <!-- Created By -->
-
-            <div class="col-md-6 mb-3">
-
-                <label class="fw-bold">
-                    Created By
-                </label>
-
-                <input class="form-control"
-                       value="@Model.CreatedBy"
-                       readonly />
-
-            </div>
-
-
-            <!-- Remarks -->
-
-            <div class="col-md-12 mb-3">
-
-                <label class="fw-bold">
-                    Remarks
-                </label>
-
-                <textarea class="form-control"
-                          rows="3"
-                          readonly>@Model.Remarks</textarea>
-
+            <!-- ACTIONS -->
+            <div class="d-flex justify-content-start mt-4">
+                <a asp-controller="StockLedger"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back to Stock Ledger
+                </a>
             </div>
 
         </div>
-
-
-        <div class="mt-3">
-
-            <a asp-action="Index"
-               class="btn btn-secondary">
-
-                <i class="bi bi-arrow-left"></i>
-
-                Back
-
-            </a>
-
-        </div>
-
     </div>
 
 </div>

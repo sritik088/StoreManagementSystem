@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Application.ViewModels;
 
+
+
 namespace StoreManagementSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "SuperAdmin")]
     public class SettingsController : Controller
     {
         private readonly ISystemSettingService _systemSettingService;
@@ -15,6 +17,9 @@ namespace StoreManagementSystem.Web.Controllers
         {
             _systemSettingService = systemSettingService;
         }
+
+     
+
 
 
         // =========================================================

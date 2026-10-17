@@ -328,47 +328,57 @@ namespace StoreManagementSystem.Infrastructure.Repositories
             // UnitOfWork controls the transaction.
         }
 
-        // =====================================================
-        // RECALCULATE PURCHASE ORDER STATUS
-        // =====================================================
 
-        public async Task
-            RecalculatePurchaseOrderStatusAsync(
-                int purchaseOrderId)
+// =====================================================
+// RECALCULATE PURCHASE ORDER STATUS
+// =====================================================
+
+public async Task RecalculatePurchaseOrderStatusAsync(
+    int purchaseOrderId)
         {
-            var purchaseOrder =
-                await _context.PurchaseOrders
-
-                    .Include(x => x.Items)
-
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == purchaseOrderId &&
-                        !x.IsDeleted);
+            var purchaseOrder = await _context.PurchaseOrders
+                .Include(x => x.Items)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == purchaseOrderId &&
+                    !x.IsDeleted);
 
             if (purchaseOrder == null)
                 return;
 
-            bool hasAnyReceipt = false;
+            // Do not change Draft or Cancelled purchase orders.
+            if (purchaseOrder.Status == PurchaseOrderStatus.Draft ||
+                purchaseOrder.Status == PurchaseOrderStatus.Cancelled)
+            {
+                return;
+            }
 
+            // A purchase order without items cannot be fully received.
+            if (purchaseOrder.Items == null ||
+                purchaseOrder.Items.Count == 0)
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.Approved;
+                purchaseOrder.UpdatedDate = DateTime.Now;
+                return;
+            }
+
+            bool hasAnyReceipt = false;
             bool fullyReceived = true;
 
             foreach (var poItem in purchaseOrder.Items)
             {
                 decimal receivedQuantity =
                     await _context.GoodsReceiptItems
-
                         .Where(x =>
-                            x.PurchaseOrderItemId ==
-                                poItem.Id &&
-
+                            x.PurchaseOrderItemId == poItem.Id &&
                             x.GoodsReceipt != null &&
-
-                            !x.GoodsReceipt.IsDeleted)
-
+                            !x.GoodsReceipt.IsDeleted &&
+                            x.GoodsReceipt.ReceiptType ==
+                                GoodsReceiptType.Purchase &&
+                            x.GoodsReceipt.Status ==
+                                GoodsReceiptStatus.Received)
                         .SumAsync(x =>
                             (decimal?)x.ReceivedQuantity)
-
-                        ?? 0m;
+                    ?? 0m;
 
                 if (receivedQuantity > 0)
                 {
@@ -381,9 +391,9 @@ namespace StoreManagementSystem.Infrastructure.Repositories
                 }
             }
 
-            // =================================================
+            // =====================================================
             // UPDATE PURCHASE ORDER STATUS
-            // =================================================
+            // =====================================================
 
             if (!hasAnyReceipt)
             {
@@ -401,11 +411,11 @@ namespace StoreManagementSystem.Infrastructure.Repositories
                     PurchaseOrderStatus.PartiallyReceived;
             }
 
-            purchaseOrder.UpdatedDate =
-                DateTime.Now;
+            purchaseOrder.UpdatedDate = DateTime.Now;
 
-            // Entity is tracked.
-            // UnitOfWork will save it.
+            // Do not call SaveChangesAsync() here.
+            // UnitOfWork controls saving and transaction commits.
         }
+
     }
 }

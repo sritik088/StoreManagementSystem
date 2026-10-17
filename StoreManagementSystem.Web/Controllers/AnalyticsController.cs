@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
@@ -8,6 +9,7 @@ using StoreManagementSystem.Web.ViewModels.Analytics;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class AnalyticsController : Controller
     {
         private readonly ApplicationDbContext _context;

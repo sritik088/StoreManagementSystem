@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace StoreManagementSystem.Application.ViewModels
 {
     public class WarehouseStockViewModel
     {
         public int Id { get; set; }
-
 
         // ==========================================
         // WAREHOUSE
@@ -16,17 +16,18 @@ namespace StoreManagementSystem.Application.ViewModels
         [Display(Name = "Warehouse")]
         public string WarehouseName { get; set; } = string.Empty;
 
-
         // ==========================================
         // PRODUCT
         // ==========================================
+
+        [Display(Name = "Product Title")]
+        public string Title { get; set; } = string.Empty;
 
         [Display(Name = "SKU")]
         public string SKU { get; set; } = string.Empty;
 
         [Display(Name = "Barcode")]
         public string Barcode { get; set; } = string.Empty;
-
 
         // ==========================================
         // CLOSING BALANCE
@@ -35,20 +36,16 @@ namespace StoreManagementSystem.Application.ViewModels
         [Display(Name = "Closing Balance")]
         public decimal ClosingBalance { get; set; }
 
-
         // ==========================================
         // STOCK LIMITS
-        // These are NOT displayed in the table.
-        // They are only used for Status.
         // ==========================================
 
         public decimal MinimumStock { get; set; }
 
         public decimal MaximumStock { get; set; }
 
-
         // ==========================================
-        // STATUS
+        // STOCK STATUS
         // ==========================================
 
         public string StockStatus
@@ -69,7 +66,6 @@ namespace StoreManagementSystem.Application.ViewModels
             }
         }
 
-
         // ==========================================
         // STATUS CSS CLASS
         // ==========================================
@@ -80,17 +76,10 @@ namespace StoreManagementSystem.Application.ViewModels
             {
                 return StockStatus switch
                 {
-                    "Out of Stock" =>
-                        "bg-danger",
-
-                    "Low Stock" =>
-                        "bg-warning text-dark",
-
-                    "Over Stock" =>
-                        "bg-info text-dark",
-
-                    _ =>
-                        "bg-success"
+                    "Out of Stock" => "bg-danger",
+                    "Low Stock" => "bg-warning text-dark",
+                    "Over Stock" => "bg-info text-dark",
+                    _ => "bg-success"
                 };
             }
         }

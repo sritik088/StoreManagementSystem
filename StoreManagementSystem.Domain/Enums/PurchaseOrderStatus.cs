@@ -9,7 +9,9 @@
         Received = 3,
 
         Cancelled = 4,
+
         PartiallyReceived = 5,
+
         FullyReceived = 6
     }
 }

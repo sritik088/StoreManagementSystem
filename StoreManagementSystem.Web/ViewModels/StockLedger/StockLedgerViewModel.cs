@@ -13,6 +13,7 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
 
         public int ProductId { get; set; }
 
+        // Displays the Product Title instead of SKU.
         public string ProductName { get; set; } = string.Empty;
 
         public string MainCategoryName { get; set; } = string.Empty;
@@ -41,7 +42,6 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
             Math.Abs(Quantity) * UnitCost;
     }
 
-
     // ============================================================
     // WAREHOUSE GROUP
     // ============================================================
@@ -54,13 +54,11 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
 
         public List<StockLedgerViewModel> Products { get; set; } = new();
 
-        public int ProductCount =>
-            Products.Count;
+        public int ProductCount => Products.Count;
 
         public decimal ClosingBalance =>
             Products.Sum(x => x.BalanceAfterTransaction);
     }
-
 
     // ============================================================
     // MAIN PAGE VIEW MODEL
@@ -68,16 +66,7 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
 
     public class StockLedgerIndexViewModel
     {
-        // --------------------------------------------------------
-        // SELECTED DATE
-        // --------------------------------------------------------
-
         public DateTime SelectedDate { get; set; }
-
-
-        // --------------------------------------------------------
-        // WAREHOUSE GROUPS
-        // --------------------------------------------------------
 
         public List<StockLedgerWarehouseGroupViewModel> Warehouses
         {
@@ -85,13 +74,8 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
             set;
         } = new();
 
-
-        // --------------------------------------------------------
-        // SUMMARY
-        // --------------------------------------------------------
-
-        public int TotalWarehouses =>
-            Warehouses.Count;
+        // Summary
+        public int TotalWarehouses => Warehouses.Count;
 
         public int TotalProducts =>
             Warehouses.Sum(x => x.Products.Count);
@@ -103,7 +87,6 @@ namespace StoreManagementSystem.Web.ViewModels.StockLedger
             Warehouses
                 .SelectMany(x => x.Products)
                 .Sum(x =>
-                    x.BalanceAfterTransaction *
-                    x.UnitCost);
+                    x.BalanceAfterTransaction * x.UnitCost);
     }
 }

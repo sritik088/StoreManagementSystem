@@ -11,7 +11,7 @@ using StoreManagementSystem.Web.ViewModels.Reports;
 
 namespace StoreManagementSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "SuperAdmin")]
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -91,35 +91,27 @@ namespace StoreManagementSystem.Web.Controllers
             await LoadSalesOrderSettingsAsync();
 
             var salesOrderEnabled =
-                (bool)ViewData["SalesOrderEnabled"]!;
+                ViewData["SalesOrderEnabled"] is bool enabled && enabled;
 
-            var model =
-                new DashboardReportViewModel
-                {
-                    TotalProducts =
-                        await _context.Products
-                            .CountAsync(x =>
-                                !x.IsDeleted),
+            var model = new DashboardReportViewModel
+            {
+                TotalProducts =
+                    await _context.Products.CountAsync(x => !x.IsDeleted),
 
-                    TotalSuppliers =
-                        await _context.Suppliers
-                            .CountAsync(x =>
-                                !x.IsDeleted),
+                TotalSuppliers =
+                    await _context.Suppliers.CountAsync(x => !x.IsDeleted),
 
-                    TotalCustomers =
-                        await _context.Customers
-                            .CountAsync(),
+                TotalCustomers =
+                    await _context.Customers.CountAsync(),
 
-                    TotalWarehouses =
-                        await _context.Warehouses
-                            .CountAsync(x =>
-                                !x.IsDeleted)
-                };
+                TotalWarehouses =
+                    await _context.Warehouses.CountAsync(x => !x.IsDeleted)
+            };
 
             if (salesOrderEnabled)
             {
-                // Sales Order calculations can be added here
-                // when DashboardReportViewModel contains them.
+                // Add sales summary properties here when available
+                // in DashboardReportViewModel.
             }
 
             return View(model);
@@ -138,137 +130,77 @@ namespace StoreManagementSystem.Web.Controllers
         {
             await LoadOrganisationSettingsAsync();
 
-            var query =
-                _context.PurchaseOrders
-                    .Include(x => x.Supplier)
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .AsQueryable();
+            var query = _context.PurchaseOrders
+                .AsNoTracking()
+                .Include(x => x.Supplier)
+                .Where(x => !x.IsDeleted)
+                .AsQueryable();
 
             if (fromDate.HasValue)
             {
-                query =
-                    query.Where(x =>
-                        x.OrderDate.Date >=
-                        fromDate.Value.Date);
+                query = query.Where(x =>
+                    x.OrderDate.Date >= fromDate.Value.Date);
             }
 
             if (toDate.HasValue)
             {
-                query =
-                    query.Where(x =>
-                        x.OrderDate.Date <=
-                        toDate.Value.Date);
+                query = query.Where(x =>
+                    x.OrderDate.Date <= toDate.Value.Date);
             }
 
-            if (supplierId.HasValue &&
-                supplierId.Value > 0)
+            if (supplierId.HasValue && supplierId.Value > 0)
             {
-                query =
-                    query.Where(x =>
-                        x.SupplierId ==
-                        supplierId.Value);
+                query = query.Where(x =>
+                    x.SupplierId == supplierId.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(status))
             {
-                query =
-                    query.Where(x =>
-                        x.Status.ToString() ==
-                        status);
+                query = query.Where(x =>
+                    x.Status.ToString() == status);
             }
 
-            var orders =
-                await query
-                    .OrderByDescending(x =>
-                        x.OrderDate)
-                    .ToListAsync();
+            var orders = await query
+                .OrderByDescending(x => x.OrderDate)
+                .ToListAsync();
 
-            var model =
-                new PurchaseReportViewModel
+            var model = new PurchaseReportViewModel
+            {
+                FromDate = fromDate,
+                ToDate = toDate,
+                SupplierId = supplierId,
+                Status = status,
+
+                TotalOrders = orders.Count,
+                TotalPurchase = orders.Sum(x => x.GrandTotal),
+                TotalTax = orders.Sum(x => x.TaxAmount),
+                TotalDiscount = orders.Sum(x => x.Discount),
+
+                Orders = orders.Select(x => new PurchaseReportRowViewModel
                 {
-                    FromDate =
-                        fromDate,
+                    Id = x.Id,
+                    PONumber = x.PONumber,
+                    OrderDate = x.OrderDate,
+                    ExpectedDate = x.ExpectedDate,
+                    SupplierName = x.Supplier?.Name ?? "Unknown",
+                    SubTotal = x.SubTotal,
+                    Discount = x.Discount,
+                    TaxAmount = x.TaxAmount,
+                    GrandTotal = x.GrandTotal,
+                    Status = x.Status.ToString()
+                }).ToList(),
 
-                    ToDate =
-                        toDate,
-
-                    SupplierId =
-                        supplierId,
-
-                    Status =
-                        status,
-
-                    TotalOrders =
-                        orders.Count,
-
-                    TotalPurchase =
-                        orders.Sum(x =>
-                            x.GrandTotal),
-
-                    TotalTax =
-                        orders.Sum(x =>
-                            x.TaxAmount),
-
-                    TotalDiscount =
-                        orders.Sum(x =>
-                            x.Discount),
-
-                    Orders =
-                        orders
-                            .Select(x =>
-                                new PurchaseReportRowViewModel
-                                {
-                                    Id =
-                                        x.Id,
-
-                                    PONumber =
-                                        x.PONumber,
-
-                                    OrderDate =
-                                        x.OrderDate,
-
-                                    ExpectedDate =
-                                        x.ExpectedDate,
-
-                                    SupplierName =
-                                        x.Supplier?.Name ??
-                                        "Unknown",
-
-                                    SubTotal =
-                                        x.SubTotal,
-
-                                    Discount =
-                                        x.Discount,
-
-                                    TaxAmount =
-                                        x.TaxAmount,
-
-                                    GrandTotal =
-                                        x.GrandTotal,
-
-                                    Status =
-                                        x.Status.ToString()
-                                })
-                            .ToList(),
-
-                    Suppliers =
-                        await _context.Suppliers
-                            .Where(x =>
-                                !x.IsDeleted)
-                            .OrderBy(x =>
-                                x.Name)
-                            .Select(x =>
-                                new SupplierReportFilterViewModel
-                                {
-                                    Id =
-                                        x.Id,
-
-                                    Name =
-                                        x.Name
-                                })
-                            .ToListAsync()
-                };
+                Suppliers = await _context.Suppliers
+                    .AsNoTracking()
+                    .Where(x => !x.IsDeleted)
+                    .OrderBy(x => x.Name)
+                    .Select(x => new SupplierReportFilterViewModel
+                    {
+                        Id = x.Id,
+                        Name = x.Name
+                    })
+                    .ToListAsync()
+            };
 
             return View(model);
         }
@@ -282,18 +214,10 @@ namespace StoreManagementSystem.Web.Controllers
             DateTime? fromDate,
             DateTime? toDate)
         {
-            // ---------------------------------------------------------
-            // LOAD SALES ORDER SETTINGS
-            // ---------------------------------------------------------
-
             await LoadSalesOrderSettingsAsync();
 
             var salesOrderEnabled =
-                (bool)ViewData["SalesOrderEnabled"]!;
-
-            // ---------------------------------------------------------
-            // IF SALES ORDER MODULE IS OFF
-            // ---------------------------------------------------------
+                ViewData["SalesOrderEnabled"] is bool enabled && enabled;
 
             if (!salesOrderEnabled)
             {
@@ -303,55 +227,30 @@ namespace StoreManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Dashboard));
             }
 
-            // ---------------------------------------------------------
-            // DATE RANGE
-            // ---------------------------------------------------------
-
             var today = DateTime.Today;
 
-            var startDate =
-                fromDate?.Date
-                ?? new DateTime(
-                    today.Year,
-                    today.Month,
-                    1);
+            var startDate = fromDate?.Date
+                ?? new DateTime(today.Year, today.Month, 1);
 
-            var endDate =
-                toDate?.Date
-                ?? today;
+            var endDate = toDate?.Date ?? today;
 
             if (startDate > endDate)
             {
                 endDate = startDate;
             }
 
-            var endDateExclusive =
-                endDate.AddDays(1);
+            var endDateExclusive = endDate.AddDays(1);
 
-            // ---------------------------------------------------------
-            // LOAD ONLY CONFIRMED SALES
-            //
-            // Draft     = NOT included
-            // Confirmed = INCLUDED
-            // Cancelled = NOT included
-            // Deleted   = NOT included
-            // ---------------------------------------------------------
-
-            var orders =
-                await _context.SalesOrders
-                    .AsNoTracking()
-                    .Include(x => x.SalesOrderItems)
-                    .Where(x =>
-                        !x.IsDeleted &&
-                        x.Status == SalesOrderStatus.Confirmed &&
-                        x.OrderDate >= startDate &&
-                        x.OrderDate < endDateExclusive)
-                    .OrderByDescending(x => x.OrderDate)
-                    .ToListAsync();
-
-            // ---------------------------------------------------------
-            // TOTALS
-            // ---------------------------------------------------------
+            var orders = await _context.SalesOrders
+                .AsNoTracking()
+                .Include(x => x.SalesOrderItems)
+                .Where(x =>
+                    !x.IsDeleted &&
+                    x.Status == SalesOrderStatus.Confirmed &&
+                    x.OrderDate >= startDate &&
+                    x.OrderDate < endDateExclusive)
+                .OrderByDescending(x => x.OrderDate)
+                .ToListAsync();
 
             decimal totalSales = 0m;
             decimal totalDiscount = 0m;
@@ -365,71 +264,26 @@ namespace StoreManagementSystem.Web.Controllers
             {
                 foreach (var item in order.SalesOrderItems)
                 {
-                    // -------------------------------------------------
-                    // GROSS SALES
-                    // -------------------------------------------------
-
                     decimal grossSales =
-                        item.Quantity *
-                        item.SalePrice;
-
-                    // -------------------------------------------------
-                    // DISCOUNT
-                    // -------------------------------------------------
+                        item.Quantity * item.SalePrice;
 
                     decimal discount =
-                        grossSales *
-                        item.DiscountPercent /
-                        100m;
-
-                    // -------------------------------------------------
-                    // NET SALES
-                    // -------------------------------------------------
+                        grossSales * item.DiscountPercent / 100m;
 
                     decimal itemNetSales =
-                        Math.Max(
-                            grossSales - discount,
-                            0m);
-
-                    // -------------------------------------------------
-                    // TAX
-                    //
-                    // Tax is calculated after discount.
-                    // -------------------------------------------------
+                        Math.Max(grossSales - discount, 0m);
 
                     decimal tax =
-                        itemNetSales *
-                        item.TaxPercent /
-                        100m;
-
-                    // -------------------------------------------------
-                    // GRAND TOTAL
-                    // -------------------------------------------------
+                        itemNetSales * item.TaxPercent / 100m;
 
                     decimal itemGrandTotal =
-                        itemNetSales +
-                        tax;
-
-                    // -------------------------------------------------
-                    // COGS
-                    //
-                    // UnitPrice = actual purchase/GRN cost
-                    // stored when the Sale was created.
-                    // -------------------------------------------------
+                        itemNetSales + tax;
 
                     decimal itemCOGS =
-                        item.Quantity *
-                        item.UnitPrice;
-
-                    // -------------------------------------------------
-                    // GROSS PROFIT
-                    //
-                    // Tax is NOT included in gross profit.
-                    // -------------------------------------------------
+                        item.Quantity * item.UnitPrice;
 
                     decimal itemGrossProfit =
-                        itemNetSales -
-                        itemCOGS;
+                        itemNetSales - itemCOGS;
 
                     totalSales += grossSales;
                     totalDiscount += discount;
@@ -441,115 +295,67 @@ namespace StoreManagementSystem.Web.Controllers
                 }
             }
 
-            // ---------------------------------------------------------
-            // GROSS MARGIN
-            // ---------------------------------------------------------
-
             decimal grossMarginPercent =
                 netSales > 0m
-                    ? (grossProfit / netSales) * 100m
+                    ? grossProfit / netSales * 100m
                     : 0m;
 
-            // ---------------------------------------------------------
-            // ORGANISATION / REPORT SETTINGS
-            // ---------------------------------------------------------
+            var model = new SalesReportViewModel
+            {
+                FromDate = startDate,
+                ToDate = endDate,
 
-            var model =
-                new SalesReportViewModel
-                {
-                    FromDate =
-                        startDate,
+                TotalSales = Math.Round(totalSales, 2),
+                TotalDiscount = Math.Round(totalDiscount, 2),
+                NetSales = Math.Round(netSales, 2),
+                TotalTax = Math.Round(totalTax, 2),
+                GrandTotal = Math.Round(grandTotal, 2),
+                CostOfGoodsSold = Math.Round(costOfGoodsSold, 2),
+                GrossProfit = Math.Round(grossProfit, 2),
+                GrossMarginPercent = Math.Round(grossMarginPercent, 2),
+                TotalInvoices = orders.Count,
 
-                    ToDate =
-                        endDate,
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
 
-                    // Gross sales before discount
-                    TotalSales =
-                        Math.Round(
-                            totalSales,
-                            2),
+                Branch =
+                    await _settingService.GetBranchAsync(),
 
-                    TotalDiscount =
-                        Math.Round(
-                            totalDiscount,
-                            2),
+                Address =
+                    await _settingService.GetAddressAsync(),
 
-                    // Net sales after discount,
-                    // before tax
-                    NetSales =
-                        Math.Round(
-                            netSales,
-                            2),
+                Phone =
+                    await _settingService.GetPhoneAsync(),
 
-                    TotalTax =
-                        Math.Round(
-                            totalTax,
-                            2),
+                Email =
+                    await _settingService.GetEmailAsync(),
 
-                    // Net Sales + Tax
-                    GrandTotal =
-                        Math.Round(
-                            grandTotal,
-                            2),
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
 
-                    // Purchase cost of confirmed sales
-                    CostOfGoodsSold =
-                        Math.Round(
-                            costOfGoodsSold,
-                            2),
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
 
-                    // Net Sales - COGS
-                    GrossProfit =
-                        Math.Round(
-                            grossProfit,
-                            2),
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
 
-                    GrossMarginPercent =
-                        Math.Round(
-                            grossMarginPercent,
-                            2),
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
 
-                    TotalInvoices =
-                        orders.Count,
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
 
-                    OrganisationName =
-                        await _settingService.GetOrganisationNameAsync(),
-
-                    Branch =
-                        await _settingService.GetBranchAsync(),
-
-                    Address =
-                        await _settingService.GetAddressAsync(),
-
-                    Phone =
-                        await _settingService.GetPhoneAsync(),
-
-                    Email =
-                        await _settingService.GetEmailAsync(),
-
-                    GSTIN =
-                        await _settingService.GetGSTINAsync(),
-
-                    ReportHeading =
-                        await _settingService.GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService.GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService.GetToDateLabelAsync(),
-
-                    AuthorisedSignatory =
-                        await _settingService.GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService.GetAuthorisedDesignationAsync()
-                };
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
 
             return View(model);
         }
+
         // =========================================================
         // 4. STOCK REPORT
+        // ProductName displays Product Title.
+        // SKU and Barcode remain separate fields.
         // =========================================================
 
         [HttpGet]
@@ -560,312 +366,169 @@ namespace StoreManagementSystem.Web.Controllers
         {
             await LoadOrganisationSettingsAsync();
 
-            var model =
-                new StockReportViewModel
-                {
-                    ProductId =
-                        productId,
-
-                    WarehouseId =
-                        warehouseId,
-
-                    StockStatus =
-                        stockStatus,
-
-                    // =================================================
-                    // ORGANISATION SETTINGS
-                    // =================================================
-
-                    OrganisationName =
-                        await _settingService
-                            .GetOrganisationNameAsync(),
-
-                    Branch =
-                        await _settingService
-                            .GetBranchAsync(),
-
-                    Address =
-                        await _settingService
-                            .GetAddressAsync(),
-
-                    Phone =
-                        await _settingService
-                            .GetPhoneAsync(),
-
-                    Email =
-                        await _settingService
-                            .GetEmailAsync(),
-
-                    GSTIN =
-                        await _settingService
-                            .GetGSTINAsync(),
-
-                    // =================================================
-                    // REPORT SETTINGS
-                    // =================================================
-
-                    ReportHeading =
-                        await _settingService
-                            .GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService
-                            .GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService
-                            .GetToDateLabelAsync(),
-
-                    // =================================================
-                    // AUTHORISATION / SIGNATURE
-                    // =================================================
-
-                    AuthorisedSignatory =
-                        await _settingService
-                            .GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService
-                            .GetAuthorisedDesignationAsync()
-                };
-
-            // =========================================================
-            // STOCK QUERY
-            // =========================================================
-
-            var stockQuery =
-                _context.WarehouseStocks
-                    .AsNoTracking()
-                    .Include(x => x.Product)
-                    .Include(x => x.Warehouse)
-                    .Where(x =>
-                        x.Product != null &&
-                        !x.Product.IsDeleted &&
-                        x.Warehouse != null &&
-                        !x.Warehouse.IsDeleted)
-                    .AsQueryable();
-
-            if (productId.HasValue &&
-                productId.Value > 0)
+            var model = new StockReportViewModel
             {
-                stockQuery =
-                    stockQuery.Where(x =>
-                        x.ProductId ==
-                        productId.Value);
+                ProductId = productId,
+                WarehouseId = warehouseId,
+                StockStatus = stockStatus,
+
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
+
+                Branch =
+                    await _settingService.GetBranchAsync(),
+
+                Address =
+                    await _settingService.GetAddressAsync(),
+
+                Phone =
+                    await _settingService.GetPhoneAsync(),
+
+                Email =
+                    await _settingService.GetEmailAsync(),
+
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
+
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
+
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
+
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
+
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
+
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
+
+            var stockQuery = _context.WarehouseStocks
+                .AsNoTracking()
+                .Include(x => x.Product)
+                .Include(x => x.Warehouse)
+                .Where(x =>
+                    x.Product != null &&
+                    !x.Product.IsDeleted &&
+                    x.Warehouse != null &&
+                    !x.Warehouse.IsDeleted)
+                .AsQueryable();
+
+            if (productId.HasValue && productId.Value > 0)
+            {
+                stockQuery = stockQuery.Where(x =>
+                    x.ProductId == productId.Value);
             }
 
-            if (warehouseId.HasValue &&
-                warehouseId.Value > 0)
+            if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                stockQuery =
-                    stockQuery.Where(x =>
-                        x.WarehouseId ==
-                        warehouseId.Value);
+                stockQuery = stockQuery.Where(x =>
+                    x.WarehouseId == warehouseId.Value);
             }
 
-            var stocks =
-                await stockQuery
-                    .OrderBy(x =>
-                        x.Product!.SKU)
-                    .ThenBy(x =>
-                        x.Warehouse!.Name)
-                    .ToListAsync();
+            var stocks = await stockQuery
+                .OrderBy(x => x.Product!.Title)
+                .ThenBy(x => x.Warehouse!.Name)
+                .ToListAsync();
 
-            // =========================================================
-            // STOCK LEDGER
-            // =========================================================
+            var ledgerQuery = _context.StockLedgers
+                .AsNoTracking()
+                .AsQueryable();
 
-            var ledgerQuery =
-                _context.StockLedgers
-                    .AsNoTracking()
-                    .AsQueryable();
-
-            if (productId.HasValue &&
-                productId.Value > 0)
+            if (productId.HasValue && productId.Value > 0)
             {
-                ledgerQuery =
-                    ledgerQuery.Where(x =>
-                        x.ProductId ==
-                        productId.Value);
+                ledgerQuery = ledgerQuery.Where(x =>
+                    x.ProductId == productId.Value);
             }
 
-            if (warehouseId.HasValue &&
-                warehouseId.Value > 0)
+            if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                ledgerQuery =
-                    ledgerQuery.Where(x =>
-                        x.WarehouseId ==
-                        warehouseId.Value);
+                ledgerQuery = ledgerQuery.Where(x =>
+                    x.WarehouseId == warehouseId.Value);
             }
 
-            var ledgerEntries =
-                await ledgerQuery
-                    .OrderBy(x =>
-                        x.TransactionDate)
-                    .ThenBy(x =>
-                        x.Id)
-                    .ToListAsync();
+            var ledgerEntries = await ledgerQuery
+                .OrderBy(x => x.TransactionDate)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
 
-            // =========================================================
-            // GRN / PURCHASE RECEIPTS
-            // =========================================================
+            var grnItems = await _context.GoodsReceiptItems
+                .AsNoTracking()
+                .Include(x => x.GoodsReceipt)
+                .Where(x =>
+                    x.GoodsReceipt != null &&
+                    !x.GoodsReceipt.IsDeleted &&
+                    x.GoodsReceipt.Status == GoodsReceiptStatus.Received &&
+                    x.ReceivedQuantity > 0)
+                .ToListAsync();
 
-            var grnItems =
-                await _context.GoodsReceiptItems
-                    .AsNoTracking()
-                    .Include(x =>
-                        x.GoodsReceipt)
-                    .Where(x =>
-                        x.GoodsReceipt != null &&
-                        !x.GoodsReceipt.IsDeleted &&
-                        x.GoodsReceipt.Status ==
-                            GoodsReceiptStatus.Received &&
-                        x.ReceivedQuantity > 0)
-                    .ToListAsync();
-
-            // =========================================================
-            // REPORT ITEMS
-            // =========================================================
-
-            var reportItems =
-                new List<StockReportItemViewModel>();
+            var reportItems = new List<StockReportItemViewModel>();
 
             foreach (var stock in stocks)
             {
-                if (stock.Product == null ||
-                    stock.Warehouse == null)
+                if (stock.Product == null || stock.Warehouse == null)
                 {
                     continue;
                 }
 
-                var productLedger =
-                    ledgerEntries
-                        .Where(x =>
-                            x.ProductId ==
-                                stock.ProductId &&
-                            x.WarehouseId ==
-                                stock.WarehouseId)
-                        .ToList();
+                var productLedger = ledgerEntries
+                    .Where(x =>
+                        x.ProductId == stock.ProductId &&
+                        x.WarehouseId == stock.WarehouseId)
+                    .ToList();
 
-                // =====================================================
-                // OPENING STOCK
-                // =====================================================
+                decimal openingStock = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.OpeningStock)
+                    .Sum(x => x.Quantity);
 
-                decimal openingStock =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.OpeningStock)
-                        .Sum(x =>
-                            x.Quantity);
+                decimal purchaseReceiptQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.PurchaseReceipt)
+                    .Sum(x => x.Quantity);
 
-                // =====================================================
-                // PURCHASE RECEIPT
-                // =====================================================
+                decimal salesIssueQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.SalesIssue)
+                    .Sum(x => x.Quantity);
 
-                decimal purchaseReceiptQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.PurchaseReceipt)
-                        .Sum(x =>
-                            x.Quantity);
+                decimal salesReturnQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.SalesReturn)
+                    .Sum(x => x.Quantity);
 
-                // =====================================================
-                // SALES ISSUE
-                // =====================================================
+                decimal purchaseReturnQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.PurchaseReturn)
+                    .Sum(x => x.Quantity);
 
-                decimal salesIssueQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.SalesIssue)
-                        .Sum(x =>
-                            x.Quantity);
+                decimal transferInQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.StockTransferIn)
+                    .Sum(x => x.Quantity);
 
-                // =====================================================
-                // SALES RETURN
-                // =====================================================
+                decimal transferOutQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.StockTransferOut)
+                    .Sum(x => x.Quantity);
 
-                decimal salesReturnQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.SalesReturn)
-                        .Sum(x =>
-                            x.Quantity);
-
-                // =====================================================
-                // PURCHASE RETURN
-                // =====================================================
-
-                decimal purchaseReturnQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.PurchaseReturn)
-                        .Sum(x =>
-                            x.Quantity);
-
-                // =====================================================
-                // TRANSFER IN
-                // =====================================================
-
-                decimal transferInQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.StockTransferIn)
-                        .Sum(x =>
-                            x.Quantity);
-
-                // =====================================================
-                // TRANSFER OUT
-                // =====================================================
-
-                decimal transferOutQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.StockTransferOut)
-                        .Sum(x =>
-                            x.Quantity);
-
-                // =====================================================
-                // STOCK ADJUSTMENT
-                // =====================================================
-
-                decimal adjustmentQuantity =
-                    productLedger
-                        .Where(x =>
-                            x.TransactionType ==
-                            StockTransactionType.StockAdjustment)
-                        .Sum(x =>
-                            x.Quantity);
-
-                // =====================================================
-                // RECEIVED QUANTITY
-                // =====================================================
+                decimal adjustmentQuantity = productLedger
+                    .Where(x => x.TransactionType ==
+                                StockTransactionType.StockAdjustment)
+                    .Sum(x => x.Quantity);
 
                 decimal receivedQuantity =
                     purchaseReceiptQuantity +
                     salesReturnQuantity +
                     transferInQuantity +
-                    Math.Max(
-                        0,
-                        adjustmentQuantity);
+                    Math.Max(0m, adjustmentQuantity);
 
-                // =====================================================
-                // SOLD QUANTITY
-                // =====================================================
+                decimal soldQuantity = salesIssueQuantity;
 
-                decimal soldQuantity =
-                    salesIssueQuantity;
-
-                // =====================================================
-                // LEDGER BALANCE
-                // =====================================================
-
+                // Retained for clarity if ledger reconciliation is needed.
                 decimal ledgerBalance =
                     openingStock +
                     purchaseReceiptQuantity +
@@ -876,174 +539,95 @@ namespace StoreManagementSystem.Web.Controllers
                     transferOutQuantity +
                     adjustmentQuantity;
 
-                // =====================================================
-                // PURCHASE / GRN COST
-                // =====================================================
-
-                var purchases =
-                    grnItems
-                        .Where(x =>
-                            x.ProductId ==
-                                stock.ProductId &&
-                            x.WarehouseId ==
-                                stock.WarehouseId)
-                        .ToList();
+                var purchases = grnItems
+                    .Where(x =>
+                        x.ProductId == stock.ProductId &&
+                        x.WarehouseId == stock.WarehouseId)
+                    .ToList();
 
                 decimal totalReceivedQuantity =
-                    purchases.Sum(x =>
-                        x.ReceivedQuantity);
+                    purchases.Sum(x => x.ReceivedQuantity);
 
                 decimal totalPurchaseCost =
                     purchases.Sum(x =>
-                        x.ReceivedQuantity *
-                        x.UnitPrice);
+                        x.ReceivedQuantity * x.UnitPrice);
 
                 decimal purchasePrice =
-                    totalReceivedQuantity > 0
-                        ? totalPurchaseCost /
-                          totalReceivedQuantity
+                    totalReceivedQuantity > 0m
+                        ? totalPurchaseCost / totalReceivedQuantity
                         : 0m;
 
-                // =====================================================
-                // CURRENT STOCK
-                // =====================================================
-
-                decimal quantityOnHand =
-                    stock.QuantityOnHand;
-
-                decimal reorderLevel =
-                    stock.MinimumStock;
-
-                // =====================================================
-                // STOCK STATUS
-                // =====================================================
+                decimal quantityOnHand = stock.QuantityOnHand;
+                decimal reorderLevel = stock.MinimumStock;
 
                 string status;
 
-                if (quantityOnHand <= 0)
+                if (quantityOnHand <= 0m)
                 {
-                    status =
-                        "OutOfStock";
+                    status = "OutOfStock";
                 }
-                else if (quantityOnHand <=
-                         reorderLevel)
+                else if (quantityOnHand <= reorderLevel)
                 {
-                    status =
-                        "LowStock";
+                    status = "LowStock";
                 }
                 else
                 {
-                    status =
-                        "InStock";
+                    status = "InStock";
                 }
 
-                // =====================================================
-                // STOCK VALUE
-                // =====================================================
+                decimal stockValue = quantityOnHand * purchasePrice;
 
-                decimal stockValue =
-                    quantityOnHand *
-                    purchasePrice;
+                reportItems.Add(new StockReportItemViewModel
+                {
+                    Id = stock.Id,
+                    ProductId = stock.ProductId,
 
-                // =====================================================
-                // ADD REPORT ROW
-                // =====================================================
+                    // Updated: display title instead of SKU.
+                    ProductName = stock.Product.Title,
 
-                reportItems.Add(
-                    new StockReportItemViewModel
-                    {
-                        Id =
-                            stock.Id,
+                    // Keep identifiers separate.
+                    SKU = stock.Product.SKU,
+                    Barcode = stock.Product.Barcode,
 
-                        ProductId =
-                            stock.ProductId,
+                    WarehouseId = stock.WarehouseId,
+                    WarehouseName = stock.Warehouse.Name,
 
-                        ProductName =
-                            stock.Product.SKU,
-
-                        SKU =
-                            stock.Product.SKU,
-
-                        Barcode =
-                            stock.Product.Barcode,
-
-                        WarehouseId =
-                            stock.WarehouseId,
-
-                        WarehouseName =
-                            stock.Warehouse.Name,
-
-                        OpeningStock =
-                            openingStock,
-
-                        ReceivedQuantity =
-                            receivedQuantity,
-
-                        SoldQuantity =
-                            soldQuantity,
-
-                        QuantityOnHand =
-                            quantityOnHand,
-
-                        ReorderLevel =
-                            reorderLevel,
-
-                        PurchasePrice =
-                            purchasePrice,
-
-                        StockValue =
-                            stockValue,
-
-                        StockStatus =
-                            status
-                    });
+                    OpeningStock = openingStock,
+                    ReceivedQuantity = receivedQuantity,
+                    SoldQuantity = soldQuantity,
+                    QuantityOnHand = quantityOnHand,
+                    ReorderLevel = reorderLevel,
+                    PurchasePrice = purchasePrice,
+                    StockValue = stockValue,
+                    StockStatus = status
+                });
             }
-
-            // =========================================================
-            // STOCK STATUS FILTER
-            // =========================================================
 
             if (!string.IsNullOrWhiteSpace(stockStatus))
             {
-                reportItems =
-                    reportItems
-                        .Where(x =>
-                            x.StockStatus ==
-                            stockStatus)
-                        .ToList();
+                reportItems = reportItems
+                    .Where(x => x.StockStatus == stockStatus)
+                    .ToList();
             }
 
-            // =========================================================
-            // SUMMARY
-            // =========================================================
-
-            model.TotalProducts =
-                reportItems
-                    .Select(x =>
-                        x.ProductId)
-                    .Distinct()
-                    .Count();
+            model.TotalProducts = reportItems
+                .Select(x => x.ProductId)
+                .Distinct()
+                .Count();
 
             model.TotalQuantity =
-                reportItems.Sum(x =>
-                    x.QuantityOnHand);
+                reportItems.Sum(x => x.QuantityOnHand);
 
             model.TotalStockValue =
-                reportItems.Sum(x =>
-                    x.StockValue);
+                reportItems.Sum(x => x.StockValue);
 
             model.LowStockProducts =
-                reportItems.Count(x =>
-                    x.StockStatus ==
-                    "LowStock");
+                reportItems.Count(x => x.StockStatus == "LowStock");
 
             model.OutOfStockProducts =
-                reportItems.Count(x =>
-                    x.StockStatus ==
-                    "OutOfStock");
+                reportItems.Count(x => x.StockStatus == "OutOfStock");
 
-            model.Stocks =
-                reportItems;
+            model.Stocks = reportItems;
 
             return View(model);
         }
@@ -1053,539 +637,300 @@ namespace StoreManagementSystem.Web.Controllers
         // =========================================================
 
         [HttpGet("/InventoryValuation")]
-public async Task<IActionResult> InventoryValuation(
-    int? mainCategoryId,
-    int? categoryId,
-    int? productId,
-    int? warehouseId,
-    DateTime? fromDate,
-    DateTime? toDate)
+        public async Task<IActionResult> InventoryValuation(
+            int? mainCategoryId,
+            int? categoryId,
+            int? productId,
+            int? warehouseId,
+            DateTime? fromDate,
+            DateTime? toDate)
         {
             await LoadOrganisationSettingsAsync();
 
-            var model =
-                new InventoryValuationViewModel
+            var model = new InventoryValuationViewModel
+            {
+                MainCategoryId = mainCategoryId,
+                CategoryId = categoryId,
+                ProductId = productId,
+                WarehouseId = warehouseId,
+                FromDate = fromDate,
+                ToDate = toDate
+            };
+
+            model.MainCategories = await _context.MainCategories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new InventoryMainCategoryFilterViewModel
                 {
-                    MainCategoryId =
-                        mainCategoryId,
+                    Id = x.Id,
+                    Name = x.Name
+                })
+                .ToListAsync();
 
-                    CategoryId =
-                        categoryId,
+            model.Categories = await _context.Categories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new InventoryCategoryFilterViewModel
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    MainCategoryId = x.MainCategoryId
+                })
+                .ToListAsync();
 
-                    ProductId =
-                        productId,
+            // Product dropdown displays Product Title.
+            model.Products = await _context.Products
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Title)
+                .Select(x => new InventoryProductFilterViewModel
+                {
+                    Id = x.Id,
+                    Name = x.Title
+                })
+                .ToListAsync();
 
-                    WarehouseId =
-                        warehouseId,
+            model.Warehouses = await _context.Warehouses
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new InventoryWarehouseFilterViewModel
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                })
+                .ToListAsync();
 
-                    FromDate =
-                        fromDate,
+            var mainCategories = await _context.MainCategories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => x.Name);
 
-                    ToDate =
-                        toDate
-                };
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => new
+                {
+                    x.Id,
+                    x.Name,
+                    x.MainCategoryId
+                });
 
-            // =====================================================
-            // MAIN CATEGORY DROPDOWN
-            // =====================================================
+            var subCategories = await _context.SubCategories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => new
+                {
+                    x.Name,
+                    x.CategoryId
+                });
 
-            model.MainCategories =
-                await _context.MainCategories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.Name)
-                    .Select(x =>
-                        new InventoryMainCategoryFilterViewModel
-                        {
-                            Id =
-                                x.Id,
+            var stockQuery = _context.WarehouseStocks
+                .AsNoTracking()
+                .Include(x => x.Product)
+                .Include(x => x.Warehouse)
+                .Where(x =>
+                    x.Product != null &&
+                    !x.Product.IsDeleted &&
+                    x.Warehouse != null &&
+                    !x.Warehouse.IsDeleted)
+                .AsQueryable();
 
-                            Name =
-                                x.Name
-                        })
-                    .ToListAsync();
-
-            // =====================================================
-            // CATEGORY DROPDOWN
-            // =====================================================
-
-            model.Categories =
-                await _context.Categories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.Name)
-                    .Select(x =>
-                        new InventoryCategoryFilterViewModel
-                        {
-                            Id =
-                                x.Id,
-
-                            Name =
-                                x.Name,
-
-                            MainCategoryId =
-                                x.MainCategoryId
-                        })
-                    .ToListAsync();
-
-            // =====================================================
-            // PRODUCT DROPDOWN
-            // =====================================================
-
-            model.Products =
-                await _context.Products
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.SKU)
-                    .Select(x =>
-                        new InventoryProductFilterViewModel
-                        {
-                            Id =
-                                x.Id,
-
-                            Name =
-                                x.SKU
-                        })
-                    .ToListAsync();
-
-            // =====================================================
-            // WAREHOUSE DROPDOWN
-            // =====================================================
-
-            model.Warehouses =
-                await _context.Warehouses
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.Name)
-                    .Select(x =>
-                        new InventoryWarehouseFilterViewModel
-                        {
-                            Id =
-                                x.Id,
-
-                            Name =
-                                x.Name
-                        })
-                    .ToListAsync();
-
-            // =====================================================
-            // LOAD MAIN CATEGORIES
-            // =====================================================
-
-            var mainCategories =
-                await _context.MainCategories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => x.Name);
-
-            // =====================================================
-            // LOAD CATEGORIES
-            // =====================================================
-
-            var categories =
-                await _context.Categories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => new
-                        {
-                            x.Id,
-                            x.Name,
-                            x.MainCategoryId
-                        });
-
-            // =====================================================
-            // LOAD SUBCATEGORIES
-            // =====================================================
-
-            var subCategories =
-                await _context.SubCategories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => new
-                        {
-                            x.Name,
-                            x.CategoryId
-                        });
-
-            // =====================================================
-            // WAREHOUSE STOCK QUERY
-            // =====================================================
-
-            var stockQuery =
-                _context.WarehouseStocks
-                    .AsNoTracking()
-                    .Include(x => x.Product)
-                    .Include(x => x.Warehouse)
-                    .Where(x =>
-                        x.Product != null &&
-                        !x.Product.IsDeleted &&
-                        x.Warehouse != null &&
-                        !x.Warehouse.IsDeleted)
-                    .AsQueryable();
-
-            // =====================================================
-            // PRODUCT FILTER
-            // =====================================================
-
-            if (productId.HasValue &&
-                productId.Value > 0)
+            if (productId.HasValue && productId.Value > 0)
             {
-                stockQuery =
-                    stockQuery.Where(x =>
-                        x.ProductId ==
-                        productId.Value);
+                stockQuery = stockQuery.Where(x =>
+                    x.ProductId == productId.Value);
             }
 
-            // =====================================================
-            // WAREHOUSE FILTER
-            // =====================================================
-
-            if (warehouseId.HasValue &&
-                warehouseId.Value > 0)
+            if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                stockQuery =
-                    stockQuery.Where(x =>
-                        x.WarehouseId ==
-                        warehouseId.Value);
+                stockQuery = stockQuery.Where(x =>
+                    x.WarehouseId == warehouseId.Value);
             }
 
-            // =====================================================
-            // MAIN CATEGORY FILTER
-            // =====================================================
-
-            if (mainCategoryId.HasValue &&
-                mainCategoryId.Value > 0)
+            if (mainCategoryId.HasValue && mainCategoryId.Value > 0)
             {
-                var mainCategoryProductIds =
-                    await _context.Products
-                        .AsNoTracking()
-                        .Where(p =>
-                            !p.IsDeleted &&
-                            _context.Categories.Any(c =>
-                                c.Id ==
-                                    p.CategoryId &&
-                                !c.IsDeleted &&
-                                c.MainCategoryId ==
-                                    mainCategoryId.Value))
-                        .Select(p =>
-                            p.Id)
-                        .ToListAsync();
-
-                stockQuery =
-                    stockQuery.Where(x =>
-                        mainCategoryProductIds
-                            .Contains(x.ProductId));
-            }
-
-            // =====================================================
-            // CATEGORY FILTER
-            // =====================================================
-
-            if (categoryId.HasValue &&
-                categoryId.Value > 0)
-            {
-                stockQuery =
-                    stockQuery.Where(x =>
-                        x.Product!.CategoryId ==
-                        categoryId.Value);
-            }
-
-            // =====================================================
-            // GET STOCK
-            // =====================================================
-
-            var stocks =
-                await stockQuery
-                    .OrderBy(x =>
-                        x.Product!.SKU)
-                    .ThenBy(x =>
-                        x.Warehouse!.Name)
+                var mainCategoryProductIds = await _context.Products
+                    .AsNoTracking()
+                    .Where(p =>
+                        !p.IsDeleted &&
+                        _context.Categories.Any(c =>
+                            c.Id == p.CategoryId &&
+                            !c.IsDeleted &&
+                            c.MainCategoryId == mainCategoryId.Value))
+                    .Select(p => p.Id)
                     .ToListAsync();
 
-            // =====================================================
-            // LOAD GRN ITEMS
-            // =====================================================
+                stockQuery = stockQuery.Where(x =>
+                    mainCategoryProductIds.Contains(x.ProductId));
+            }
 
-            var grnItemsQuery =
-                _context.GoodsReceiptItems
-                    .AsNoTracking()
-                    .Include(x =>
-                        x.GoodsReceipt)
-                    .Where(x =>
-                        x.GoodsReceipt != null &&
-                        !x.GoodsReceipt.IsDeleted &&
-                        x.GoodsReceipt.Status ==
-                            GoodsReceiptStatus.Received &&
-                        x.ReceivedQuantity > 0)
-                    .AsQueryable();
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                stockQuery = stockQuery.Where(x =>
+                    x.Product!.CategoryId == categoryId.Value);
+            }
 
-            // =====================================================
-            // FROM DATE FILTER
-            // =====================================================
+            var stocks = await stockQuery
+                .OrderBy(x => x.Product!.Title)
+                .ThenBy(x => x.Warehouse!.Name)
+                .ToListAsync();
+
+            var grnItemsQuery = _context.GoodsReceiptItems
+                .AsNoTracking()
+                .Include(x => x.GoodsReceipt)
+                .Where(x =>
+                    x.GoodsReceipt != null &&
+                    !x.GoodsReceipt.IsDeleted &&
+                    x.GoodsReceipt.Status == GoodsReceiptStatus.Received &&
+                    x.ReceivedQuantity > 0)
+                .AsQueryable();
 
             if (fromDate.HasValue)
             {
-                var fromDateValue =
-                    fromDate.Value.Date;
+                var fromDateValue = fromDate.Value.Date;
 
-                grnItemsQuery =
-                    grnItemsQuery.Where(x =>
-                        x.GoodsReceipt!.ReceiptDate >=
-                        fromDateValue);
+                grnItemsQuery = grnItemsQuery.Where(x =>
+                    x.GoodsReceipt!.ReceiptDate >= fromDateValue);
             }
-
-            // =====================================================
-            // TO DATE FILTER
-            // =====================================================
 
             if (toDate.HasValue)
             {
-                var toDateValue =
-                    toDate.Value.Date.AddDays(1);
+                var toDateValue = toDate.Value.Date.AddDays(1);
 
-                grnItemsQuery =
-                    grnItemsQuery.Where(x =>
-                        x.GoodsReceipt!.ReceiptDate <
-                        toDateValue);
+                grnItemsQuery = grnItemsQuery.Where(x =>
+                    x.GoodsReceipt!.ReceiptDate < toDateValue);
             }
 
-            var grnItems =
-                await grnItemsQuery
-                    .ToListAsync();
-
-            // =====================================================
-            // BUILD INVENTORY VALUATION
-            // =====================================================
+            var grnItems = await grnItemsQuery.ToListAsync();
 
             foreach (var stock in stocks)
             {
-                if (stock.Product == null ||
-                    stock.Warehouse == null)
+                if (stock.Product == null || stock.Warehouse == null)
                 {
                     continue;
                 }
 
-                var product =
-                    stock.Product;
+                var product = stock.Product;
 
-                int mainCategoryIdValue =
-                    0;
+                int mainCategoryIdValue = 0;
+                string mainCategoryName = "-";
 
-                string mainCategoryName =
-                    "-";
+                int categoryIdValue = product.CategoryId;
+                string categoryName = "-";
 
-                int categoryIdValue =
-                    product.CategoryId;
-
-                string categoryName =
-                    "-";
-
-                int subCategoryIdValue =
-                    product.SubCategoryId;
-
-                string subCategoryName =
-                    "-";
+                int subCategoryIdValue = product.SubCategoryId;
+                string subCategoryName = "-";
 
                 if (subCategories.TryGetValue(
-                        product.SubCategoryId,
-                        out var subCategory))
+                    product.SubCategoryId, out var subCategory))
                 {
-                    subCategoryName =
-                        subCategory.Name;
+                    subCategoryName = subCategory.Name;
 
                     if (categories.TryGetValue(
-                            subCategory.CategoryId,
-                            out var categoryFromSubCategory))
+                        subCategory.CategoryId, out var categoryFromSubCategory))
                     {
-                        categoryIdValue =
-                            categoryFromSubCategory.Id;
-
-                        categoryName =
-                            categoryFromSubCategory.Name;
-
-                        mainCategoryIdValue =
-                            categoryFromSubCategory
-                                .MainCategoryId;
+                        categoryIdValue = categoryFromSubCategory.Id;
+                        categoryName = categoryFromSubCategory.Name;
+                        mainCategoryIdValue = categoryFromSubCategory.MainCategoryId;
 
                         if (mainCategories.TryGetValue(
-                                mainCategoryIdValue,
-                                out var mainCategoryNameValue))
+                            mainCategoryIdValue, out var mainCategoryNameValue))
                         {
-                            mainCategoryName =
-                                mainCategoryNameValue;
+                            mainCategoryName = mainCategoryNameValue;
                         }
                     }
                 }
 
                 if (categoryName == "-" &&
-                    categories.TryGetValue(
-                        product.CategoryId,
-                        out var directCategory))
+                    categories.TryGetValue(product.CategoryId, out var directCategory))
                 {
-                    categoryIdValue =
-                        directCategory.Id;
-
-                    categoryName =
-                        directCategory.Name;
-
-                    mainCategoryIdValue =
-                        directCategory.MainCategoryId;
+                    categoryIdValue = directCategory.Id;
+                    categoryName = directCategory.Name;
+                    mainCategoryIdValue = directCategory.MainCategoryId;
 
                     if (mainCategories.TryGetValue(
-                            mainCategoryIdValue,
-                            out var directMainCategoryName))
+                        mainCategoryIdValue, out var directMainCategoryName))
                     {
-                        mainCategoryName =
-                            directMainCategoryName;
+                        mainCategoryName = directMainCategoryName;
                     }
                 }
 
-                var productWarehousePurchases =
-                    grnItems
-                        .Where(x =>
-                            x.ProductId ==
-                                stock.ProductId &&
-                            x.WarehouseId ==
-                                stock.WarehouseId &&
-                            x.ReceivedQuantity > 0)
-                        .ToList();
+                var productWarehousePurchases = grnItems
+                    .Where(x =>
+                        x.ProductId == stock.ProductId &&
+                        x.WarehouseId == stock.WarehouseId &&
+                        x.ReceivedQuantity > 0)
+                    .ToList();
 
-                DateTime? receiptDate =
-                    productWarehousePurchases
-                        .Where(x =>
-                            x.GoodsReceipt != null)
-                        .Select(x =>
-                            (DateTime?)
-                            x.GoodsReceipt!.ReceiptDate)
-                        .OrderByDescending(x =>
-                            x)
-                        .FirstOrDefault();
+                DateTime? receiptDate = productWarehousePurchases
+                    .Where(x => x.GoodsReceipt != null)
+                    .Select(x => (DateTime?)x.GoodsReceipt!.ReceiptDate)
+                    .OrderByDescending(x => x)
+                    .FirstOrDefault();
 
                 decimal totalReceivedQuantity =
-                    productWarehousePurchases
-                        .Sum(x =>
-                            x.ReceivedQuantity);
+                    productWarehousePurchases.Sum(x => x.ReceivedQuantity);
 
                 decimal totalPurchaseCost =
-                    productWarehousePurchases
-                        .Sum(x =>
-                            x.ReceivedQuantity *
-                            x.UnitPrice);
+                    productWarehousePurchases.Sum(x =>
+                        x.ReceivedQuantity * x.UnitPrice);
 
-                decimal purchasePrice =
-                    totalReceivedQuantity > 0
-                        ? totalPurchaseCost /
-                          totalReceivedQuantity
-                        : 0m;
+                decimal purchasePrice = totalReceivedQuantity > 0m
+                    ? totalPurchaseCost / totalReceivedQuantity
+                    : 0m;
 
-                decimal quantityOnHand =
-                    stock.QuantityOnHand;
+                decimal quantityOnHand = stock.QuantityOnHand;
+                decimal inventoryValue = quantityOnHand * purchasePrice;
 
-                decimal inventoryValue =
-                    quantityOnHand *
-                    purchasePrice;
+                model.Items.Add(new InventoryValuationItemViewModel
+                {
+                    Id = stock.Id,
+                    ProductId = stock.ProductId,
 
-                model.Items.Add(
-                    new InventoryValuationItemViewModel
-                    {
-                        Id =
-                            stock.Id,
+                    // Updated: display title instead of SKU.
+                    ProductName = product.Title,
 
-                        ProductId =
-                            stock.ProductId,
+                    // Keep identifiers separate.
+                    SKU = product.SKU,
+                    Barcode = product.Barcode,
 
-                        ProductName =
-                            product.SKU,
+                    MainCategoryId = mainCategoryIdValue,
+                    MainCategoryName = mainCategoryName,
+                    CategoryId = categoryIdValue,
+                    CategoryName = categoryName,
+                    SubCategoryId = subCategoryIdValue,
+                    SubCategoryName = subCategoryName,
 
-                        SKU =
-                            product.SKU,
+                    WarehouseId = stock.WarehouseId,
+                    WarehouseName = stock.Warehouse.Name,
 
-                        Barcode =
-                            product.Barcode,
-
-                        MainCategoryId =
-                            mainCategoryIdValue,
-
-                        MainCategoryName =
-                            mainCategoryName,
-
-                        CategoryId =
-                            categoryIdValue,
-
-                        CategoryName =
-                            categoryName,
-
-                        SubCategoryId =
-                            subCategoryIdValue,
-
-                        SubCategoryName =
-                            subCategoryName,
-
-                        WarehouseId =
-                            stock.WarehouseId,
-
-                        WarehouseName =
-                            stock.Warehouse.Name,
-
-                        ReceiptDate =
-                            receiptDate,
-
-                        QuantityOnHand =
-                            quantityOnHand,
-
-                        PurchasePrice =
-                            purchasePrice,
-
-                        InventoryValue =
-                            inventoryValue
-                    });
+                    ReceiptDate = receiptDate,
+                    QuantityOnHand = quantityOnHand,
+                    PurchasePrice = purchasePrice,
+                    InventoryValue = inventoryValue
+                });
             }
 
-            // =====================================================
-            // SUMMARY
-            // =====================================================
-
-            model.TotalProducts =
-                model.Items
-                    .Select(x =>
-                        x.ProductId)
-                    .Distinct()
-                    .Count();
+            model.TotalProducts = model.Items
+                .Select(x => x.ProductId)
+                .Distinct()
+                .Count();
 
             model.TotalQuantity =
-                model.Items.Sum(x =>
-                    x.QuantityOnHand);
+                model.Items.Sum(x => x.QuantityOnHand);
 
             model.TotalInventoryValue =
-                model.Items.Sum(x =>
-                    x.InventoryValue);
+                model.Items.Sum(x => x.InventoryValue);
 
             model.TotalPurchaseCost =
                 model.Items.Sum(x =>
-                    x.QuantityOnHand *
-                    x.PurchasePrice);
+                    x.QuantityOnHand * x.PurchasePrice);
 
             return View(model);
         }
-
-
 
         // =========================================================
         // 6. LOW STOCK REPORT
@@ -1597,396 +942,187 @@ public async Task<IActionResult> InventoryValuation(
             int? warehouseId,
             int? categoryId)
         {
-            // =========================================================
-            // LOAD ORGANISATION / REPORT SETTINGS
-            // =========================================================
-
             await LoadOrganisationSettingsAsync();
 
-            // =========================================================
-            // BASE STOCK QUERY
-            // =========================================================
+            var query = _context.WarehouseStocks
+                .AsNoTracking()
+                .Include(x => x.Product)
+                    .ThenInclude(x => x.Category)
+                .Include(x => x.Warehouse)
+                .Where(x =>
+                    x.Product != null &&
+                    !x.Product.IsDeleted &&
+                    x.Warehouse != null &&
+                    !x.Warehouse.IsDeleted)
+                .AsQueryable();
 
-            var query =
-                _context.WarehouseStocks
-                    .AsNoTracking()
-                    .Include(x => x.Product)
-                        .ThenInclude(x => x.Category)
-                    .Include(x => x.Warehouse)
-                    .Where(x =>
-                        x.Product != null &&
-                        !x.Product.IsDeleted &&
-                        x.Warehouse != null &&
-                        !x.Warehouse.IsDeleted)
-                    .AsQueryable();
-
-            // =========================================================
-            // PRODUCT FILTER
-            // =========================================================
-
-            if (productId.HasValue &&
-                productId.Value > 0)
+            if (productId.HasValue && productId.Value > 0)
             {
-                query =
-                    query.Where(x =>
-                        x.ProductId ==
-                        productId.Value);
+                query = query.Where(x =>
+                    x.ProductId == productId.Value);
             }
 
-            // =========================================================
-            // WAREHOUSE FILTER
-            // =========================================================
-
-            if (warehouseId.HasValue &&
-                warehouseId.Value > 0)
+            if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                query =
-                    query.Where(x =>
-                        x.WarehouseId ==
-                        warehouseId.Value);
+                query = query.Where(x =>
+                    x.WarehouseId == warehouseId.Value);
             }
 
-            // =========================================================
-            // CATEGORY FILTER
-            // =========================================================
-
-            if (categoryId.HasValue &&
-                categoryId.Value > 0)
+            if (categoryId.HasValue && categoryId.Value > 0)
             {
-                query =
-                    query.Where(x =>
-                        x.Product != null &&
-                        x.Product.CategoryId ==
-                        categoryId.Value);
+                query = query.Where(x =>
+                    x.Product != null &&
+                    x.Product.CategoryId == categoryId.Value);
             }
 
-            // =========================================================
-            // LOW STOCK CONDITION
-            //
-            // Current Stock <= Reorder / Minimum Stock
-            //
-            // Example:
-            // Current = 5
-            // Minimum = 10
-            // Result = Low Stock
-            //
-            // Current = 0
-            // Minimum = 10
-            // Result = Out of Stock
-            // =========================================================
+            query = query.Where(x =>
+                x.QuantityOnHand <= x.MinimumStock);
 
-            query =
-                query.Where(x =>
-                    x.QuantityOnHand <=
-                    x.MinimumStock);
+            var stocks = await query
+                .OrderBy(x => x.Product!.Title)
+                .ThenBy(x => x.Warehouse!.Name)
+                .ToListAsync();
 
-            // =========================================================
-            // GET STOCK RECORDS
-            // =========================================================
+            var model = new LowStockReportViewModel
+            {
+                ProductId = productId,
+                WarehouseId = warehouseId,
+                CategoryId = categoryId,
 
-            var stocks =
-                await query
-                    .OrderBy(x =>
-                        x.Product!.SKU)
-                    .ThenBy(x =>
-                        x.Warehouse!.Name)
-                    .ToListAsync();
+                TotalLowStockProducts = stocks
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .Count(),
 
-            // =========================================================
-            // CREATE REPORT MODEL
-            // =========================================================
+                TotalCurrentStock =
+                    stocks.Sum(x => x.QuantityOnHand),
 
-            var model =
-                new LowStockReportViewModel
-                {
-                    // =====================================================
-                    // FILTER VALUES
-                    // =====================================================
+                TotalReorderLevel =
+                    stocks.Sum(x => x.MinimumStock),
 
-                    ProductId =
-                        productId,
+                TotalShortageQuantity =
+                    stocks.Sum(x =>
+                        Math.Max(0m, x.MinimumStock - x.QuantityOnHand)),
 
-                    WarehouseId =
-                        warehouseId,
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
 
-                    CategoryId =
-                        categoryId,
+                Branch =
+                    await _settingService.GetBranchAsync(),
 
-                    // =====================================================
-                    // SUMMARY
-                    // =====================================================
+                Address =
+                    await _settingService.GetAddressAsync(),
 
-                    TotalLowStockProducts =
-                        stocks
-                            .Select(x =>
-                                x.ProductId)
-                            .Distinct()
-                            .Count(),
+                Phone =
+                    await _settingService.GetPhoneAsync(),
 
-                    TotalCurrentStock =
-                        stocks.Sum(x =>
-                            x.QuantityOnHand),
+                Email =
+                    await _settingService.GetEmailAsync(),
 
-                    TotalReorderLevel =
-                        stocks.Sum(x =>
-                            x.MinimumStock),
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
 
-                    TotalShortageQuantity =
-                        stocks.Sum(x =>
-                            Math.Max(
-                                0,
-                                x.MinimumStock -
-                                x.QuantityOnHand)),
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
 
-                    // =====================================================
-                    // ORGANISATION DETAILS
-                    // =====================================================
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
 
-                    OrganisationName =
-                        await _settingService
-                            .GetOrganisationNameAsync(),
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
 
-                    Branch =
-                        await _settingService
-                            .GetBranchAsync(),
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
 
-                    Address =
-                        await _settingService
-                            .GetAddressAsync(),
-
-                    Phone =
-                        await _settingService
-                            .GetPhoneAsync(),
-
-                    Email =
-                        await _settingService
-                            .GetEmailAsync(),
-
-                    GSTIN =
-                        await _settingService
-                            .GetGSTINAsync(),
-
-                    // =====================================================
-                    // REPORT SETTINGS
-                    // =====================================================
-
-                    ReportHeading =
-                        await _settingService
-                            .GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService
-                            .GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService
-                            .GetToDateLabelAsync(),
-
-                    // =====================================================
-                    // AUTHORISED SIGNATURE
-                    // =====================================================
-
-                    AuthorisedSignatory =
-                        await _settingService
-                            .GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService
-                            .GetAuthorisedDesignationAsync()
-                };
-
-            // =========================================================
-            // BUILD REPORT ITEMS
-            // =========================================================
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
 
             foreach (var stock in stocks)
             {
-                var product =
-                    stock.Product;
+                var product = stock.Product;
 
                 if (product == null)
                 {
                     continue;
                 }
 
-                // =====================================================
-                // SHORTAGE
-                // =====================================================
+                decimal shortageQuantity =
+                    Math.Max(0m, stock.MinimumStock - stock.QuantityOnHand);
 
-                var shortageQuantity =
-                    Math.Max(
-                        0,
-                        stock.MinimumStock -
-                        stock.QuantityOnHand);
+                string stockStatus =
+                    stock.QuantityOnHand <= 0m
+                        ? "Out of Stock"
+                        : "Low Stock";
 
-                // =====================================================
-                // STOCK STATUS
-                // =====================================================
-
-                string stockStatus;
-
-                if (stock.QuantityOnHand <= 0)
+                model.Items.Add(new LowStockItemViewModel
                 {
-                    stockStatus =
-                        "Out of Stock";
-                }
-                else
-                {
-                    stockStatus =
-                        "Low Stock";
-                }
+                    ProductId = stock.ProductId,
 
-                // =====================================================
-                // UNIT NAME
-                //
-                // Product.Unit may vary depending on your entity model.
-                // Keep N/A here so this report does not break if Unit
-                // navigation is not available.
-                // =====================================================
+                    // Updated: display title instead of SKU.
+                    ProductName = product.Title ?? "N/A",
 
-                string unitName =
-                    "N/A";
+                    // Keep identifiers separate.
+                    SKU = product.SKU ?? "N/A",
+                    Barcode = product.Barcode ?? "N/A",
 
-                // =====================================================
-                // ADD REPORT ITEM
-                // =====================================================
+                    CategoryName = product.Category?.Name ?? "N/A",
+                    WarehouseName = stock.Warehouse?.Name ?? "N/A",
+                    UnitName = "N/A",
 
-                model.Items.Add(
-                    new LowStockItemViewModel
-                    {
-                        ProductId =
-                            stock.ProductId,
-
-                        ProductName =
-                            product.SKU ??
-                            "N/A",
-
-                        SKU =
-                            product.SKU ??
-                            "N/A",
-
-                        Barcode =
-                            product.Barcode ??
-                            "N/A",
-
-                        CategoryName =
-                            product.Category?.Name
-                            ?? "N/A",
-
-                        WarehouseName =
-                            stock.Warehouse?.Name
-                            ?? "N/A",
-
-                        UnitName =
-                            unitName,
-
-                        CurrentStock =
-                            stock.QuantityOnHand,
-
-                        ReorderLevel =
-                            stock.MinimumStock,
-
-                        ShortageQuantity =
-                            shortageQuantity,
-
-                        SuggestedOrderQuantity =
-                            shortageQuantity,
-
-                        StockStatus =
-                            stockStatus
-                    });
+                    CurrentStock = stock.QuantityOnHand,
+                    ReorderLevel = stock.MinimumStock,
+                    ShortageQuantity = shortageQuantity,
+                    SuggestedOrderQuantity = shortageQuantity,
+                    StockStatus = stockStatus
+                });
             }
 
-            // =========================================================
-            // LOAD DROPDOWNS
-            // =========================================================
-
             await LoadLowStockDropdowns(model);
-
-            // =========================================================
-            // RETURN VIEW
-            //
-            // This resolves to:
-            //
-            // Views/Reports/LowStock.cshtml
-            // =========================================================
 
             return View(model);
         }
 
-
         // =========================================================
         // LOW STOCK DROPDOWNS
+        // Product dropdown displays Product Title.
         // =========================================================
 
         private async Task LoadLowStockDropdowns(
             LowStockReportViewModel model)
         {
-            // =========================================================
-            // PRODUCTS
-            // =========================================================
+            model.Products = await _context.Products
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Title)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Title
+                })
+                .ToListAsync();
 
-            model.Products =
-                await _context.Products
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.SKU)
-                    .Select(x =>
-                        new SelectListItem
-                        {
-                            Value =
-                                x.Id.ToString(),
+            model.Warehouses = await _context.Warehouses
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name
+                })
+                .ToListAsync();
 
-                            Text =
-                                x.SKU
-                        })
-                    .ToListAsync();
-
-            // =========================================================
-            // WAREHOUSES
-            // =========================================================
-
-            model.Warehouses =
-                await _context.Warehouses
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.Name)
-                    .Select(x =>
-                        new SelectListItem
-                        {
-                            Value =
-                                x.Id.ToString(),
-
-                            Text =
-                                x.Name
-                        })
-                    .ToListAsync();
-
-            // =========================================================
-            // CATEGORIES
-            // =========================================================
-
-            model.Categories =
-                await _context.Categories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .OrderBy(x =>
-                        x.Name)
-                    .Select(x =>
-                        new SelectListItem
-                        {
-                            Value =
-                                x.Id.ToString(),
-
-                            Text =
-                                x.Name
-                        })
-                    .ToListAsync();
+            model.Categories = await _context.Categories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name
+                })
+                .ToListAsync();
         }
 
         // =========================================================
@@ -2000,408 +1136,228 @@ public async Task<IActionResult> InventoryValuation(
         {
             await LoadOrganisationSettingsAsync();
 
-            var today =
-                DateTime.Today;
+            var today = DateTime.Today;
 
-            var startDate =
-                fromDate?.Date ??
-                today;
-
-            var endDate =
-                toDate?.Date ??
-                today;
+            var startDate = fromDate?.Date ?? today;
+            var endDate = toDate?.Date ?? today;
 
             if (startDate > endDate)
             {
-                endDate =
-                    startDate;
+                endDate = startDate;
             }
 
-            var startDateTime =
-                startDate.Date;
+            var startDateTime = startDate.Date;
+            var endDateTime = endDate.Date.AddDays(1);
 
-            var endDateTime =
-                endDate.Date.AddDays(1);
+            var transferOuts = await _context.StockLedgers
+                .AsNoTracking()
+                .Include(x => x.Product)
+                .Include(x => x.Warehouse)
+                .Where(x =>
+                    x.TransactionType == StockTransactionType.StockTransferOut &&
+                    x.TransactionDate >= startDateTime &&
+                    x.TransactionDate < endDateTime)
+                .OrderBy(x => x.TransactionDate)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
 
-            var transferOuts =
-                await _context.StockLedgers
-                    .AsNoTracking()
-                    .Include(x =>
-                        x.Product)
-                    .Include(x =>
-                        x.Warehouse)
-                    .Where(x =>
-                        x.TransactionType ==
-                            StockTransactionType.StockTransferOut &&
-                        x.TransactionDate >=
-                            startDateTime &&
-                        x.TransactionDate <
-                            endDateTime)
-                    .OrderBy(x =>
-                        x.TransactionDate)
-                    .ThenBy(x =>
-                        x.Id)
-                    .ToListAsync();
+            var transferIns = await _context.StockLedgers
+                .AsNoTracking()
+                .Include(x => x.Product)
+                .Include(x => x.Warehouse)
+                .Where(x =>
+                    x.TransactionType == StockTransactionType.StockTransferIn &&
+                    x.TransactionDate >= startDateTime &&
+                    x.TransactionDate < endDateTime)
+                .OrderBy(x => x.TransactionDate)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
 
-            var transferIns =
-                await _context.StockLedgers
-                    .AsNoTracking()
-                    .Include(x =>
-                        x.Product)
-                    .Include(x =>
-                        x.Warehouse)
-                    .Where(x =>
-                        x.TransactionType ==
-                            StockTransactionType.StockTransferIn &&
-                        x.TransactionDate >=
-                            startDateTime &&
-                        x.TransactionDate <
-                            endDateTime)
-                    .OrderBy(x =>
-                        x.TransactionDate)
-                    .ThenBy(x =>
-                        x.Id)
-                    .ToListAsync();
+            var mainCategories = await _context.MainCategories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => x.Name);
 
-            var mainCategories =
-                await _context.MainCategories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => x.Name);
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => new
+                {
+                    x.Name,
+                    x.MainCategoryId
+                });
 
-            var categories =
-                await _context.Categories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => new
-                        {
-                            x.Name,
-                            x.MainCategoryId
-                        });
+            var subCategories = await _context.SubCategories
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .ToDictionaryAsync(x => x.Id, x => new
+                {
+                    x.Name,
+                    x.CategoryId
+                });
 
-            var subCategories =
-                await _context.SubCategories
-                    .AsNoTracking()
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .ToDictionaryAsync(
-                        x => x.Id,
-                        x => new
-                        {
-                            x.Name,
-                            x.CategoryId
-                        });
-
-            var reportItems =
-                new List<StockTransferReportRowViewModel>();
+            var reportItems = new List<StockTransferReportRowViewModel>();
 
             foreach (var transferOut in transferOuts)
             {
-                var transferIn =
-                    transferIns
-                        .Where(x =>
-                            x.ProductId ==
-                                transferOut.ProductId &&
-                            x.ReferenceNo ==
-                                transferOut.ReferenceNo &&
-                            x.WarehouseId !=
-                                transferOut.WarehouseId)
-                        .OrderBy(x =>
-                            x.TransactionDate)
-                        .ThenBy(x =>
-                            x.Id)
-                        .FirstOrDefault();
+                var transferIn = transferIns
+                    .Where(x =>
+                        x.ProductId == transferOut.ProductId &&
+                        x.ReferenceNo == transferOut.ReferenceNo &&
+                        x.WarehouseId != transferOut.WarehouseId)
+                    .OrderBy(x => x.TransactionDate)
+                    .ThenBy(x => x.Id)
+                    .FirstOrDefault();
 
                 if (transferIn == null)
                 {
                     continue;
                 }
 
-                var product =
-                    transferOut.Product;
+                var product = transferOut.Product;
 
                 if (product == null)
                 {
                     continue;
                 }
 
-                string mainCategoryName =
-                    "-";
-
-                string categoryName =
-                    "-";
-
-                string subcategoryName =
-                    "-";
+                string mainCategoryName = "-";
+                string categoryName = "-";
+                string subcategoryName = "-";
 
                 if (product.CategoryId > 0 &&
-                    categories.TryGetValue(
-                        product.CategoryId,
-                        out var category))
+                    categories.TryGetValue(product.CategoryId, out var category))
                 {
-                    categoryName =
-                        category.Name;
+                    categoryName = category.Name;
 
                     if (mainCategories.TryGetValue(
-                            category.MainCategoryId,
-                            out var mainCategory))
+                        category.MainCategoryId, out var mainCategory))
                     {
-                        mainCategoryName =
-                            mainCategory;
+                        mainCategoryName = mainCategory;
                     }
                 }
 
                 if (product.SubCategoryId > 0 &&
                     subCategories.TryGetValue(
-                        product.SubCategoryId,
-                        out var subCategory))
+                        product.SubCategoryId, out var subCategory))
                 {
-                    subcategoryName =
-                        subCategory.Name;
+                    subcategoryName = subCategory.Name;
 
                     if (categories.TryGetValue(
-                            subCategory.CategoryId,
-                            out var categoryFromSubCategory))
+                        subCategory.CategoryId, out var categoryFromSubCategory))
                     {
-                        categoryName =
-                            categoryFromSubCategory.Name;
+                        categoryName = categoryFromSubCategory.Name;
 
                         if (mainCategories.TryGetValue(
-                                categoryFromSubCategory.MainCategoryId,
-                                out var mainCategoryFromSubCategory))
+                            categoryFromSubCategory.MainCategoryId,
+                            out var mainCategoryFromSubCategory))
                         {
-                            mainCategoryName =
-                                mainCategoryFromSubCategory;
+                            mainCategoryName = mainCategoryFromSubCategory;
                         }
                     }
                 }
 
-                var transferNo =
-                    transferOut.ReferenceNo ??
-                    "-";
+                var transferNo = transferOut.ReferenceNo ?? "-";
 
-                var productName =
-                    product.SKU ??
-                    "-";
+                // Updated: product title is the report display name.
+                var productName = product.Title ?? "-";
 
-                var fromWarehouseName =
-                    transferOut.Warehouse?.Name ??
-                    "-";
+                var fromWarehouseName = transferOut.Warehouse?.Name ?? "-";
+                var toWarehouseName = transferIn.Warehouse?.Name ?? "-";
 
-                var toWarehouseName =
-                    transferIn.Warehouse?.Name ??
-                    "-";
+                var quantity = Math.Abs(Convert.ToDecimal(transferOut.Quantity));
+                var unitCost = Convert.ToDecimal(transferOut.UnitCost);
 
-                var quantity =
-                    Math.Abs(
-                        Convert.ToDecimal(
-                            transferOut.Quantity));
+                reportItems.Add(new StockTransferReportRowViewModel
+                {
+                    ProductId = transferOut.ProductId,
+                    TransferNo = transferNo,
+                    TransferType = "Outward",
+                    TransferDate = transferOut.TransactionDate,
+                    ProductName = productName,
+                    MainCategoryName = mainCategoryName,
+                    CategoryName = categoryName,
+                    SubcategoryName = subcategoryName,
+                    FromWarehouseId = transferOut.WarehouseId,
+                    FromWarehouseName = fromWarehouseName,
+                    ToWarehouseId = transferIn.WarehouseId,
+                    ToWarehouseName = toWarehouseName,
+                    Quantity = quantity,
+                    UnitCost = unitCost
+                });
 
-                var unitCost =
-                    Convert.ToDecimal(
-                        transferOut.UnitCost);
+                reportItems.Add(new StockTransferReportRowViewModel
+                {
+                    ProductId = transferIn.ProductId,
+                    TransferNo = transferIn.ReferenceNo ?? transferNo,
+                    TransferType = "Inward",
+                    TransferDate = transferIn.TransactionDate,
 
-                // =====================================================
-                // OUTWARD
-                // =====================================================
+                    // Updated: use the inward item's product title.
+                    ProductName = transferIn.Product?.Title ?? productName,
 
-                reportItems.Add(
-                    new StockTransferReportRowViewModel
-                    {
-                        ProductId =
-                            transferOut.ProductId,
-
-                        TransferNo =
-                            transferNo,
-
-                        TransferType =
-                            "Outward",
-
-                        TransferDate =
-                            transferOut.TransactionDate,
-
-                        ProductName =
-                            productName,
-
-                        MainCategoryName =
-                            mainCategoryName,
-
-                        CategoryName =
-                            categoryName,
-
-                        SubcategoryName =
-                            subcategoryName,
-
-                        FromWarehouseId =
-                            transferOut.WarehouseId,
-
-                        FromWarehouseName =
-                            fromWarehouseName,
-
-                        ToWarehouseId =
-                            transferIn.WarehouseId,
-
-                        ToWarehouseName =
-                            toWarehouseName,
-
-                        Quantity =
-                            quantity,
-
-                        UnitCost =
-                            unitCost
-                    });
-
-                // =====================================================
-                // INWARD
-                // =====================================================
-
-                reportItems.Add(
-                    new StockTransferReportRowViewModel
-                    {
-                        ProductId =
-                            transferIn.ProductId,
-
-                        TransferNo =
-                            transferIn.ReferenceNo ??
-                            transferNo,
-
-                        TransferType =
-                            "Inward",
-
-                        TransferDate =
-                            transferIn.TransactionDate,
-
-                        ProductName =
-                            transferIn.Product?.SKU ??
-                            productName,
-
-                        MainCategoryName =
-                            mainCategoryName,
-
-                        CategoryName =
-                            categoryName,
-
-                        SubcategoryName =
-                            subcategoryName,
-
-                        FromWarehouseId =
-                            transferOut.WarehouseId,
-
-                        FromWarehouseName =
-                            fromWarehouseName,
-
-                        ToWarehouseId =
-                            transferIn.WarehouseId,
-
-                        ToWarehouseName =
-                            toWarehouseName,
-
-                        Quantity =
-                            Math.Abs(
-                                Convert.ToDecimal(
-                                    transferIn.Quantity)),
-
-                        UnitCost =
-                            Convert.ToDecimal(
-                                transferIn.UnitCost)
-                    });
+                    MainCategoryName = mainCategoryName,
+                    CategoryName = categoryName,
+                    SubcategoryName = subcategoryName,
+                    FromWarehouseId = transferOut.WarehouseId,
+                    FromWarehouseName = fromWarehouseName,
+                    ToWarehouseId = transferIn.WarehouseId,
+                    ToWarehouseName = toWarehouseName,
+                    Quantity = Math.Abs(Convert.ToDecimal(transferIn.Quantity)),
+                    UnitCost = Convert.ToDecimal(transferIn.UnitCost)
+                });
             }
 
-            reportItems =
-                reportItems
-                    .OrderByDescending(x =>
-                        x.TransferDate)
-                    .ThenBy(x =>
-                        x.TransferNo)
-                    .ThenBy(x =>
-                        x.ProductName)
-                    .ThenBy(x =>
-                        x.TransferType == "Outward"
-                            ? 0
-                            : 1)
-                    .ToList();
+            reportItems = reportItems
+                .OrderByDescending(x => x.TransferDate)
+                .ThenBy(x => x.TransferNo)
+                .ThenBy(x => x.ProductName)
+                .ThenBy(x => x.TransferType == "Outward" ? 0 : 1)
+                .ToList();
 
-            // =========================================================
-            // BUILD REPORT MODEL
-            // =========================================================
+            var model = new StockTransferReportViewModel
+            {
+                FromDate = startDate,
+                ToDate = endDate,
+                Transfers = reportItems,
 
-            var model =
-                new StockTransferReportViewModel
-                {
-                    FromDate =
-                        startDate,
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
 
-                    ToDate =
-                        endDate,
+                Branch =
+                    await _settingService.GetBranchAsync(),
 
-                    Transfers =
-                        reportItems,
+                Address =
+                    await _settingService.GetAddressAsync(),
 
-                    // =================================================
-                    // ORGANISATION SETTINGS
-                    // =================================================
+                Phone =
+                    await _settingService.GetPhoneAsync(),
 
-                    OrganisationName =
-                        await _settingService
-                            .GetOrganisationNameAsync(),
+                Email =
+                    await _settingService.GetEmailAsync(),
 
-                    Branch =
-                        await _settingService
-                            .GetBranchAsync(),
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
 
-                    Address =
-                        await _settingService
-                            .GetAddressAsync(),
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
 
-                    Phone =
-                        await _settingService
-                            .GetPhoneAsync(),
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
 
-                    Email =
-                        await _settingService
-                            .GetEmailAsync(),
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
 
-                    GSTIN =
-                        await _settingService
-                            .GetGSTINAsync(),
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
 
-                    // =================================================
-                    // REPORT SETTINGS
-                    // =================================================
-
-                    ReportHeading =
-                        await _settingService
-                            .GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService
-                            .GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService
-                            .GetToDateLabelAsync(),
-
-                    // =================================================
-                    // AUTHORISATION / SIGNATURE
-                    // =================================================
-
-                    AuthorisedSignatory =
-                        await _settingService
-                            .GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService
-                            .GetAuthorisedDesignationAsync()
-                };
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
 
             return View(model);
         }
+
         // =========================================================
         // 8. PROFIT & LOSS
         // =========================================================
@@ -2411,268 +1367,135 @@ public async Task<IActionResult> InventoryValuation(
             DateTime? fromDate,
             DateTime? toDate)
         {
-            // ---------------------------------------------------------
-            // LOAD SALES ORDER SETTINGS
-            // ---------------------------------------------------------
-
             await LoadSalesOrderSettingsAsync();
 
             var salesOrderEnabled =
                 ViewData["SalesOrderEnabled"] is bool enabled && enabled;
 
-            // ---------------------------------------------------------
-            // DATE RANGE
-            // ---------------------------------------------------------
-
             var today = DateTime.Today;
 
-            var startDate =
-                fromDate?.Date
-                ?? new DateTime(
-                    today.Year,
-                    today.Month,
-                    1);
+            var startDate = fromDate?.Date
+                ?? new DateTime(today.Year, today.Month, 1);
 
-            var endDate =
-                toDate?.Date
-                ?? today;
+            var endDate = toDate?.Date ?? today;
 
-            // Prevent invalid date range
             if (endDate < startDate)
             {
                 endDate = startDate;
             }
 
-            // ---------------------------------------------------------
-            // DEFAULT VALUES
-            // ---------------------------------------------------------
-
             decimal totalSales = 0m;
             decimal costOfGoodsSold = 0m;
             decimal grossProfit = 0m;
             decimal expenses = 0m;
-            decimal netProfit = 0m;
-
-            // ---------------------------------------------------------
-            // SALES / COGS
-            // ---------------------------------------------------------
 
             if (salesOrderEnabled)
             {
-                // -----------------------------------------------------
-                // ONLY CONFIRMED, NON-DELETED SALES ORDERS
-                // -----------------------------------------------------
-
-                var salesOrders =
-                    await _context.SalesOrders
-                        .AsNoTracking()
-                        .Include(x => x.SalesOrderItems)
-                        .Where(x =>
-                            !x.IsDeleted &&
-                            x.Status ==
-                                StoreManagementSystem.Domain.Enums.SalesOrderStatus.Confirmed &&
-                            x.OrderDate >= startDate &&
-                            x.OrderDate < endDate.AddDays(1))
-                        .ToListAsync();
-
-                // -----------------------------------------------------
-                // CALCULATE SALES / COGS / GROSS PROFIT
-                //
-                // Sales Order rules:
-                //
-                // Gross Sales
-                //     = Quantity × SalePrice
-                //
-                // Discount
-                //     = Gross Sales × Discount %
-                //
-                // Net Sales
-                //     = Gross Sales - Discount
-                //
-                // COGS
-                //     = Quantity × UnitPrice
-                //
-                // Gross Profit
-                //     = Net Sales - COGS
-                //
-                // Tax is NOT included in Gross Profit.
-                // -----------------------------------------------------
+                var salesOrders = await _context.SalesOrders
+                    .AsNoTracking()
+                    .Include(x => x.SalesOrderItems)
+                    .Where(x =>
+                        !x.IsDeleted &&
+                        x.Status == SalesOrderStatus.Confirmed &&
+                        x.OrderDate >= startDate &&
+                        x.OrderDate < endDate.AddDays(1))
+                    .ToListAsync();
 
                 foreach (var order in salesOrders)
                 {
                     foreach (var item in order.SalesOrderItems)
                     {
-                        var grossSales =
-                            item.Quantity *
-                            item.SalePrice;
+                        decimal grossSales =
+                            item.Quantity * item.SalePrice;
 
-                        var discountAmount =
-                            grossSales *
-                            item.DiscountPercent /
-                            100m;
+                        decimal discountAmount =
+                            grossSales * item.DiscountPercent / 100m;
 
-                        var netSales =
-                            Math.Max(
-                                grossSales -
-                                discountAmount,
-                                0m);
+                        decimal netSales =
+                            Math.Max(grossSales - discountAmount, 0m);
 
-                        var itemCost =
-                            item.Quantity *
-                            item.UnitPrice;
+                        decimal itemCost =
+                            item.Quantity * item.UnitPrice;
 
-                        var itemGrossProfit =
-                            netSales -
-                            itemCost;
+                        decimal itemGrossProfit =
+                            netSales - itemCost;
 
                         totalSales += netSales;
-
                         costOfGoodsSold += itemCost;
-
                         grossProfit += itemGrossProfit;
                     }
                 }
 
-                // -----------------------------------------------------
-                // ROUND FINANCIAL VALUES
-                // -----------------------------------------------------
+                totalSales = Math.Round(
+                    totalSales, 2, MidpointRounding.AwayFromZero);
 
-                totalSales =
-                    Math.Round(
-                        totalSales,
-                        2,
-                        MidpointRounding.AwayFromZero);
+                costOfGoodsSold = Math.Round(
+                    costOfGoodsSold, 2, MidpointRounding.AwayFromZero);
 
-                costOfGoodsSold =
-                    Math.Round(
-                        costOfGoodsSold,
-                        2,
-                        MidpointRounding.AwayFromZero);
-
-                grossProfit =
-                    Math.Round(
-                        grossProfit,
-                        2,
-                        MidpointRounding.AwayFromZero);
+                grossProfit = Math.Round(
+                    grossProfit, 2, MidpointRounding.AwayFromZero);
             }
 
-            // ---------------------------------------------------------
-            // EXPENSES
-            // ---------------------------------------------------------
-            //
-            // Expense module is not implemented yet.
-            // Keep this at zero until an Expense module is added.
-            // ---------------------------------------------------------
-
+            // Expense module has not been implemented yet.
             expenses = 0m;
 
-            // ---------------------------------------------------------
-            // NET PROFIT
-            // ---------------------------------------------------------
+            decimal netProfit = Math.Round(
+                grossProfit - expenses,
+                2,
+                MidpointRounding.AwayFromZero);
 
-            netProfit =
-                grossProfit -
-                expenses;
+            var model = new ProfitLossViewModel
+            {
+                TotalSales = totalSales,
+                CostOfGoodsSold = costOfGoodsSold,
+                GrossProfit = grossProfit,
+                Expenses = expenses,
+                NetProfit = netProfit,
 
-            netProfit =
-                Math.Round(
-                    netProfit,
-                    2,
-                    MidpointRounding.AwayFromZero);
+                FromDate = startDate,
+                ToDate = endDate,
 
-            // ---------------------------------------------------------
-            // VIEW MODEL
-            // ---------------------------------------------------------
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
 
-            var model =
-                new ProfitLossViewModel
-                {
-                    // -------------------------------------------------
-                    // FINANCIAL VALUES
-                    // -------------------------------------------------
+                Branch =
+                    await _settingService.GetBranchAsync(),
 
-                    TotalSales =
-                        totalSales,
+                Address =
+                    await _settingService.GetAddressAsync(),
 
-                    CostOfGoodsSold =
-                        costOfGoodsSold,
+                Phone =
+                    await _settingService.GetPhoneAsync(),
 
-                    GrossProfit =
-                        grossProfit,
+                Email =
+                    await _settingService.GetEmailAsync(),
 
-                    Expenses =
-                        expenses,
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
 
-                    NetProfit =
-                        netProfit,
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
 
-                    // -------------------------------------------------
-                    // DATE FILTERS
-                    // -------------------------------------------------
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
 
-                    FromDate =
-                        startDate,
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
 
-                    ToDate =
-                        endDate,
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
 
-                    // -------------------------------------------------
-                    // REPORT SETTINGS
-                    // -------------------------------------------------
-
-                    OrganisationName =
-                        await _settingService
-                            .GetOrganisationNameAsync(),
-
-                    Branch =
-                        await _settingService
-                            .GetBranchAsync(),
-
-                    Address =
-                        await _settingService
-                            .GetAddressAsync(),
-
-                    Phone =
-                        await _settingService
-                            .GetPhoneAsync(),
-
-                    Email =
-                        await _settingService
-                            .GetEmailAsync(),
-
-                    GSTIN =
-                        await _settingService
-                            .GetGSTINAsync(),
-
-                    ReportHeading =
-                        await _settingService
-                            .GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService
-                            .GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService
-                            .GetToDateLabelAsync(),
-
-                    AuthorisedSignatory =
-                        await _settingService
-                            .GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService
-                            .GetAuthorisedDesignationAsync()
-                };
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
 
             return View(model);
         }
 
         // =========================================================
         // 9. GST REPORT
+        // Add the GST report action when its view model is available.
         // =========================================================
-
-        // GST report action can be added here.
 
         // =========================================================
         // 10. CUSTOMER REPORT
@@ -2683,13 +1506,11 @@ public async Task<IActionResult> InventoryValuation(
         {
             await LoadOrganisationSettingsAsync();
 
-            var model =
-                new CustomerReportViewModel
-                {
-                    TotalCustomers =
-                        await _context.Customers
-                            .CountAsync()
-                };
+            var model = new CustomerReportViewModel
+            {
+                TotalCustomers =
+                    await _context.Customers.CountAsync()
+            };
 
             return View(model);
         }
@@ -2703,110 +1524,60 @@ public async Task<IActionResult> InventoryValuation(
         {
             await LoadOrganisationSettingsAsync();
 
-            // =====================================================
-            // TOTAL ACTIVE SUPPLIERS
-            // =====================================================
+            int totalSuppliers = await _context.Suppliers
+                .CountAsync(x => !x.IsDeleted && x.IsActive);
 
-            int totalSuppliers =
-                await _context.Suppliers
-                    .CountAsync(x =>
-                        !x.IsDeleted &&
-                        x.IsActive);
+            decimal totalPurchase = await _context.PurchaseOrders
+                .Where(x => !x.IsDeleted)
+                .SumAsync(x => x.GrandTotal);
 
-            // =====================================================
-            // TOTAL PURCHASE
-            // =====================================================
+            // Payment module has not been implemented yet.
+            decimal totalPaid = 0m;
 
-            decimal totalPurchase =
-                await _context.PurchaseOrders
-                    .Where(x =>
-                        !x.IsDeleted)
-                    .SumAsync(x =>
-                        x.GrandTotal);
+            decimal totalOutstanding = totalPurchase - totalPaid;
 
-            // =====================================================
-            // TOTAL PAID
-            // =====================================================
+            var model = new SupplierReportViewModel
+            {
+                TotalSuppliers = totalSuppliers,
+                TotalPurchase = totalPurchase,
+                TotalPaid = totalPaid,
+                TotalOutstanding = totalOutstanding,
 
-            // Payment module does not exist yet.
-            decimal totalPaid =
-                0m;
+                OrganisationName =
+                    await _settingService.GetOrganisationNameAsync(),
 
-            // =====================================================
-            // OUTSTANDING
-            // =====================================================
+                Branch =
+                    await _settingService.GetBranchAsync(),
 
-            decimal totalOutstanding =
-                totalPurchase -
-                totalPaid;
+                Address =
+                    await _settingService.GetAddressAsync(),
 
-            // =====================================================
-            // VIEW MODEL
-            // =====================================================
+                Phone =
+                    await _settingService.GetPhoneAsync(),
 
-            var model =
-                new SupplierReportViewModel
-                {
-                    TotalSuppliers =
-                        totalSuppliers,
+                Email =
+                    await _settingService.GetEmailAsync(),
 
-                    TotalPurchase =
-                        totalPurchase,
+                GSTIN =
+                    await _settingService.GetGSTINAsync(),
 
-                    TotalPaid =
-                        totalPaid,
+                ReportHeading =
+                    await _settingService.GetReportHeadingAsync(),
 
-                    TotalOutstanding =
-                        totalOutstanding,
+                FromDateLabel =
+                    await _settingService.GetFromDateLabelAsync(),
 
-                    // =================================================
-                    // ORGANISATION DETAILS
-                    // =================================================
+                ToDateLabel =
+                    await _settingService.GetToDateLabelAsync(),
 
-                    OrganisationName =
-                        await _settingService.GetOrganisationNameAsync(),
+                AuthorisedSignatory =
+                    await _settingService.GetAuthorisedSignatoryAsync(),
 
-                    Branch =
-                        await _settingService.GetBranchAsync(),
-
-                    Address =
-                        await _settingService.GetAddressAsync(),
-
-                    Phone =
-                        await _settingService.GetPhoneAsync(),
-
-                    Email =
-                        await _settingService.GetEmailAsync(),
-
-                    GSTIN =
-                        await _settingService.GetGSTINAsync(),
-
-                    // =================================================
-                    // REPORT SETTINGS
-                    // =================================================
-
-                    ReportHeading =
-                        await _settingService.GetReportHeadingAsync(),
-
-                    FromDateLabel =
-                        await _settingService.GetFromDateLabelAsync(),
-
-                    ToDateLabel =
-                        await _settingService.GetToDateLabelAsync(),
-
-                    // =================================================
-                    // AUTHORISED SIGNATURE
-                    // =================================================
-
-                    AuthorisedSignatory =
-                        await _settingService.GetAuthorisedSignatoryAsync(),
-
-                    AuthorisedDesignation =
-                        await _settingService.GetAuthorisedDesignationAsync()
-                };
+                AuthorisedDesignation =
+                    await _settingService.GetAuthorisedDesignationAsync()
+            };
 
             return View(model);
         }
     }
 }
-

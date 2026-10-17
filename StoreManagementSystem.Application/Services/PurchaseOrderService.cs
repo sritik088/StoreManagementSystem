@@ -1,11 +1,11 @@
-﻿using StoreManagementSystem.Application.Interfaces;
+﻿
+using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
 using StoreManagementSystem.Domain.Enums;
 
 namespace StoreManagementSystem.Application.Services
 {
-    public class PurchaseOrderService
-        : IPurchaseOrderService
+    public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly IPurchaseOrderRepository _repository;
 
@@ -15,324 +15,290 @@ namespace StoreManagementSystem.Application.Services
             _repository = repository;
         }
 
-
         // =====================================================
         // GET ALL
         // =====================================================
 
-        public async Task<IEnumerable<PurchaseOrder>>
-            GetAllAsync()
+        public async Task<IEnumerable<PurchaseOrder>> GetAllAsync()
         {
             return await _repository.GetAllAsync();
         }
-
 
         // =====================================================
         // GET BY ID
         // =====================================================
 
-        public async Task<PurchaseOrder?>
-            GetByIdAsync(int id)
+        public async Task<PurchaseOrder?> GetByIdAsync(int id)
         {
+            if (id <= 0)
+                return null;
+
             return await _repository.GetByIdAsync(id);
         }
 
-
         // =====================================================
-        // CREATE
+        // VALIDATE PURCHASE ORDER
         // =====================================================
 
-        public async Task<bool>
-            CreateAsync(
-                PurchaseOrder purchaseOrder)
+        private static bool IsValidPurchaseOrder(
+            PurchaseOrder purchaseOrder)
         {
+            if (purchaseOrder == null)
+                return false;
+
             if (purchaseOrder.SupplierId <= 0)
                 return false;
 
             if (purchaseOrder.Items == null ||
                 !purchaseOrder.Items.Any())
+            {
                 return false;
-
-            purchaseOrder.PONumber =
-                await _repository.GeneratePONumberAsync();
-
-            purchaseOrder.OrderDate =
-                DateTime.Now;
-
-            purchaseOrder.Status =
-                PurchaseOrderStatus.Draft;
-
-            purchaseOrder.CreatedDate =
-                DateTime.Now;
-
-            purchaseOrder.IsDeleted =
-                false;
-
-            decimal subTotal = 0;
-
-            decimal tax = 0;
-
-            decimal discount = 0;
+            }
 
             foreach (var item in purchaseOrder.Items)
             {
-                item.Total =
-                    (item.Quantity *
-                     item.UnitPrice)
-                    - item.Discount
-                    + item.TaxAmount;
+                if (item.ProductId <= 0 ||
+                    item.Quantity <= 0 ||
+                    item.UnitPrice < 0 ||
+                    item.Discount < 0 ||
+                    item.TaxAmount < 0)
+                {
+                    return false;
+                }
 
-                subTotal +=
-                    item.Quantity *
-                    item.UnitPrice;
+                decimal grossAmount =
+                    item.Quantity * item.UnitPrice;
 
-                tax +=
-                    item.TaxAmount;
-
-                discount +=
-                    item.Discount;
+                if (item.Discount > grossAmount)
+                    return false;
             }
 
-            purchaseOrder.SubTotal =
-                subTotal;
-
-            purchaseOrder.TaxAmount =
-                tax;
-
-            purchaseOrder.Discount =
-                discount;
-
-            purchaseOrder.GrandTotal =
-                subTotal +
-                tax -
-                discount;
-
-            await _repository
-                .AddAsync(purchaseOrder);
+            // A single product should appear only once
+            // in a purchase order.
+            if (purchaseOrder.Items
+                .GroupBy(x => x.ProductId)
+                .Any(group => group.Count() > 1))
+            {
+                return false;
+            }
 
             return true;
         }
 
+        // =====================================================
+        // CALCULATE PURCHASE ORDER TOTALS
+        // =====================================================
+
+        private static void CalculateTotals(
+            PurchaseOrder purchaseOrder)
+        {
+            decimal subTotal = 0m;
+            decimal tax = 0m;
+            decimal discount = 0m;
+
+            foreach (var item in purchaseOrder.Items)
+            {
+                decimal grossAmount =
+                    item.Quantity * item.UnitPrice;
+
+                item.Total =
+                    grossAmount
+                    - item.Discount
+                    + item.TaxAmount;
+
+                subTotal += grossAmount;
+                tax += item.TaxAmount;
+                discount += item.Discount;
+            }
+
+            purchaseOrder.SubTotal = subTotal;
+            purchaseOrder.TaxAmount = tax;
+            purchaseOrder.Discount = discount;
+
+            purchaseOrder.GrandTotal =
+                subTotal + tax - discount;
+        }
+
+        // =====================================================
+        // CREATE
+        // =====================================================
+
+        public async Task<bool> CreateAsync(
+            PurchaseOrder purchaseOrder)
+        {
+            if (!IsValidPurchaseOrder(purchaseOrder))
+                return false;
+
+            DateTime now = DateTime.Now;
+
+            purchaseOrder.PONumber =
+                await _repository.GeneratePONumberAsync();
+
+            purchaseOrder.OrderDate = now;
+            purchaseOrder.Status = PurchaseOrderStatus.Draft;
+            purchaseOrder.CreatedDate = now;
+            purchaseOrder.UpdatedDate = null;
+            purchaseOrder.IsDeleted = false;
+
+            foreach (var item in purchaseOrder.Items)
+            {
+                item.Id = 0;
+                item.PurchaseOrderId = 0;
+            }
+
+            CalculateTotals(purchaseOrder);
+
+            await _repository.AddAsync(purchaseOrder);
+
+            return true;
+        }
 
         // =====================================================
         // UPDATE
         // =====================================================
 
-        public async Task<bool>
-            UpdateAsync(
-                PurchaseOrder purchaseOrder)
+        public async Task<bool> UpdateAsync(
+            PurchaseOrder purchaseOrder)
         {
-            var existing =
-                await _repository
-                    .GetByIdAsync(
-                        purchaseOrder.Id);
-
-            if (existing == null)
-                return false;
-
-            if (existing.Status !=
-                PurchaseOrderStatus.Draft)
-                return false;
-
-            existing.SupplierId =
-                purchaseOrder.SupplierId;
-
-            existing.ExpectedDate =
-                purchaseOrder.ExpectedDate;
-
-            existing.Remarks =
-                purchaseOrder.Remarks;
-
-            existing.Items =
-                purchaseOrder.Items;
-
-            decimal subTotal = 0;
-
-            decimal tax = 0;
-
-            decimal discount = 0;
-
-            foreach (var item in existing.Items)
+            if (purchaseOrder == null ||
+                purchaseOrder.Id <= 0)
             {
-                item.Total =
-                    (item.Quantity *
-                     item.UnitPrice)
-                    - item.Discount
-                    + item.TaxAmount;
-
-                subTotal +=
-                    item.Quantity *
-                    item.UnitPrice;
-
-                tax +=
-                    item.TaxAmount;
-
-                discount +=
-                    item.Discount;
+                return false;
             }
 
-            existing.SubTotal =
-                subTotal;
+            if (!IsValidPurchaseOrder(purchaseOrder))
+                return false;
 
-            existing.TaxAmount =
-                tax;
+            var existing =
+                await _repository.GetByIdAsync(
+                    purchaseOrder.Id);
 
-            existing.Discount =
-                discount;
+            if (existing == null ||
+                existing.IsDeleted ||
+                existing.Status != PurchaseOrderStatus.Draft)
+            {
+                return false;
+            }
 
-            existing.GrandTotal =
-                subTotal +
-                tax -
-                discount;
+            existing.SupplierId = purchaseOrder.SupplierId;
+            existing.ExpectedDate = purchaseOrder.ExpectedDate;
+            existing.Remarks = purchaseOrder.Remarks;
 
-            existing.UpdatedDate =
-                DateTime.Now;
+            // Replace existing line items safely.
+            // The repository loads existing.Items, so EF can
+            // track the removed and added entities.
+            existing.Items.Clear();
 
-            await _repository
-                .UpdateAsync(existing);
+            foreach (var incomingItem in purchaseOrder.Items)
+            {
+                existing.Items.Add(new PurchaseOrderItem
+                {
+                    ProductId = incomingItem.ProductId,
+                    Quantity = incomingItem.Quantity,
+                    UnitPrice = incomingItem.UnitPrice,
+                    Discount = incomingItem.Discount,
+                    TaxAmount = incomingItem.TaxAmount
+                });
+            }
+
+            CalculateTotals(existing);
+
+            existing.UpdatedDate = DateTime.Now;
+
+            await _repository.UpdateAsync(existing);
 
             return true;
         }
 
-
         // =====================================================
-        // DELETE
-        // =====================================================
-        //
-        // RULE:
-        //
-        // 1. PO must exist.
-        // 2. PO must not already be deleted.
-        // 3. PO must be Draft.
-        // 4. PO must NOT have an active GRN.
-        //
-        // If GRN exists:
-        //      deletion is blocked.
-        //
-        // User must reverse/delete the GRN first.
-        //
+        // DELETE - SOFT DELETE
         // =====================================================
 
-        public async Task<bool>
-            DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            // -------------------------------------------------
-            // LOAD ACTIVE PO
-            // -------------------------------------------------
-
-            var po =
-                await _repository
-                    .GetByIdAsync(id);
-
-            if (po == null)
+            if (id <= 0)
                 return false;
 
+            var po = await _repository.GetByIdAsync(id);
 
-            // -------------------------------------------------
-            // ONLY DRAFT PO CAN BE DELETED
-            // -------------------------------------------------
-
-            if (po.Status !=
-                PurchaseOrderStatus.Draft)
+            if (po == null ||
+                po.IsDeleted ||
+                po.Status != PurchaseOrderStatus.Draft)
             {
                 return false;
             }
 
-
-            // -------------------------------------------------
-            // CHECK ACTIVE GRN
-            // -------------------------------------------------
-
-            var hasActiveGRN =
-                await _repository
-                    .HasActiveGoodsReceiptsAsync(id);
+            bool hasActiveGRN =
+                await _repository.HasActiveGoodsReceiptsAsync(id);
 
             if (hasActiveGRN)
-            {
-                // GRN exists.
-                //
-                // DO NOT delete the PO.
-                //
-                // User must first reverse/delete
-                // the Goods Receipt.
-                //
                 return false;
-            }
 
-
-            // -------------------------------------------------
-            // DELETE PO
-            // -------------------------------------------------
-
-            await _repository
-                .DeleteAsync(id);
+            await _repository.DeleteAsync(id);
 
             return true;
         }
-
 
         // =====================================================
         // APPROVE
         // =====================================================
 
-        public async Task<bool>
-            ApproveAsync(int id)
+        public async Task<bool> ApproveAsync(int id)
         {
-            var po =
-                await _repository
-                    .GetByIdAsync(id);
-
-            if (po == null)
+            if (id <= 0)
                 return false;
 
-            if (po.Status !=
-                PurchaseOrderStatus.Draft)
-                return false;
+            var po = await _repository.GetByIdAsync(id);
 
-            await _repository
-                .ApproveAsync(id);
+            if (po == null ||
+                po.IsDeleted ||
+                po.Status != PurchaseOrderStatus.Draft)
+            {
+                return false;
+            }
+
+            await _repository.ApproveAsync(id);
 
             return true;
         }
-
 
         // =====================================================
         // GET LATEST UNIT PRICE
         // =====================================================
 
-        public async Task<decimal>
-            GetLatestUnitPriceAsync(
-                int productId)
+        public async Task<decimal> GetLatestUnitPriceAsync(
+            int productId)
         {
             if (productId <= 0)
                 return 0m;
 
-            return await _repository
-                .GetLatestUnitPriceAsync(
-                    productId);
+            return await _repository.GetLatestUnitPriceAsync(
+                productId);
         }
-
 
         // =====================================================
         // CANCEL
         // =====================================================
 
-        public async Task<bool>
-            CancelAsync(int id)
+        public async Task<bool> CancelAsync(int id)
         {
-            var po =
-                await _repository
-                    .GetByIdAsync(id);
-
-            if (po == null)
+            if (id <= 0)
                 return false;
 
-            if (po.Status ==
-                PurchaseOrderStatus.Received)
+            var po = await _repository.GetByIdAsync(id);
+
+            if (po == null || po.IsDeleted)
                 return false;
 
-            await _repository
-                .CancelAsync(id);
+            if (po.Status == PurchaseOrderStatus.Cancelled ||
+                po.Status == PurchaseOrderStatus.Received ||
+                po.Status == PurchaseOrderStatus.PartiallyReceived ||
+                po.Status == PurchaseOrderStatus.FullyReceived)
+            {
+                return false;
+            }
+
+            await _repository.CancelAsync(id);
 
             return true;
         }
@@ -341,44 +307,33 @@ namespace StoreManagementSystem.Application.Services
         // RESTORE
         // =====================================================
 
-        public async Task<bool>
-            RestoreAsync(int id)
+        public async Task<bool> RestoreAsync(int id)
         {
-            var po =
-                await _repository
-                    .GetByIdAsync(id);
-
-            if (po == null)
+            if (id <= 0)
                 return false;
 
-            // -------------------------------------------------
-            // ONLY DELETED PO CAN BE RESTORED
-            // -------------------------------------------------
+            var po = await _repository.GetByIdAsync(id);
 
-            if (!po.IsDeleted)
+            if (po == null || !po.IsDeleted)
                 return false;
 
-            await _repository
-                .RestoreAsync(id);
+            await _repository.RestoreAsync(id);
 
             return true;
         }
 
-
         // =====================================================
-        // CHECK ACTIVE GRN
+        // CHECK ACTIVE GOODS RECEIPTS
         // =====================================================
 
-        public async Task<bool>
-            HasActiveGoodsReceiptsAsync(
-                int purchaseOrderId)
+        public async Task<bool> HasActiveGoodsReceiptsAsync(
+            int purchaseOrderId)
         {
             if (purchaseOrderId <= 0)
                 return false;
 
-            return await _repository
-                .HasActiveGoodsReceiptsAsync(
-                    purchaseOrderId);
+            return await _repository.HasActiveGoodsReceiptsAsync(
+                purchaseOrderId);
         }
     }
 }

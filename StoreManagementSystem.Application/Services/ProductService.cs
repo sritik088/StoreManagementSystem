@@ -1,4 +1,5 @@
-﻿using StoreManagementSystem.Application.Interfaces;
+﻿
+using StoreManagementSystem.Application.Interfaces;
 using StoreManagementSystem.Domain.Entities;
 
 namespace StoreManagementSystem.Application.Services
@@ -12,30 +13,35 @@ namespace StoreManagementSystem.Application.Services
             _repository = repository;
         }
 
-        // =========================
         // GET ALL
-        // =========================
-
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _repository.GetAllAsync();
         }
 
-        // =========================
         // GET BY ID
-        // =========================
-
         public async Task<Product?> GetByIdAsync(int id)
         {
             return await _repository.GetByIdAsync(id);
         }
 
-        // =========================
         // CREATE
-        // =========================
-
         public async Task<bool> CreateAsync(Product product)
         {
+            // Clean input
+            product.Title = product.Title.Trim();
+            product.SKU = product.SKU.Trim();
+
+            product.Barcode = string.IsNullOrWhiteSpace(product.Barcode)
+                ? null
+                : product.Barcode.Trim();
+
+            // Validate Title
+            if (string.IsNullOrWhiteSpace(product.Title))
+            {
+                return false;
+            }
+
             // Check duplicate SKU
             if (await _repository.ExistsBySkuAsync(product.SKU))
             {
@@ -51,34 +57,36 @@ namespace StoreManagementSystem.Application.Services
                 }
             }
 
-            // Clean input
-            product.SKU = product.SKU.Trim();
-
-            if (!string.IsNullOrWhiteSpace(product.Barcode))
-            {
-                product.Barcode = product.Barcode.Trim();
-            }
-
             await _repository.AddAsync(product);
 
             return true;
         }
 
-        // =========================
         // UPDATE
-        // =========================
-
         public async Task<bool> UpdateAsync(Product product)
         {
-            var existing =
-                await _repository.GetByIdAsync(product.Id);
+            var existing = await _repository.GetByIdAsync(product.Id);
 
             if (existing == null)
             {
                 return false;
             }
 
-            // Check duplicate SKU
+            // Clean input
+            product.Title = product.Title.Trim();
+            product.SKU = product.SKU.Trim();
+
+            product.Barcode = string.IsNullOrWhiteSpace(product.Barcode)
+                ? null
+                : product.Barcode.Trim();
+
+            // Validate Title
+            if (string.IsNullOrWhiteSpace(product.Title))
+            {
+                return false;
+            }
+
+            // Check duplicate SKU, excluding current product
             if (await _repository.ExistsBySkuAsync(
                 product.SKU,
                 product.Id))
@@ -86,7 +94,7 @@ namespace StoreManagementSystem.Application.Services
                 return false;
             }
 
-            // Check duplicate Barcode
+            // Check duplicate Barcode, excluding current product
             if (!string.IsNullOrWhiteSpace(product.Barcode))
             {
                 if (await _repository.ExistsByBarcodeAsync(
@@ -97,50 +105,31 @@ namespace StoreManagementSystem.Application.Services
                 }
             }
 
-            // =========================
-            // Update Foreign Keys
-            // =========================
+            // Update product title
+            existing.Title = product.Title;
 
-            existing.MainCategoryId =
-                product.MainCategoryId;
+            // Update identification
+            existing.SKU = product.SKU;
+            existing.Barcode = product.Barcode;
 
-            existing.CategoryId =
-                product.CategoryId;
+            // Update category relationships
+            existing.MainCategoryId = product.MainCategoryId;
+            existing.CategoryId = product.CategoryId;
+            existing.SubCategoryId = product.SubCategoryId;
 
-            existing.SubCategoryId =
-                product.SubCategoryId;
-
-            existing.SupplierId =
-                product.SupplierId;
-
-            existing.WarehouseId =
-                product.WarehouseId;
-
-            // =========================
-            // Update Identification
-            // =========================
-
-            existing.SKU =
-                product.SKU.Trim();
-
-            existing.Barcode =
-                string.IsNullOrWhiteSpace(product.Barcode)
-                    ? null
-                    : product.Barcode.Trim();
+            // Update supplier and warehouse
+            existing.SupplierId = product.SupplierId;
+            existing.WarehouseId = product.WarehouseId;
 
             await _repository.UpdateAsync(existing);
 
             return true;
         }
 
-        // =========================
-        // DELETE
-        // =========================
-
+        // DELETE - SOFT DELETE
         public async Task<bool> DeleteAsync(int id)
         {
-            var existing =
-                await _repository.GetByIdAsync(id);
+            var existing = await _repository.GetByIdAsync(id);
 
             if (existing == null)
             {

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreManagementSystem.Infrastructure.Data;
 using StoreManagementSystem.Web.ViewModels.ProductStatement;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class ProductStatementController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -30,7 +33,7 @@ namespace StoreManagementSystem.Web.Controllers
             };
 
             // ========================================================
-            // VALIDATE DATE RANGE
+            // STEP 1: VALIDATE DATE RANGE
             // ========================================================
 
             if (fromDate.HasValue &&
@@ -45,30 +48,21 @@ namespace StoreManagementSystem.Web.Controllers
             }
 
             // ========================================================
-            // STEP 1
-            // GET ALL PURCHASE TRANSACTIONS
+            // STEP 2: GET PURCHASE TRANSACTIONS
             // ========================================================
 
-            var purchaseQuery = _context.GoodsReceiptItems
+            var allPurchases = await _context.GoodsReceiptItems
                 .AsNoTracking()
-                .Include(x => x.GoodsReceipt)
-                .Include(x => x.Product)
-                    .ThenInclude(x => x.SubCategory)
-                .Where(x =>
-                    x.GoodsReceipt != null);
-
-            var allPurchases = await purchaseQuery
+                .Where(x => x.GoodsReceipt != null)
                 .Select(x => new
                 {
                     Date = x.GoodsReceipt!.ReceiptDate,
 
                     GRNNumber = x.GoodsReceipt.GRNNumber,
 
-                    Subcategory =
-                        x.Product != null &&
-                        x.Product.SubCategory != null
-                            ? x.Product.SubCategory.Name
-                            : "-",
+                    ProductTitle = x.Product != null
+                        ? x.Product.Title
+                        : "-",
 
                     Quantity = x.ReceivedQuantity,
 
@@ -77,27 +71,19 @@ namespace StoreManagementSystem.Web.Controllers
                 .ToListAsync();
 
             // ========================================================
-            // STEP 2
-            // GET ALL SALES TRANSACTIONS
+            // STEP 3: GET SALES TRANSACTIONS
             // ========================================================
 
-            var salesQuery = _context.SalesOrderItems
+            var allSales = await _context.SalesOrderItems
                 .AsNoTracking()
-                .Include(x => x.SalesOrder)
-                .Include(x => x.Product)
-                    .ThenInclude(x => x.SubCategory)
-                .AsQueryable();
-
-            var allSales = await salesQuery
+                .Where(x => x.SalesOrder != null)
                 .Select(x => new
                 {
-                    Date = x.SalesOrder.OrderDate,
+                    Date = x.SalesOrder!.OrderDate,
 
-                    Subcategory =
-                        x.Product != null &&
-                        x.Product.SubCategory != null
-                            ? x.Product.SubCategory.Name
-                            : "-",
+                    ProductTitle = x.Product != null
+                        ? x.Product.Title
+                        : "-",
 
                     Quantity = x.Quantity,
 
@@ -106,35 +92,21 @@ namespace StoreManagementSystem.Web.Controllers
                 .ToListAsync();
 
             // ========================================================
-            // STEP 3
-            // GET ALL DAMAGE TRANSACTIONS
+            // STEP 4: GET DAMAGE TRANSACTIONS
             // ========================================================
 
-            var damageQuery = _context.DamageEntries
+            var allDamages = await _context.DamageEntries
                 .AsNoTracking()
-                .Include(x => x.Damage)
-                .Include(x => x.Product)
-                    .ThenInclude(x => x.SubCategory)
-                .Where(x =>
-                    !x.IsDeleted);
-
-            var allDamages = await damageQuery
+                .Where(x => !x.IsDeleted)
                 .Select(x => new
                 {
                     Date = x.DamageDate,
 
                     DamageNumber = x.DamageNumber,
 
-                    DamageName =
-                        x.Damage != null
-                            ? x.Damage.DamageName
-                            : "-",
-
-                    Subcategory =
-                        x.Product != null &&
-                        x.Product.SubCategory != null
-                            ? x.Product.SubCategory.Name
-                            : "-",
+                    ProductTitle = x.Product != null
+                        ? x.Product.Title
+                        : "-",
 
                     Quantity = x.Quantity,
 
@@ -143,8 +115,7 @@ namespace StoreManagementSystem.Web.Controllers
                 .ToListAsync();
 
             // ========================================================
-            // STEP 4
-            // CALCULATE OPENING BALANCE
+            // STEP 5: CALCULATE OPENING BALANCE
             // ========================================================
 
             decimal openingQuantity = 0m;
@@ -152,134 +123,67 @@ namespace StoreManagementSystem.Web.Controllers
 
             if (fromDate.HasValue)
             {
-                DateTime openingDate =
-                    fromDate.Value.Date;
-
-                // ----------------------------------------------------
-                // PURCHASES BEFORE FROM DATE
-                // ----------------------------------------------------
-
-                var openingPurchases = allPurchases
-                    .Where(x =>
-                        x.Date.Date < openingDate)
-                    .OrderBy(x => x.Date)
-                    .ToList();
-
-                // ----------------------------------------------------
-                // SALES BEFORE FROM DATE
-                // ----------------------------------------------------
-
-                var openingSales = allSales
-                    .Where(x =>
-                        x.Date.Date < openingDate)
-                    .OrderBy(x => x.Date)
-                    .ToList();
-
-                // ----------------------------------------------------
-                // DAMAGES BEFORE FROM DATE
-                // ----------------------------------------------------
-
-                var openingDamages = allDamages
-                    .Where(x =>
-                        x.Date.Date < openingDate)
-                    .OrderBy(x => x.Date)
-                    .ToList();
-
-                // ----------------------------------------------------
-                // CREATE OPENING TRANSACTIONS
-                // ----------------------------------------------------
+                DateTime openingDate = fromDate.Value.Date;
 
                 var openingTransactions =
                     new List<OpeningTransaction>();
 
-                foreach (var purchase in openingPurchases)
+                foreach (var purchase in allPurchases
+                    .Where(x => x.Date.Date < openingDate))
                 {
                     openingTransactions.Add(
                         new OpeningTransaction
                         {
                             Date = purchase.Date,
-
-                            TransactionType =
-                                TransactionType.Purchase,
-
-                            Quantity =
-                                purchase.Quantity,
-
-                            Rate =
-                                purchase.Rate
+                            TransactionType = TransactionType.Purchase,
+                            Quantity = purchase.Quantity,
+                            Rate = purchase.Rate
                         });
                 }
 
-                foreach (var sale in openingSales)
+                foreach (var sale in allSales
+                    .Where(x => x.Date.Date < openingDate))
                 {
                     openingTransactions.Add(
                         new OpeningTransaction
                         {
                             Date = sale.Date,
-
-                            TransactionType =
-                                TransactionType.Sale,
-
-                            Quantity =
-                                sale.Quantity,
-
-                            Rate =
-                                sale.Rate
+                            TransactionType = TransactionType.Sale,
+                            Quantity = sale.Quantity,
+                            Rate = sale.Rate
                         });
                 }
 
-                foreach (var damage in openingDamages)
+                foreach (var damage in allDamages
+                    .Where(x => x.Date.Date < openingDate))
                 {
                     openingTransactions.Add(
                         new OpeningTransaction
                         {
                             Date = damage.Date,
-
-                            TransactionType =
-                                TransactionType.Damage,
-
-                            Quantity =
-                                damage.Quantity,
-
-                            Rate =
-                                damage.Rate
+                            TransactionType = TransactionType.Damage,
+                            Quantity = damage.Quantity,
+                            Rate = damage.Rate
                         });
                 }
 
-                // ----------------------------------------------------
-                // SORT OPENING TRANSACTIONS
-                // Purchase → Sale → Damage
-                // ----------------------------------------------------
-
                 openingTransactions = openingTransactions
                     .OrderBy(x => x.Date)
-                    .ThenBy(x =>
-                        x.TransactionType)
+                    .ThenBy(x => x.TransactionType)
                     .ToList();
-
-                // ----------------------------------------------------
-                // CALCULATE OPENING STOCK
-                // ----------------------------------------------------
 
                 foreach (var transaction in openingTransactions)
                 {
-                    // =================================================
-                    // PURCHASE
-                    // =================================================
-
                     if (transaction.TransactionType ==
                         TransactionType.Purchase)
                     {
                         decimal previousValue =
-                            openingQuantity *
-                            openingRate;
+                            openingQuantity * openingRate;
 
                         decimal purchaseValue =
-                            transaction.Quantity *
-                            transaction.Rate;
+                            transaction.Quantity * transaction.Rate;
 
-                        openingQuantity +=
-                            transaction.Quantity;
+                        openingQuantity += transaction.Quantity;
 
                         if (openingQuantity > 0)
                         {
@@ -288,33 +192,13 @@ namespace StoreManagementSystem.Web.Controllers
                                 / openingQuantity;
                         }
                     }
-
-                    // =================================================
-                    // SALE
-                    // =================================================
-
-                    else if (transaction.TransactionType ==
-                             TransactionType.Sale)
+                    else if (
+                        transaction.TransactionType ==
+                        TransactionType.Sale ||
+                        transaction.TransactionType ==
+                        TransactionType.Damage)
                     {
-                        openingQuantity -=
-                            transaction.Quantity;
-
-                        if (openingQuantity <= 0)
-                        {
-                            openingQuantity = 0m;
-                            openingRate = 0m;
-                        }
-                    }
-
-                    // =================================================
-                    // DAMAGE
-                    // =================================================
-
-                    else if (transaction.TransactionType ==
-                             TransactionType.Damage)
-                    {
-                        openingQuantity -=
-                            transaction.Quantity;
+                        openingQuantity -= transaction.Quantity;
 
                         if (openingQuantity <= 0)
                         {
@@ -323,23 +207,14 @@ namespace StoreManagementSystem.Web.Controllers
                         }
                     }
                 }
-            }
 
-            // ========================================================
-            // STEP 5
-            // ADD OPENING ROW FIRST
-            // ========================================================
-
-            if (fromDate.HasValue)
-            {
+                // Add opening balance row.
                 model.Rows.Add(
                     new ProductStatementRowViewModel
                     {
-                        Date = fromDate.Value.Date,
-
+                        Date = openingDate,
                         GRNNumber = "Opening",
-
-                        Subcategory = "Opening Balance",
+                        ProductTitle = "Opening Balance",
 
                         PurchaseQuantity = 0m,
                         PurchaseRate = 0m,
@@ -350,98 +225,55 @@ namespace StoreManagementSystem.Web.Controllers
                         DamageQuantity = 0m,
                         DamageRate = 0m,
 
-                        BalanceQuantity =
-                            openingQuantity,
-
-                        BalanceRate =
-                            openingRate
+                        BalanceQuantity = openingQuantity,
+                        BalanceRate = openingRate
                     });
             }
 
             // ========================================================
-            // STEP 6
-            // FILTER PURCHASE TRANSACTIONS
+            // STEP 6: FILTER PURCHASES BY DATE
             // ========================================================
 
-            var filteredPurchases =
-                allPurchases.AsEnumerable();
-
-            if (fromDate.HasValue)
-            {
-                filteredPurchases =
-                    filteredPurchases.Where(x =>
-                        x.Date.Date >=
-                        fromDate.Value.Date);
-            }
-
-            if (toDate.HasValue)
-            {
-                filteredPurchases =
-                    filteredPurchases.Where(x =>
-                        x.Date.Date <=
-                        toDate.Value.Date);
-            }
+            var filteredPurchases = allPurchases
+                .Where(x =>
+                    (!fromDate.HasValue ||
+                     x.Date.Date >= fromDate.Value.Date) &&
+                    (!toDate.HasValue ||
+                     x.Date.Date <= toDate.Value.Date))
+                .ToList();
 
             // ========================================================
-            // STEP 7
-            // FILTER SALES TRANSACTIONS
+            // STEP 7: FILTER SALES BY DATE
             // ========================================================
 
-            var filteredSales =
-                allSales.AsEnumerable();
-
-            if (fromDate.HasValue)
-            {
-                filteredSales =
-                    filteredSales.Where(x =>
-                        x.Date.Date >=
-                        fromDate.Value.Date);
-            }
-
-            if (toDate.HasValue)
-            {
-                filteredSales =
-                    filteredSales.Where(x =>
-                        x.Date.Date <=
-                        toDate.Value.Date);
-            }
+            var filteredSales = allSales
+                .Where(x =>
+                    (!fromDate.HasValue ||
+                     x.Date.Date >= fromDate.Value.Date) &&
+                    (!toDate.HasValue ||
+                     x.Date.Date <= toDate.Value.Date))
+                .ToList();
 
             // ========================================================
-            // STEP 8
-            // FILTER DAMAGE TRANSACTIONS
+            // STEP 8: FILTER DAMAGES BY DATE
             // ========================================================
 
-            var filteredDamages =
-                allDamages.AsEnumerable();
-
-            if (fromDate.HasValue)
-            {
-                filteredDamages =
-                    filteredDamages.Where(x =>
-                        x.Date.Date >=
-                        fromDate.Value.Date);
-            }
-
-            if (toDate.HasValue)
-            {
-                filteredDamages =
-                    filteredDamages.Where(x =>
-                        x.Date.Date <=
-                        toDate.Value.Date);
-            }
+            var filteredDamages = allDamages
+                .Where(x =>
+                    (!fromDate.HasValue ||
+                     x.Date.Date >= fromDate.Value.Date) &&
+                    (!toDate.HasValue ||
+                     x.Date.Date <= toDate.Value.Date))
+                .ToList();
 
             // ========================================================
-            // STEP 9
-            // COMBINE TRANSACTIONS
+            // STEP 9: COMBINE TRANSACTIONS
             // ========================================================
 
             var transactions =
                 new List<ProductStatementRowViewModel>();
 
-            // --------------------------------------------------------
             // PURCHASE ROWS
-            // --------------------------------------------------------
-
             foreach (var purchase in filteredPurchases)
             {
                 transactions.Add(
@@ -450,19 +282,17 @@ namespace StoreManagementSystem.Web.Controllers
                         Date = purchase.Date,
 
                         GRNNumber =
-                            string.IsNullOrWhiteSpace(
-                                purchase.GRNNumber)
+                            string.IsNullOrWhiteSpace(purchase.GRNNumber)
                                 ? "-"
                                 : purchase.GRNNumber,
 
-                        Subcategory =
-                            purchase.Subcategory,
+                        ProductTitle =
+                            string.IsNullOrWhiteSpace(purchase.ProductTitle)
+                                ? "-"
+                                : purchase.ProductTitle,
 
-                        PurchaseQuantity =
-                            purchase.Quantity,
-
-                        PurchaseRate =
-                            purchase.Rate,
+                        PurchaseQuantity = purchase.Quantity,
+                        PurchaseRate = purchase.Rate,
 
                         SaleQuantity = 0m,
                         SaleRate = 0m,
@@ -472,10 +302,7 @@ namespace StoreManagementSystem.Web.Controllers
                     });
             }
 
-            // --------------------------------------------------------
             // SALE ROWS
-            // --------------------------------------------------------
-
             foreach (var sale in filteredSales)
             {
                 transactions.Add(
@@ -485,27 +312,23 @@ namespace StoreManagementSystem.Web.Controllers
 
                         GRNNumber = "-",
 
-                        Subcategory =
-                            sale.Subcategory,
+                        ProductTitle =
+                            string.IsNullOrWhiteSpace(sale.ProductTitle)
+                                ? "-"
+                                : sale.ProductTitle,
 
                         PurchaseQuantity = 0m,
                         PurchaseRate = 0m,
 
-                        SaleQuantity =
-                            sale.Quantity,
-
-                        SaleRate =
-                            sale.Rate,
+                        SaleQuantity = sale.Quantity,
+                        SaleRate = sale.Rate,
 
                         DamageQuantity = 0m,
                         DamageRate = 0m
                     });
             }
 
-            // --------------------------------------------------------
             // DAMAGE ROWS
-            // --------------------------------------------------------
-
             foreach (var damage in filteredDamages)
             {
                 transactions.Add(
@@ -513,15 +336,15 @@ namespace StoreManagementSystem.Web.Controllers
                     {
                         Date = damage.Date,
 
-                        // Show Damage Number in the reference column
                         GRNNumber =
-                            string.IsNullOrWhiteSpace(
-                                damage.DamageNumber)
+                            string.IsNullOrWhiteSpace(damage.DamageNumber)
                                 ? "-"
                                 : damage.DamageNumber,
 
-                        Subcategory =
-                            damage.Subcategory,
+                        ProductTitle =
+                            string.IsNullOrWhiteSpace(damage.ProductTitle)
+                                ? "-"
+                                : damage.ProductTitle,
 
                         PurchaseQuantity = 0m,
                         PurchaseRate = 0m,
@@ -529,20 +352,14 @@ namespace StoreManagementSystem.Web.Controllers
                         SaleQuantity = 0m,
                         SaleRate = 0m,
 
-                        DamageQuantity =
-                            damage.Quantity,
-
-                        DamageRate =
-                            damage.Rate
+                        DamageQuantity = damage.Quantity,
+                        DamageRate = damage.Rate
                     });
             }
 
             // ========================================================
-            // STEP 10
-            // SORT TRANSACTIONS
-            //
-            // Same date order:
-            // Purchase → Sale → Damage
+            // STEP 10: SORT TRANSACTIONS
+            // Purchase → Sale → Damage on the same date
             // ========================================================
 
             transactions = transactions
@@ -563,34 +380,25 @@ namespace StoreManagementSystem.Web.Controllers
                 .ToList();
 
             // ========================================================
-            // STEP 11
-            // CONTINUE BALANCE FROM OPENING
+            // STEP 11: CALCULATE RUNNING BALANCE
             // ========================================================
 
-            decimal balanceQuantity =
-                openingQuantity;
-
-            decimal balanceRate =
-                openingRate;
+            decimal balanceQuantity = openingQuantity;
+            decimal balanceRate = openingRate;
 
             foreach (var transaction in transactions)
             {
-                // =================================================
                 // PURCHASE
-                // =================================================
-
                 if (transaction.PurchaseQuantity > 0)
                 {
                     decimal previousValue =
-                        balanceQuantity *
-                        balanceRate;
+                        balanceQuantity * balanceRate;
 
                     decimal purchaseValue =
                         transaction.PurchaseQuantity *
                         transaction.PurchaseRate;
 
-                    balanceQuantity +=
-                        transaction.PurchaseQuantity;
+                    balanceQuantity += transaction.PurchaseQuantity;
 
                     if (balanceQuantity > 0)
                     {
@@ -600,14 +408,10 @@ namespace StoreManagementSystem.Web.Controllers
                     }
                 }
 
-                // =================================================
                 // SALE
-                // =================================================
-
                 if (transaction.SaleQuantity > 0)
                 {
-                    balanceQuantity -=
-                        transaction.SaleQuantity;
+                    balanceQuantity -= transaction.SaleQuantity;
 
                     if (balanceQuantity <= 0)
                     {
@@ -616,14 +420,10 @@ namespace StoreManagementSystem.Web.Controllers
                     }
                 }
 
-                // =================================================
                 // DAMAGE
-                // =================================================
-
                 if (transaction.DamageQuantity > 0)
                 {
-                    balanceQuantity -=
-                        transaction.DamageQuantity;
+                    balanceQuantity -= transaction.DamageQuantity;
 
                     if (balanceQuantity <= 0)
                     {
@@ -632,20 +432,12 @@ namespace StoreManagementSystem.Web.Controllers
                     }
                 }
 
-                // =================================================
-                // SET RUNNING BALANCE
-                // =================================================
-
-                transaction.BalanceQuantity =
-                    balanceQuantity;
-
-                transaction.BalanceRate =
-                    balanceRate;
+                transaction.BalanceQuantity = balanceQuantity;
+                transaction.BalanceRate = balanceRate;
             }
 
             // ========================================================
-            // STEP 12
-            // ADD TRANSACTIONS TO MODEL
+            // STEP 12: ADD ROWS TO VIEW MODEL
             // ========================================================
 
             model.Rows.AddRange(transactions);
@@ -654,7 +446,7 @@ namespace StoreManagementSystem.Web.Controllers
         }
 
         // ============================================================
-        // INTERNAL OPENING TRANSACTION
+        // OPENING TRANSACTION
         // ============================================================
 
         private class OpeningTransaction
@@ -669,7 +461,7 @@ namespace StoreManagementSystem.Web.Controllers
         }
 
         // ============================================================
-        // TRANSACTION TYPE
+        // TRANSACTION TYPES
         // ============================================================
 
         private enum TransactionType

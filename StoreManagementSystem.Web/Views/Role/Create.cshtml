@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Create Role";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Create Role</h2>
+            <p class="text-muted mb-0">
+                Create a role to manage access within your system.
+            </p>
+        </div>
+
+        <a asp-controller="Role"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Roles
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-shield-lock me-2 text-primary"></i>
+                Role Information
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form asp-controller="Role"
+                  asp-action="Create"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"
+                     role="alert"></div>
+
+                <div class="mb-4">
+                    <label for="name" class="form-label fw-semibold">
+                        Role Name <span class="text-danger">*</span>
+                    </label>
+
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           class="form-control"
+                           placeholder="e.g. Manager, Cashier"
+                           maxlength="256"
+                           autocomplete="off"
+                           required />
+
+                    <span class="text-danger">
+                        @Html.ValidationMessage("name")
+                    </span>
+
+                    <div class="form-text">
+                        Enter a unique name for the role.
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <a asp-controller="Role"
+                       asp-action="Index"
+                       class="btn btn-light border px-4">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Create Role
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

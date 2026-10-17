@@ -8,7 +8,6 @@
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <div>
             <h2 class="fw-bold">
                 <i class="bi bi-box-seam text-primary"></i>
@@ -16,266 +15,53 @@
             </h2>
 
             <small class="text-muted">
-                Add a new product into inventory
+                Add a new product to your inventory
             </small>
         </div>
 
-        <a asp-action="Index"
-           class="btn btn-outline-secondary">
-
+        <a asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
             Back
-
         </a>
-
     </div>
 
-
     <div class="card shadow border-0">
+        <div class="card-body p-4">
 
-        <div class="card-body">
-
-            <form asp-action="Create"
-                  method="post">
-
+            <form asp-action="Create" method="post">
                 @Html.AntiForgeryToken()
 
                 <div asp-validation-summary="ModelOnly"
-                     class="alert alert-danger">
+                     class="alert alert-danger"
+                     role="alert">
                 </div>
 
-                <partial name="_ProductForm"
-                         model="Model" />
+                <partial name="_ProductForm" model="Model" />
 
-                <hr />
+                <hr class="my-4" />
 
-                <button type="submit"
-                        class="btn btn-primary">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>
+                        Save Product
+                    </button>
 
-                    <i class="bi bi-save"></i>
-                    Save Product
-
-                </button>
-
-                <a asp-action="Index"
-                   class="btn btn-secondary">
-
-                    Cancel
-
-                </a>
-
+                    <a asp-action="Index" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
             </form>
 
         </div>
-
     </div>
-
 </div>
 
 
+    
 @section Scripts {
-
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            console.log("=================================");
-            console.log("PRODUCT DROPDOWN SCRIPT STARTED");
-            console.log("=================================");
-
-
-            const mainCategory =
-                document.getElementById("MainCategoryId");
-
-            const category =
-                document.getElementById("CategoryId");
-
-            const subCategory =
-                document.getElementById("SubCategoryId");
-
-
-            if (!mainCategory) {
-                console.error("MainCategoryId NOT FOUND");
-                return;
-            }
-
-            if (!category) {
-                console.error("CategoryId NOT FOUND");
-                return;
-            }
-
-            if (!subCategory) {
-                console.error("SubCategoryId NOT FOUND");
-                return;
-            }
-
-
-            console.log("All dropdowns found");
-
-
-            // =====================================================
-            // MAIN CATEGORY → CATEGORY
-            // =====================================================
-
-            mainCategory.addEventListener("change", async function () {
-
-                const mainCategoryId = this.value;
-
-                console.log(
-                    "Selected Main Category:",
-                    mainCategoryId
-                );
-
-
-                // Reset Category
-                category.innerHTML =
-                    '<option value="">-- Select Category --</option>';
-
-
-                // Reset Sub Category
-                subCategory.innerHTML =
-                    '<option value="">-- Select Sub Category --</option>';
-
-
-                if (!mainCategoryId) {
-                    return;
-                }
-
-
-                try {
-
-                    const response = await fetch(
-                        '@Url.Action("GetCategories", "Product")?mainCategoryId='
-                        + encodeURIComponent(mainCategoryId)
-                    );
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            "HTTP Error: " + response.status
-                        );
-
-                    }
-
-
-                    const data =
-                        await response.json();
-
-
-                    console.log(
-                        "Categories received:",
-                        data
-                    );
-
-
-                    data.forEach(function (item) {
-
-                        const option =
-                            document.createElement("option");
-
-                        option.value = item.id;
-
-                        option.textContent = item.name;
-
-                        category.appendChild(option);
-
-                    });
-
-
-                }
-                catch (error) {
-
-                    console.error(
-                        "Category loading failed:",
-                        error
-                    );
-
-                }
-
-            });
-
-
-            // =====================================================
-            // CATEGORY → SUB CATEGORY
-            // =====================================================
-
-            category.addEventListener("change", async function () {
-
-                const categoryId = this.value;
-
-                console.log(
-                    "Selected Category:",
-                    categoryId
-                );
-
-
-                subCategory.innerHTML =
-                    '<option value="">-- Select Sub Category --</option>';
-
-
-                if (!categoryId) {
-                    return;
-                }
-
-
-                try {
-
-                    const response = await fetch(
-                        '@Url.Action("GetSubCategories", "Product")?categoryId='
-                        + encodeURIComponent(categoryId)
-                    );
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            "HTTP Error: " + response.status
-                        );
-
-                    }
-
-
-                    const data =
-                        await response.json();
-
-
-                    console.log(
-                        "Sub Categories received:",
-                        data
-                    );
-
-
-                    data.forEach(function (item) {
-
-                        const option =
-                            document.createElement("option");
-
-                        option.value = item.id;
-
-                        option.textContent = item.name;
-
-                        subCategory.appendChild(option);
-
-                    });
-
-
-                }
-                catch (error) {
-
-                    console.error(
-                        "SubCategory loading failed:",
-                        error
-                    );
-
-                }
-
-            });
-
-
-        });
-
-    </script>
+    <script src="~/js/product-category-dropdowns.js"
+            asp-append-version="true"></script>
 }
+
+

@@ -9,7 +9,7 @@ using StoreManagementSystem.Web.ViewModels.SalesOrder;
 
 namespace StoreManagementSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "SuperAdmin")]
     public class SalesOrderController : Controller
     {
         private readonly ISalesOrderService _salesOrderService;
@@ -43,9 +43,7 @@ namespace StoreManagementSystem.Web.Controllers
                 TempData["Error"] =
                     "The Sales Order module is currently disabled.";
 
-                return RedirectToAction(
-                    "Index",
-                    "Dashboard");
+                return RedirectToAction("Index", "Dashboard");
             }
 
             return null;
@@ -74,14 +72,12 @@ namespace StoreManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            var orders =
-                await _salesOrderService.GetAllAsync();
+            var orders = await _salesOrderService.GetAllAsync();
 
             await LoadSalesOrderSettingsAsync();
 
@@ -95,34 +91,26 @@ namespace StoreManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            var model =
-                new SalesOrderViewModel
-                {
-                    OrderNumber =
-                        await GenerateOrderNumberAsync(),
+            var model = new SalesOrderViewModel
+            {
+                OrderNumber = await GenerateOrderNumberAsync(),
+                OrderDate = DateTime.Today,
+                Status = SalesOrderStatus.Draft
+            };
 
-                    OrderDate =
-                        DateTime.Today,
-
-                    Status =
-                        SalesOrderStatus.Draft
-                };
-
-            model.Items.Add(
-                new SalesOrderItemViewModel
-                {
-                    Quantity = 1,
-                    UnitPrice = 0,
-                    SalePrice = 0,
-                    TaxPercent = 0,
-                    DiscountPercent = 0
-                });
+            model.Items.Add(new SalesOrderItemViewModel
+            {
+                Quantity = 1,
+                UnitPrice = 0,
+                SalePrice = 0,
+                TaxPercent = 0,
+                DiscountPercent = 0
+            });
 
             await LoadDropdownsAsync(model);
             await LoadSalesOrderSettingsAsync();
@@ -139,14 +127,12 @@ namespace StoreManagementSystem.Web.Controllers
         public async Task<IActionResult> Create(
             SalesOrderViewModel model)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            model.Items =
-                (model.Items ??
+            model.Items = (model.Items ??
                     new List<SalesOrderItemViewModel>())
                 .Where(x => x.ProductId > 0)
                 .ToList();
@@ -161,7 +147,7 @@ namespace StoreManagementSystem.Web.Controllers
             if (model.WarehouseId <= 0)
             {
                 ModelState.AddModelError(
-                    "WarehouseId",
+                    nameof(model.WarehouseId),
                     "Please select a warehouse.");
             }
 
@@ -175,74 +161,47 @@ namespace StoreManagementSystem.Web.Controllers
                 return View(model);
             }
 
-            var salesOrder =
-                new SalesOrder
-                {
-                    OrderNumber =
-                        model.OrderNumber,
+            var salesOrder = new SalesOrder
+            {
+                OrderNumber = await GenerateOrderNumberAsync(),
+                OrderDate = model.OrderDate,
+                WarehouseId = model.WarehouseId,
+                CustomerName = model.CustomerName,
+                CustomerPhone = model.CustomerPhone,
+                Remarks = model.Remarks,
 
-                    OrderDate =
-                        model.OrderDate,
+                // Every new order starts as Draft.
+                Status = SalesOrderStatus.Draft,
+                IsDeleted = false,
 
-                    WarehouseId =
-                        model.WarehouseId,
+                SalesOrderItems = model.Items
+                    .Select(x => new SalesOrderItem
+                    {
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity,
 
-                    CustomerName =
-                        model.CustomerName,
+                        // Purchase cost.
+                        UnitPrice = x.UnitPrice,
 
-                    CustomerPhone =
-                        model.CustomerPhone,
+                        // Selling price.
+                        SalePrice = x.SalePrice,
 
-                    Remarks =
-                        model.Remarks,
-
-                    // New sales always start as Draft.
-                    Status =
-                        SalesOrderStatus.Draft,
-
-                    IsDeleted =
-                        false,
-
-                    SalesOrderItems =
-                        model.Items
-                            .Select(x =>
-                                new SalesOrderItem
-                                {
-                                    ProductId =
-                                        x.ProductId,
-
-                                    Quantity =
-                                        x.Quantity,
-
-                                    // Actual purchase / GRN cost
-                                    UnitPrice =
-                                        x.UnitPrice,
-
-                                    // Customer selling price
-                                    SalePrice =
-                                        x.SalePrice,
-
-                                    TaxPercent =
-                                        x.TaxPercent,
-
-                                    DiscountPercent =
-                                        x.DiscountPercent
-                                })
-                            .ToList()
-                };
+                        TaxPercent = x.TaxPercent,
+                        DiscountPercent = x.DiscountPercent
+                    })
+                    .ToList()
+            };
 
             try
             {
                 var result =
-                    await _salesOrderService
-                        .CreateAsync(salesOrder);
+                    await _salesOrderService.CreateAsync(salesOrder);
 
                 if (!result)
                 {
                     ModelState.AddModelError(
                         "",
-                        "Unable to create Sales Order. " +
-                        "Please verify the order data.");
+                        "Unable to create Sales Order. Please verify the order data.");
 
                     await LoadDropdownsAsync(model);
                     await LoadSalesOrderSettingsAsync();
@@ -250,11 +209,11 @@ namespace StoreManagementSystem.Web.Controllers
                     return View(model);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ModelState.AddModelError(
                     "",
-                    ex.Message);
+                    "An error occurred while creating the Sales Order.");
 
                 await LoadDropdownsAsync(model);
                 await LoadSalesOrderSettingsAsync();
@@ -267,10 +226,7 @@ namespace StoreManagementSystem.Web.Controllers
 
             return RedirectToAction(
                 nameof(Details),
-                new
-                {
-                    id = salesOrder.Id
-                });
+                new { id = salesOrder.Id });
         }
 
         // =========================================================
@@ -278,123 +234,71 @@ namespace StoreManagementSystem.Web.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Edit(
-            int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            var order =
-                await _salesOrderService
-                    .GetByIdAsync(id);
+            var order = await _salesOrderService.GetByIdAsync(id);
 
             if (order == null)
                 return NotFound();
 
-            if (order.Status !=
-                SalesOrderStatus.Draft)
+            if (order.Status != SalesOrderStatus.Draft)
             {
                 TempData["Error"] =
                     "Only Draft Sales Orders can be edited.";
 
-                return RedirectToAction(
-                    nameof(Details),
-                    new { id });
+                return RedirectToAction(nameof(Details), new { id });
             }
 
-            var model =
-                new SalesOrderViewModel
-                {
-                    Id =
-                        order.Id,
-
-                    OrderNumber =
-                        order.OrderNumber,
-
-                    OrderDate =
-                        order.OrderDate,
-
-                    WarehouseId =
-                        order.WarehouseId,
-
-                    CustomerName =
-                        order.CustomerName ??
-                        string.Empty,
-
-                    CustomerPhone =
-                        order.CustomerPhone ??
-                        string.Empty,
-
-                    Remarks =
-                        order.Remarks ??
-                        string.Empty,
-
-                    Status =
-                        order.Status,
-
-                    SubTotal =
-                        order.SubTotal,
-
-                    DiscountAmount =
-                        order.DiscountAmount,
-
-                    TaxAmount =
-                        order.TaxAmount,
-
-                    GrandTotal =
-                        order.GrandTotal,
-
-                    GrossProfit =
-                        order.GrossProfit
-                };
-
-            foreach (var item
-                in order.SalesOrderItems)
+            var model = new SalesOrderViewModel
             {
-                model.Items.Add(
-                    new SalesOrderItemViewModel
-                    {
-                        Id =
-                            item.Id,
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                OrderDate = order.OrderDate,
+                WarehouseId = order.WarehouseId,
+                CustomerName = order.CustomerName ?? string.Empty,
+                CustomerPhone = order.CustomerPhone ?? string.Empty,
+                Remarks = order.Remarks ?? string.Empty,
+                Status = order.Status,
+                SubTotal = order.SubTotal,
+                DiscountAmount = order.DiscountAmount,
+                TaxAmount = order.TaxAmount,
+                GrandTotal = order.GrandTotal,
+                GrossProfit = order.GrossProfit
+            };
 
-                        ProductId =
-                            item.ProductId,
+            foreach (var item in order.SalesOrderItems)
+            {
+                model.Items.Add(new SalesOrderItemViewModel
+                {
+                    Id = item.Id,
+                    ProductId = item.ProductId,
 
-                        ProductSKU =
-                            item.Product?.SKU ??
-                            string.Empty,
+                    // Display Product Title instead of SKU.
+                    ProductTitle = item.Product?.Title ?? string.Empty,
 
-                        Quantity =
-                            item.Quantity,
-
-                        UnitPrice =
-                            item.UnitPrice,
-
-                        SalePrice =
-                            item.SalePrice,
-
-                        TaxPercent =
-                            item.TaxPercent,
-
-                        DiscountPercent =
-                            item.DiscountPercent
-                    });
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    SalePrice = item.SalePrice,
+                    TaxPercent = item.TaxPercent,
+                    DiscountPercent = item.DiscountPercent
+                });
             }
 
             if (!model.Items.Any())
             {
-                model.Items.Add(
-                    new SalesOrderItemViewModel
-                    {
-                        Quantity = 1,
-                        UnitPrice = 0,
-                        SalePrice = 0,
-                        TaxPercent = 0,
-                        DiscountPercent = 0
-                    });
+                model.Items.Add(new SalesOrderItemViewModel
+                {
+                    Quantity = 1,
+                    UnitPrice = 0,
+                    SalePrice = 0,
+                    TaxPercent = 0,
+                    DiscountPercent = 0
+                });
             }
 
             await LoadDropdownsAsync(model);
@@ -412,8 +316,7 @@ namespace StoreManagementSystem.Web.Controllers
         public async Task<IActionResult> Edit(
             SalesOrderViewModel model)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
@@ -422,14 +325,12 @@ namespace StoreManagementSystem.Web.Controllers
                 return NotFound();
 
             var existingOrder =
-                await _salesOrderService
-                    .GetByIdAsync(model.Id);
+                await _salesOrderService.GetByIdAsync(model.Id);
 
             if (existingOrder == null)
                 return NotFound();
 
-            if (existingOrder.Status !=
-                SalesOrderStatus.Draft)
+            if (existingOrder.Status != SalesOrderStatus.Draft)
             {
                 TempData["Error"] =
                     "Only Draft Sales Orders can be edited.";
@@ -439,8 +340,7 @@ namespace StoreManagementSystem.Web.Controllers
                     new { id = model.Id });
             }
 
-            model.Items =
-                (model.Items ??
+            model.Items = (model.Items ??
                     new List<SalesOrderItemViewModel>())
                 .Where(x => x.ProductId > 0)
                 .ToList();
@@ -455,7 +355,7 @@ namespace StoreManagementSystem.Web.Controllers
             if (model.WarehouseId <= 0)
             {
                 ModelState.AddModelError(
-                    "WarehouseId",
+                    nameof(model.WarehouseId),
                     "Please select a warehouse.");
             }
 
@@ -469,67 +369,40 @@ namespace StoreManagementSystem.Web.Controllers
                 return View(model);
             }
 
-            var updatedOrder =
-                new SalesOrder
-                {
-                    Id =
-                        existingOrder.Id,
+            var updatedOrder = new SalesOrder
+            {
+                Id = existingOrder.Id,
 
-                    OrderNumber =
-                        existingOrder.OrderNumber,
+                // Preserve the existing order number.
+                OrderNumber = existingOrder.OrderNumber,
 
-                    OrderDate =
-                        model.OrderDate,
+                OrderDate = model.OrderDate,
+                WarehouseId = model.WarehouseId,
+                CustomerName = model.CustomerName,
+                CustomerPhone = model.CustomerPhone,
+                Remarks = model.Remarks,
 
-                    WarehouseId =
-                        model.WarehouseId,
+                // Only Draft orders can be edited.
+                Status = SalesOrderStatus.Draft,
+                IsDeleted = false,
 
-                    CustomerName =
-                        model.CustomerName,
-
-                    CustomerPhone =
-                        model.CustomerPhone,
-
-                    Remarks =
-                        model.Remarks,
-
-                    Status =
-                        SalesOrderStatus.Draft,
-
-                    IsDeleted =
-                        false,
-
-                    SalesOrderItems =
-                        model.Items
-                            .Select(x =>
-                                new SalesOrderItem
-                                {
-                                    ProductId =
-                                        x.ProductId,
-
-                                    Quantity =
-                                        x.Quantity,
-
-                                    UnitPrice =
-                                        x.UnitPrice,
-
-                                    SalePrice =
-                                        x.SalePrice,
-
-                                    TaxPercent =
-                                        x.TaxPercent,
-
-                                    DiscountPercent =
-                                        x.DiscountPercent
-                                })
-                            .ToList()
-                };
+                SalesOrderItems = model.Items
+                    .Select(x => new SalesOrderItem
+                    {
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity,
+                        UnitPrice = x.UnitPrice,
+                        SalePrice = x.SalePrice,
+                        TaxPercent = x.TaxPercent,
+                        DiscountPercent = x.DiscountPercent
+                    })
+                    .ToList()
+            };
 
             try
             {
                 var result =
-                    await _salesOrderService
-                        .UpdateAsync(updatedOrder);
+                    await _salesOrderService.UpdateAsync(updatedOrder);
 
                 if (!result)
                 {
@@ -543,11 +416,11 @@ namespace StoreManagementSystem.Web.Controllers
                     return View(model);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ModelState.AddModelError(
                     "",
-                    ex.Message);
+                    "An error occurred while updating the Sales Order.");
 
                 await LoadDropdownsAsync(model);
                 await LoadSalesOrderSettingsAsync();
@@ -560,75 +433,51 @@ namespace StoreManagementSystem.Web.Controllers
 
             return RedirectToAction(
                 nameof(Details),
-                new
-                {
-                    id = updatedOrder.Id
-                });
+                new { id = updatedOrder.Id });
         }
 
         // =========================================================
         // CONFIRM SALE
         // =========================================================
-        //
-        // Draft
-        //   ↓
-        // Confirm
-        //   ↓
-        // Confirmed
-        //
-        // Only Confirmed orders are counted by Analytics.
-        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Confirm(
-            int id)
+        public async Task<IActionResult> Confirm(int id)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
             if (id <= 0)
             {
-                TempData["Error"] =
-                    "Invalid Sales Order.";
+                TempData["Error"] = "Invalid Sales Order.";
 
-                return RedirectToAction(
-                    nameof(Index));
+                return RedirectToAction(nameof(Index));
             }
 
             try
             {
-                var result =
-                    await _salesOrderService
-                        .ConfirmAsync(id);
+                var result = await _salesOrderService.ConfirmAsync(id);
 
                 if (!result)
                 {
                     TempData["Error"] =
-                        "Sales Order could not be confirmed. " +
-                        "Only Draft Sales Orders can be confirmed.";
-
-                    return RedirectToAction(
-                        nameof(Details),
-                        new { id });
+                        "Sales Order could not be confirmed. Only Draft Sales Orders can be confirmed.";
                 }
-
-                TempData["Success"] =
-                    "Sales Order confirmed successfully. " +
-                    "It is now included in Analytics.";
+                else
+                {
+                    TempData["Success"] =
+                        "Sales Order confirmed successfully. It is now included in Analytics.";
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["Error"] =
-                    ex.Message;
+                    "An error occurred while confirming the Sales Order.";
             }
 
-            return RedirectToAction(
-                nameof(Details),
-                new { id });
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         // =========================================================
@@ -637,52 +486,42 @@ namespace StoreManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Cancel(
-            int id)
+        public async Task<IActionResult> Cancel(int id)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
             if (id <= 0)
             {
-                TempData["Error"] =
-                    "Invalid Sales Order.";
+                TempData["Error"] = "Invalid Sales Order.";
 
-                return RedirectToAction(
-                    nameof(Index));
+                return RedirectToAction(nameof(Index));
             }
 
             try
             {
-                var result =
-                    await _salesOrderService
-                        .CancelAsync(id);
+                var result = await _salesOrderService.CancelAsync(id);
 
                 if (!result)
                 {
                     TempData["Error"] =
                         "Only Draft Sales Orders can be cancelled.";
-
-                    return RedirectToAction(
-                        nameof(Details),
-                        new { id });
                 }
-
-                TempData["Success"] =
-                    "Sales Order cancelled successfully.";
+                else
+                {
+                    TempData["Success"] =
+                        "Sales Order cancelled successfully.";
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["Error"] =
-                    ex.Message;
+                    "An error occurred while cancelling the Sales Order.";
             }
 
-            return RedirectToAction(
-                nameof(Details),
-                new { id });
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         // =========================================================
@@ -690,18 +529,14 @@ namespace StoreManagementSystem.Web.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Details(
-            int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            var order =
-                await _salesOrderService
-                    .GetByIdAsync(id);
+            var order = await _salesOrderService.GetByIdAsync(id);
 
             if (order == null)
                 return NotFound();
@@ -716,11 +551,9 @@ namespace StoreManagementSystem.Web.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> GetProductPrice(
-            int productId)
+        public async Task<IActionResult> GetProductPrice(int productId)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
             {
@@ -741,8 +574,7 @@ namespace StoreManagementSystem.Web.Controllers
             }
 
             var cost =
-                await _salesOrderService
-                    .GetLatestCostPriceAsync(productId);
+                await _salesOrderService.GetLatestCostPriceAsync(productId);
 
             if (!cost.HasValue)
             {
@@ -766,18 +598,14 @@ namespace StoreManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(
-            int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var access =
-                await CheckModuleAccessAsync();
+            var access = await CheckModuleAccessAsync();
 
             if (access != null)
                 return access;
 
-            var result =
-                await _salesOrderService
-                    .DeleteAsync(id);
+            var result = await _salesOrderService.DeleteAsync(id);
 
             if (result)
             {
@@ -790,8 +618,7 @@ namespace StoreManagementSystem.Web.Controllers
                     "Only Draft Sales Orders can be deleted.";
             }
 
-            return RedirectToAction(
-                nameof(Index));
+            return RedirectToAction(nameof(Index));
         }
 
         // =========================================================
@@ -801,12 +628,9 @@ namespace StoreManagementSystem.Web.Controllers
         private void ValidateItems(
             List<SalesOrderItemViewModel> items)
         {
-            for (int i = 0;
-                i < items.Count;
-                i++)
+            for (var i = 0; i < items.Count; i++)
             {
-                var item =
-                    items[i];
+                var item = items[i];
 
                 if (item.Quantity <= 0)
                 {
@@ -829,8 +653,7 @@ namespace StoreManagementSystem.Web.Controllers
                         "Selling price cannot be negative.");
                 }
 
-                if (item.TaxPercent < 0 ||
-                    item.TaxPercent > 100)
+                if (item.TaxPercent < 0 || item.TaxPercent > 100)
                 {
                     ModelState.AddModelError(
                         $"Items[{i}].TaxPercent",
@@ -854,69 +677,44 @@ namespace StoreManagementSystem.Web.Controllers
         private async Task LoadDropdownsAsync(
             SalesOrderViewModel model)
         {
-            var products =
-                await _productService
-                    .GetAllAsync();
+            var products = await _productService.GetAllAsync();
 
-            var productList =
-                products
-                    .Where(x => !x.IsDeleted)
-                    .OrderBy(x => x.SKU)
-                    .Select(x =>
-                        new SelectListItem
-                        {
-                            Value =
-                                x.Id.ToString(),
-
-                            Text =
-                                x.SKU
-                        })
-                    .ToList();
+            // Use Product Title for dropdown display.
+            var productList = products
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Title)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Title
+                })
+                .ToList();
 
             foreach (var item in model.Items)
             {
-                item.Products =
-                    productList
-                        .Select(x =>
-                            new SelectListItem
-                            {
-                                Value =
-                                    x.Value,
-
-                                Text =
-                                    x.Text,
-
-                                Selected =
-                                    x.Value ==
-                                    item.ProductId.ToString()
-                            })
-                        .ToList();
+                item.Products = productList
+                    .Select(x => new SelectListItem
+                    {
+                        Value = x.Value,
+                        Text = x.Text,
+                        Selected =
+                            x.Value == item.ProductId.ToString()
+                    })
+                    .ToList();
             }
 
-            var warehouses =
-                await _warehouseService
-                    .GetAllAsync();
+            var warehouses = await _warehouseService.GetAllAsync();
 
-            model.Warehouses =
-                warehouses
-                    .Where(x =>
-                        x.IsActive &&
-                        !x.IsDeleted)
-                    .OrderBy(x => x.Name)
-                    .Select(x =>
-                        new SelectListItem
-                        {
-                            Value =
-                                x.Id.ToString(),
-
-                            Text =
-                                x.Name,
-
-                            Selected =
-                                x.Id ==
-                                model.WarehouseId
-                        })
-                    .ToList();
+            model.Warehouses = warehouses
+                .Where(x => x.IsActive && !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == model.WarehouseId
+                })
+                .ToList();
         }
 
         // =========================================================
@@ -925,14 +723,11 @@ namespace StoreManagementSystem.Web.Controllers
 
         private async Task<string> GenerateOrderNumberAsync()
         {
-            var orders =
-                await _salesOrderService
-                    .GetAllAsync();
+            var orders = await _salesOrderService.GetAllAsync();
 
-            var next =
-                orders.Any()
-                    ? orders.Max(x => x.Id) + 1
-                    : 1;
+            var next = orders.Any()
+                ? orders.Max(x => x.Id) + 1
+                : 1;
 
             return $"SO-{next:00000}";
         }

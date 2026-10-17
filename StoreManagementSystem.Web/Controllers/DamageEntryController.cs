@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreManagementSystem.Domain.Enums;
 using StoreManagementSystem.Infrastructure.Data;
@@ -6,6 +8,7 @@ using StoreManagementSystem.Web.ViewModels.Damage;
 
 namespace StoreManagementSystem.Web.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class DamageEntryController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -61,19 +64,12 @@ namespace StoreManagementSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DamageEntryViewModel model)
         {
-            // --------------------------------------------------------
-            // Remove calculated fields from validation
-            // --------------------------------------------------------
-
             ModelState.Remove(nameof(model.DamageNumber));
             ModelState.Remove(nameof(model.UnitCost));
             ModelState.Remove(nameof(model.TotalValue));
             ModelState.Remove(nameof(model.AvailableQuantity));
 
-            // --------------------------------------------------------
-            // Validate Damage Type
-            // --------------------------------------------------------
-
+            // Validate damage type
             var damage = await _context.Damages
                 .FirstOrDefaultAsync(x =>
                     x.Id == model.DamageId &&
@@ -87,10 +83,7 @@ namespace StoreManagementSystem.Web.Controllers
                     "Please select a valid damage type.");
             }
 
-            // --------------------------------------------------------
-            // Validate Product
-            // --------------------------------------------------------
-
+            // Validate product
             var product = await _context.Products
                 .FirstOrDefaultAsync(x =>
                     x.Id == model.ProductId &&
@@ -103,10 +96,7 @@ namespace StoreManagementSystem.Web.Controllers
                     "Please select a valid product.");
             }
 
-            // --------------------------------------------------------
-            // Validate Warehouse
-            // --------------------------------------------------------
-
+            // Validate warehouse
             var warehouse = await _context.Warehouses
                 .FirstOrDefaultAsync(x =>
                     x.Id == model.WarehouseId &&
@@ -120,10 +110,7 @@ namespace StoreManagementSystem.Web.Controllers
                     "Please select a valid active warehouse.");
             }
 
-            // --------------------------------------------------------
             // Validate quantity
-            // --------------------------------------------------------
-
             if (model.Quantity <= 0)
             {
                 ModelState.AddModelError(
@@ -131,21 +118,13 @@ namespace StoreManagementSystem.Web.Controllers
                     "Damage quantity must be greater than zero.");
             }
 
-            // --------------------------------------------------------
-            // If basic validation failed, reload dropdowns
-            // --------------------------------------------------------
-
             if (!ModelState.IsValid)
             {
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
-            // --------------------------------------------------------
             // Find warehouse stock
-            // --------------------------------------------------------
-
             var warehouseStock = await _context.WarehouseStocks
                 .FirstOrDefaultAsync(x =>
                     x.ProductId == model.ProductId &&
@@ -158,21 +137,12 @@ namespace StoreManagementSystem.Web.Controllers
                     "No stock record exists for the selected product and warehouse.");
 
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
-            // --------------------------------------------------------
-            // Available stock
-            // --------------------------------------------------------
-
+            // Check available stock
             var availableQuantity = warehouseStock.AvailableQuantity;
-
             model.AvailableQuantity = availableQuantity;
-
-            // --------------------------------------------------------
-            // Prevent damage quantity greater than available quantity
-            // --------------------------------------------------------
 
             if (model.Quantity > availableQuantity)
             {
@@ -181,17 +151,10 @@ namespace StoreManagementSystem.Web.Controllers
                     $"Insufficient available stock. Available quantity is {availableQuantity:N2}.");
 
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
-            // --------------------------------------------------------
-            // Calculate unit cost
-            //
-            // Use latest received purchase price for this product and
-            // warehouse.
-            // --------------------------------------------------------
-
+            // Get latest received purchase price
             var latestReceiptItem = await _context.GoodsReceiptItems
                 .AsNoTracking()
                 .Include(x => x.GoodsReceipt)
@@ -206,124 +169,80 @@ namespace StoreManagementSystem.Web.Controllers
                 .ThenByDescending(x => x.Id)
                 .FirstOrDefaultAsync();
 
-            decimal unitCost = 0m;
+            decimal unitCost = latestReceiptItem?.UnitPrice ?? 0m;
 
-            if (latestReceiptItem != null)
-            {
-                unitCost = latestReceiptItem.UnitPrice;
-            }
+            // Calculate damage value
+            decimal totalValue = model.Quantity * unitCost;
 
-            // --------------------------------------------------------
-            // Calculate total damage value
-            // --------------------------------------------------------
-
-            var totalValue = model.Quantity * unitCost;
-
-            // --------------------------------------------------------
             // Generate damage number
-            // --------------------------------------------------------
-
             var damageNumber = await GenerateDamageNumberAsync();
 
-            // --------------------------------------------------------
-            // Calculate new stock balance
-            // --------------------------------------------------------
-
+            // Reduce stock
             var balanceBefore = warehouseStock.QuantityOnHand;
 
             warehouseStock.QuantityOnHand -= model.Quantity;
 
-            // --------------------------------------------------------
-            // Safety check
-            // --------------------------------------------------------
-
             if (warehouseStock.QuantityOnHand < 0)
             {
+                warehouseStock.QuantityOnHand = balanceBefore;
+
                 ModelState.AddModelError(
                     nameof(model.Quantity),
                     "Damage quantity cannot reduce stock below zero.");
 
-                // Restore in-memory value
-                warehouseStock.QuantityOnHand = balanceBefore;
-
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
 
             warehouseStock.LastUpdated = DateTime.Now;
 
-            // --------------------------------------------------------
-            // Create Damage Entry
-            // --------------------------------------------------------
-
+            // Create damage entry
             var damageEntry = new Domain.Entities.DamageEntry
             {
                 DamageNumber = damageNumber,
                 DamageDate = model.DamageDate,
-
                 DamageId = model.DamageId,
                 ProductId = model.ProductId,
                 WarehouseId = model.WarehouseId,
-
                 Quantity = model.Quantity,
                 UnitCost = unitCost,
                 TotalValue = totalValue,
-
                 Remarks = string.IsNullOrWhiteSpace(model.Remarks)
                     ? null
                     : model.Remarks.Trim(),
-
                 IsDeleted = false,
                 CreatedDate = DateTime.Now
             };
 
             _context.DamageEntries.Add(damageEntry);
 
-            // --------------------------------------------------------
-            // Create Stock Ledger entry
-            // --------------------------------------------------------
-
+            // Create stock ledger entry
             var stockLedger = new Domain.Entities.StockLedger
             {
                 ProductId = model.ProductId,
                 WarehouseId = model.WarehouseId,
-
                 TransactionType = StockTransactionType.StockAdjustment,
-
-                // Negative quantity because stock is going OUT
                 Quantity = -model.Quantity,
-
-                BalanceAfterTransaction =
-                    warehouseStock.QuantityOnHand,
-
+                BalanceAfterTransaction = warehouseStock.QuantityOnHand,
                 UnitCost = unitCost,
-
                 ReferenceNo = damageNumber,
-
                 TransactionDate = model.DamageDate,
-
                 Remarks = $"Damage - {damage.DamageName}" +
-                          (string.IsNullOrWhiteSpace(model.Remarks)
-                              ? string.Empty
-                              : $" - {model.Remarks.Trim()}"),
-
+                    (string.IsNullOrWhiteSpace(model.Remarks)
+                        ? string.Empty
+                        : $" - {model.Remarks.Trim()}"),
                 CreatedBy = User?.Identity?.Name ?? "System"
             };
 
             _context.StockLedgers.Add(stockLedger);
 
-            // --------------------------------------------------------
-            // Save everything in one transaction
-            // --------------------------------------------------------
-
+            // Save changes atomically
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 TempData["SuccessMessage"] =
@@ -341,13 +260,12 @@ namespace StoreManagementSystem.Web.Controllers
                     "An error occurred while saving the damage entry. Please try again.");
 
                 await LoadDropdownsAsync(model);
-
                 return View(model);
             }
         }
 
         // ============================================================
-        // DELETE / SOFT DELETE
+        // DELETE - SOFT DELETE
         // ============================================================
 
         [HttpPost]
@@ -361,24 +279,9 @@ namespace StoreManagementSystem.Web.Controllers
 
             if (damageEntry == null)
             {
-                TempData["ErrorMessage"] =
-                    "Damage entry was not found.";
-
+                TempData["ErrorMessage"] = "Damage entry was not found.";
                 return RedirectToAction(nameof(Index));
             }
-
-            /*
-             * IMPORTANT:
-             *
-             * A damage entry should not normally be deleted after
-             * stock has already been reduced.
-             *
-             * Therefore this action only soft-deletes the record.
-             * It does NOT automatically add stock back.
-             *
-             * If you want reversal functionality later, create a
-             * separate "Reverse Damage" process.
-             */
 
             damageEntry.IsDeleted = true;
             damageEntry.UpdatedDate = DateTime.Now;
@@ -421,13 +324,11 @@ namespace StoreManagementSystem.Web.Controllers
                 {
                     success = true,
                     availableQuantity = 0,
+                    quantityOnHand = 0,
+                    reservedQuantity = 0,
                     unitCost = 0
                 });
             }
-
-            // --------------------------------------------------------
-            // Get latest purchase price
-            // --------------------------------------------------------
 
             var latestReceiptItem = await _context.GoodsReceiptItems
                 .AsNoTracking()
@@ -443,12 +344,7 @@ namespace StoreManagementSystem.Web.Controllers
                 .ThenByDescending(x => x.Id)
                 .FirstOrDefaultAsync();
 
-            decimal unitCost = 0m;
-
-            if (latestReceiptItem != null)
-            {
-                unitCost = latestReceiptItem.UnitPrice;
-            }
+            decimal unitCost = latestReceiptItem?.UnitPrice ?? 0m;
 
             return Json(new
             {
@@ -456,12 +352,12 @@ namespace StoreManagementSystem.Web.Controllers
                 availableQuantity = stock.AvailableQuantity,
                 quantityOnHand = stock.QuantityOnHand,
                 reservedQuantity = stock.ReservedQuantity,
-                unitCost = unitCost
+                unitCost
             });
         }
 
         // ============================================================
-        // GET PRODUCT INFORMATION
+        // GET PRODUCT INFORMATION - TITLE INSTEAD OF SKU
         // ============================================================
 
         [HttpGet]
@@ -478,9 +374,16 @@ namespace StoreManagementSystem.Web.Controllers
 
             var product = await _context.Products
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x =>
+                .Where(x =>
                     x.Id == productId &&
-                    !x.IsDeleted);
+                    !x.IsDeleted)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Title,
+                    x.Barcode
+                })
+                .FirstOrDefaultAsync();
 
             if (product == null)
             {
@@ -494,7 +397,7 @@ namespace StoreManagementSystem.Web.Controllers
             return Json(new
             {
                 success = true,
-                sku = product.SKU,
+                title = product.Title,
                 barcode = product.Barcode
             });
         }
@@ -506,15 +409,10 @@ namespace StoreManagementSystem.Web.Controllers
         private async Task LoadDropdownsAsync(
             DamageEntryViewModel model)
         {
-            // --------------------------------------------------------
-            // Damage Types
-            // --------------------------------------------------------
-
+            // Damage types
             model.Damages = await _context.Damages
                 .AsNoTracking()
-                .Where(x =>
-                    x.IsActive &&
-                    !x.IsDeleted)
+                .Where(x => x.IsActive && !x.IsDeleted)
                 .OrderBy(x => x.DamageName)
                 .Select(x => new DamageDropdownItem
                 {
@@ -523,30 +421,22 @@ namespace StoreManagementSystem.Web.Controllers
                 })
                 .ToListAsync();
 
-            // --------------------------------------------------------
-            // Products
-            // --------------------------------------------------------
-
+            // Products - use Product Title
             model.Products = await _context.Products
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted)
-                .OrderBy(x => x.SKU)
+                .OrderBy(x => x.Title)
                 .Select(x => new ProductDropdownItem
                 {
                     Id = x.Id,
-                    SKU = x.SKU
+                    Title = x.Title
                 })
                 .ToListAsync();
 
-            // --------------------------------------------------------
             // Warehouses
-            // --------------------------------------------------------
-
             model.Warehouses = await _context.Warehouses
                 .AsNoTracking()
-                .Where(x =>
-                    x.IsActive &&
-                    !x.IsDeleted)
+                .Where(x => x.IsActive && !x.IsDeleted)
                 .OrderBy(x => x.Name)
                 .Select(x => new WarehouseDropdownItem
                 {
@@ -574,9 +464,7 @@ namespace StoreManagementSystem.Web.Controllers
 
             if (damageEntry == null)
             {
-                TempData["ErrorMessage"] =
-                    "Damage entry was not found.";
-
+                TempData["ErrorMessage"] = "Damage entry was not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -601,15 +489,9 @@ namespace StoreManagementSystem.Web.Controllers
 
             if (damageEntry == null)
             {
-                TempData["ErrorMessage"] =
-                    "Damage entry was not found.";
-
+                TempData["ErrorMessage"] = "Damage entry was not found.";
                 return RedirectToAction(nameof(Index));
             }
-
-            // --------------------------------------------------------
-            // Prevent duplicate reversal
-            // --------------------------------------------------------
 
             var reversalReference = $"REV-{damageEntry.DamageNumber}";
 
@@ -627,10 +509,6 @@ namespace StoreManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // --------------------------------------------------------
-            // Find warehouse stock
-            // --------------------------------------------------------
-
             var warehouseStock = await _context.WarehouseStocks
                 .FirstOrDefaultAsync(x =>
                     x.ProductId == damageEntry.ProductId &&
@@ -644,67 +522,38 @@ namespace StoreManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            // --------------------------------------------------------
-            // Begin transaction
-            // --------------------------------------------------------
-
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // --------------------------------------------------------
-                // Restore damaged quantity
-                // --------------------------------------------------------
-
                 warehouseStock.QuantityOnHand += damageEntry.Quantity;
                 warehouseStock.LastUpdated = DateTime.Now;
-
-                // --------------------------------------------------------
-                // Create reversal ledger
-                // --------------------------------------------------------
 
                 var reversalLedger = new Domain.Entities.StockLedger
                 {
                     ProductId = damageEntry.ProductId,
                     WarehouseId = damageEntry.WarehouseId,
-
-                    TransactionType =
-                        StockTransactionType.StockAdjustment,
-
-                    // Positive because stock is being restored
+                    TransactionType = StockTransactionType.StockAdjustment,
                     Quantity = damageEntry.Quantity,
-
-                    BalanceAfterTransaction =
-                        warehouseStock.QuantityOnHand,
-
+                    BalanceAfterTransaction = warehouseStock.QuantityOnHand,
                     UnitCost = damageEntry.UnitCost,
-
                     ReferenceNo = reversalReference,
-
                     TransactionDate = DateTime.Now,
-
                     Remarks =
                         $"Damage reversal - {damageEntry.DamageNumber}" +
                         (damageEntry.Damage != null
                             ? $" - {damageEntry.Damage.DamageName}"
                             : string.Empty),
-
-                    CreatedBy =
-                        User?.Identity?.Name ?? "System"
+                    CreatedBy = User?.Identity?.Name ?? "System"
                 };
 
                 _context.StockLedgers.Add(reversalLedger);
-
-                // --------------------------------------------------------
-                // Mark original damage as deleted
-                // --------------------------------------------------------
 
                 damageEntry.IsDeleted = true;
                 damageEntry.UpdatedDate = DateTime.Now;
 
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 TempData["SuccessMessage"] =
@@ -731,13 +580,11 @@ namespace StoreManagementSystem.Web.Controllers
         private async Task<string> GenerateDamageNumberAsync()
         {
             var today = DateTime.Now;
-
             var prefix = $"DMG-{today:yyyyMMdd}-";
 
             var lastDamageNumber = await _context.DamageEntries
                 .AsNoTracking()
-                .Where(x =>
-                    x.DamageNumber.StartsWith(prefix))
+                .Where(x => x.DamageNumber.StartsWith(prefix))
                 .OrderByDescending(x => x.Id)
                 .Select(x => x.DamageNumber)
                 .FirstOrDefaultAsync();
@@ -746,8 +593,7 @@ namespace StoreManagementSystem.Web.Controllers
 
             if (!string.IsNullOrWhiteSpace(lastDamageNumber))
             {
-                var lastPart = lastDamageNumber
-                    .Substring(prefix.Length);
+                var lastPart = lastDamageNumber.Substring(prefix.Length);
 
                 if (int.TryParse(lastPart, out var lastNumber))
                 {

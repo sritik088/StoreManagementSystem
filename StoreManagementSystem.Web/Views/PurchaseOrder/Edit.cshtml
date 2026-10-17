@@ -1,1101 +1,701 @@
-﻿
-@model StoreManagementSystem.Web.ViewModels.PurchaseOrder.PurchaseOrderViewModel
+﻿@model StoreManagementSystem.Web.ViewModels.PurchaseOrder.PurchaseOrderViewModel
 
 @{
     ViewData["Title"] = "Edit Purchase Order";
     Layout = "_AdminLayout";
 }
 
-<div class="container-fluid">
+<style>
+    .po-edit-page .card {
+        border: 0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
-    <!-- =====================================================
-         PAGE HEADER
-         ===================================================== -->
+    .po-edit-page .card-header {
+        padding: 16px 20px;
+    }
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    .po-edit-page .form-label {
+        font-weight: 600;
+    }
 
+    .po-edit-page .form-control,
+    .po-edit-page .form-select {
+        min-height: 40px;
+    }
+
+    .po-edit-page #itemTable {
+        min-width: 1120px;
+        margin-bottom: 0;
+    }
+
+        .po-edit-page #itemTable th,
+        .po-edit-page #itemTable td {
+            vertical-align: middle;
+        }
+
+        .po-edit-page #itemTable th {
+            white-space: nowrap;
+        }
+
+    .po-edit-page .product-title-cell {
+        min-width: 230px;
+    }
+
+    .po-edit-page .sku-cell {
+        min-width: 150px;
+    }
+
+    .po-edit-page .number-cell {
+        min-width: 125px;
+    }
+
+    .po-edit-page .action-cell {
+        min-width: 75px;
+        text-align: center;
+    }
+
+    .po-edit-page .sku {
+        background-color: var(--bs-tertiary-bg);
+    }
+
+    .po-edit-page .total {
+        font-weight: 600;
+        background-color: var(--bs-tertiary-bg);
+    }
+
+    .po-edit-page .summary-total {
+        font-weight: 700;
+        background-color: var(--bs-tertiary-bg);
+    }
+
+    .po-edit-page .validation-summary:empty {
+        display: none;
+    }
+
+    .po-edit-page .table-responsive {
+        border-radius: 8px;
+    }
+
+    @@media (max-width: 767.98px) {
+        .po-edit-page h2 {
+            font-size: 1.45rem;
+        }
+
+        .po-edit-page .card-body {
+            padding: 14px;
+        }
+    }
+</style>
+
+<div class="container-fluid po-edit-page">
+
+    <!-- PAGE HEADER -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-
             <h2 class="fw-bold mb-1">
-
                 <i class="bi bi-pencil-square text-primary me-2"></i>
-
                 Edit Purchase Order
-
             </h2>
-
             <p class="text-muted mb-0">
-
-                Modify Draft Purchase Order
-
+                Modify your draft purchase order and its products.
             </p>
-
         </div>
 
-
         <div class="d-flex gap-2">
-
             <a asp-action="Details"
                asp-route-id="@Model.Id"
                class="btn btn-outline-primary">
-
-                <i class="bi bi-eye me-1"></i>
-
-                View
-
+                <i class="bi bi-eye me-1"></i> View
             </a>
 
-
-            <a asp-action="Index"
-               class="btn btn-secondary">
-
-                <i class="bi bi-arrow-left me-1"></i>
-
-                Back
-
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back
             </a>
-
         </div>
-
     </div>
 
-
-    <!-- =====================================================
-         VALIDATION
-         ===================================================== -->
+    <!-- VALIDATION -->
 
     <div asp-validation-summary="ModelOnly"
-         class="alert alert-danger">
-    </div>
-
-
-    <!-- =====================================================
-         EDIT FORM
-         ===================================================== -->
+         class="alert alert-danger validation-summary"
+         role="alert"></div>
 
     <form asp-action="Edit"
           asp-route-id="@Model.Id"
           method="post"
-          id="purchaseOrderForm">
+          id="purchaseOrderForm"
+          data-product-info-url="@Url.Action("GetProductInfo", "PurchaseOrder")">
 
         @Html.AntiForgeryToken()
 
+        <input asp-for="Id" type="hidden" />
 
-        <!-- =================================================
-             PURCHASE ORDER INFORMATION
-             ================================================= -->
+        <!-- PURCHASE ORDER INFORMATION -->
 
-        <div class="card shadow-sm border-0 mb-4">
-
+        <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white">
-
                 <h5 class="mb-0">
-
                     <i class="bi bi-file-earmark-text me-2"></i>
-
                     Purchase Order Information
-
                 </h5>
-
             </div>
 
-
             <div class="card-body">
-
                 <div class="row g-3">
 
-
-                    <!-- PO NUMBER -->
-
                     <div class="col-md-3">
-
-                        <label class="form-label fw-semibold">
-
-                            PO Number
-
-                        </label>
-
+                        <label class="form-label">PO Number</label>
                         <input type="text"
                                class="form-control"
                                value="@Model.PONumber"
                                readonly />
-
                     </div>
 
-
-                    <!-- SUPPLIER -->
-
                     <div class="col-md-3">
-
-                        <label asp-for="SupplierId"
-                               class="form-label fw-semibold">
-
-                        </label>
-
+                        <label asp-for="SupplierId" class="form-label"></label>
                         <select asp-for="SupplierId"
                                 asp-items="Model.Suppliers"
                                 class="form-select">
-
-                            <option value="">
-                                -- Select Supplier --
-                            </option>
-
+                            <option value="">-- Select Supplier --</option>
                         </select>
-
                         <span asp-validation-for="SupplierId"
-                              class="text-danger">
-                        </span>
-
+                              class="text-danger"></span>
                     </div>
 
-
-                    <!-- ORDER DATE -->
-
                     <div class="col-md-3">
-
-                        <label asp-for="OrderDate"
-                               class="form-label fw-semibold">
-
-                        </label>
-
+                        <label asp-for="OrderDate" class="form-label"></label>
                         <input asp-for="OrderDate"
                                type="date"
                                class="form-control" />
-
                         <span asp-validation-for="OrderDate"
-                              class="text-danger">
-                        </span>
-
+                              class="text-danger"></span>
                     </div>
 
-
-                    <!-- EXPECTED DATE -->
-
                     <div class="col-md-3">
-
-                        <label asp-for="ExpectedDate"
-                               class="form-label fw-semibold">
-
-                        </label>
-
+                        <label asp-for="ExpectedDate" class="form-label"></label>
                         <input asp-for="ExpectedDate"
                                type="date"
                                class="form-control" />
-
                         <span asp-validation-for="ExpectedDate"
-                              class="text-danger">
-                        </span>
-
+                              class="text-danger"></span>
                     </div>
 
-
-                    <!-- STATUS -->
-
                     <div class="col-md-3">
-
-                        <label class="form-label fw-semibold">
-
-                            Status
-
-                        </label>
-
+                        <label class="form-label">Status</label>
                         <input type="text"
                                class="form-control"
                                value="@Model.Status"
                                readonly />
-
                     </div>
 
                 </div>
-
             </div>
-
         </div>
 
+        <!-- PRODUCTS -->
 
-        <!-- =================================================
-             PRODUCTS
-             ================================================= -->
-
-        <div class="card shadow-sm border-0 mb-4">
-
+        <div class="card shadow-sm mb-4">
             <div class="card-header bg-success text-white">
-
                 <div class="d-flex justify-content-between align-items-center">
-
                     <h5 class="mb-0">
-
-                        <i class="bi bi-box-seam me-2"></i>
-
-                        Products
-
+                        <i class="bi bi-box-seam me-2"></i> Products
                     </h5>
-
-
-                    <span class="badge bg-light text-dark">
-
-                        Draft
-
-                    </span>
-
+                    <span class="badge bg-light text-dark">Draft</span>
                 </div>
-
             </div>
-
 
             <div class="card-body">
 
                 <div class="table-responsive">
-
-                    <table class="table table-bordered align-middle"
+                    <table class="table table-bordered table-hover align-middle"
                            id="itemTable">
 
                         <thead class="table-dark">
-
                             <tr>
-
-                                <th>
-                                    Product
-                                </th>
-
-                                <th style="width:120px;">
-                                    Qty
-                                </th>
-
-                                <th style="width:160px;">
-                                    Unit Price
-                                </th>
-
-                                <th style="width:150px;">
-                                    Discount
-                                </th>
-
-                                <th style="width:140px;">
-                                    Tax
-                                </th>
-
-                                <th style="width:160px;">
-                                    Total
-                                </th>
-
-                                <th style="width:70px;">
-                                    Action
-                                </th>
-
+                                <th class="product-title-cell">Product Title</th>
+                                <th class="sku-cell">SKU</th>
+                                <th class="number-cell">Quantity</th>
+                                <th class="number-cell">Unit Price (₹)</th>
+                                <th class="number-cell">Discount (₹)</th>
+                                <th class="number-cell">GST / Tax (₹)</th>
+                                <th class="number-cell">Total (₹)</th>
+                                <th class="action-cell">Action</th>
                             </tr>
-
                         </thead>
 
-
                         <tbody>
-
-                            @for (int i = 0;
-                                                        i < Model.Items.Count;
-                                                        i++)
+                            @for (var i = 0; i < Model.Items.Count; i++)
                             {
                                 <tr>
-
-                                    <!-- PRODUCT -->
-
                                     <td>
-
                                         <select name="Items[@i].ProductId"
-                                                class="form-select product">
-
-                                            <option value="">
-                                                -- Select Product --
-                                            </option>
+                                                class="form-select product"
+                                                required>
+                                            <option value="">-- Select Product --</option>
 
                                             @foreach (var product in Model.Products)
                                             {
-                                                if (Model.Items[i].ProductId ==
-                                                int.Parse(product.Value))
+                                                if (int.TryParse(product.Value, out var productId)
+                                                && Model.Items[i].ProductId == productId)
                                                 {
-                                                    <option value="@product.Value"
-                                                            selected>
-
+                                                    <option value="@product.Value" selected>
                                                         @product.Text
-
                                                     </option>
                                                 }
                                                 else
                                                 {
                                                     <option value="@product.Value">
-
                                                         @product.Text
-
                                                     </option>
                                                 }
                                             }
-
                                         </select>
-
                                     </td>
 
-
-                                    <!-- QUANTITY -->
+                                    <td>
+                                        <input type="text"
+                                               class="form-control sku"
+                                               value="@Model.Items[i].SKU"
+                                               readonly
+                                               placeholder="SKU" />
+                                    </td>
 
                                     <td>
-
                                         <input type="number"
                                                name="Items[@i].Quantity"
                                                class="form-control qty"
                                                value="@Model.Items[i].Quantity"
                                                min="0.01"
-                                               step="0.01" />
-
+                                               step="0.01"
+                                               required />
                                     </td>
 
-
-                                    <!-- PRICE -->
-
                                     <td>
-
                                         <input type="number"
                                                name="Items[@i].UnitPrice"
                                                class="form-control price"
                                                value="@Model.Items[i].UnitPrice"
                                                min="0"
-                                               step="0.01" />
-
+                                               step="0.01"
+                                               required />
                                     </td>
 
-
-                                    <!-- DISCOUNT -->
-
                                     <td>
-
                                         <input type="number"
                                                name="Items[@i].Discount"
                                                class="form-control discount"
                                                value="@Model.Items[i].Discount"
                                                min="0"
-                                               step="0.01" />
-
+                                               step="0.01"
+                                               required />
                                     </td>
 
-
-                                    <!-- TAX -->
-
                                     <td>
-
                                         <input type="number"
                                                name="Items[@i].TaxAmount"
                                                class="form-control tax"
                                                value="@Model.Items[i].TaxAmount"
                                                min="0"
-                                               step="0.01" />
-
+                                               step="0.01"
+                                               required />
                                     </td>
 
-
-                                    <!-- TOTAL -->
-
                                     <td>
-
                                         <input type="number"
                                                name="Items[@i].Total"
                                                class="form-control total"
                                                value="@Model.Items[i].Total"
                                                readonly />
-
                                     </td>
 
-
-                                    <!-- REMOVE -->
-
-                                    <td class="text-center">
-
+                                    <td class="action-cell">
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-danger removeRow">
-
+                                                class="btn btn-sm btn-outline-danger removeRow"
+                                                aria-label="Remove product"
+                                                title="Remove product">
                                             <i class="bi bi-trash"></i>
-
                                         </button>
-
                                     </td>
-
                                 </tr>
                             }
-
                         </tbody>
-
                     </table>
-
                 </div>
 
-
-                <!-- ADD PRODUCT -->
+                <template id="productOptionsTemplate">
+                    <option value="">-- Select Product --</option>
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Value">@product.Text</option>
+                    }
+                </template>
 
                 <button type="button"
                         id="addRow"
-                        class="btn btn-success">
-
+                        class="btn btn-success mt-3">
                     <i class="bi bi-plus-circle me-1"></i>
-
                     Add Product
-
                 </button>
 
             </div>
-
         </div>
 
+        <!-- ORDER TOTALS -->
 
-        <!-- =================================================
-             TOTALS
-             ================================================= -->
-
-        <div class="card shadow-sm border-0 mb-4">
-
+        <div class="card shadow-sm mb-4">
             <div class="card-header bg-warning">
-
                 <h5 class="mb-0">
-
                     <i class="bi bi-calculator me-2"></i>
-
                     Order Totals
-
                 </h5>
-
             </div>
 
-
             <div class="card-body">
-
                 <div class="row g-3">
 
-
-                    <!-- SUBTOTAL -->
-
                     <div class="col-md-3">
-
-                        <label class="form-label">
-
-                            Sub Total
-
+                        <label asp-for="SubTotal" class="form-label">
+                            Sub Total (₹)
                         </label>
-
                         <input asp-for="SubTotal"
                                id="SubTotal"
-                               class="form-control"
+                               class="form-control summary-total"
                                readonly />
-
                     </div>
 
-
-                    <!-- DISCOUNT -->
-
                     <div class="col-md-3">
-
-                        <label class="form-label">
-
-                            Discount
-
+                        <label asp-for="Discount" class="form-label">
+                            Discount (₹)
                         </label>
-
                         <input asp-for="Discount"
                                id="Discount"
-                               class="form-control"
+                               class="form-control summary-total"
                                readonly />
-
                     </div>
 
-
-                    <!-- TAX -->
-
                     <div class="col-md-3">
-
-                        <label class="form-label">
-
-                            GST / Tax
-
+                        <label asp-for="TaxAmount" class="form-label">
+                            GST / Tax (₹)
                         </label>
-
                         <input asp-for="TaxAmount"
                                id="TaxAmount"
-                               class="form-control"
+                               class="form-control summary-total"
                                readonly />
-
                     </div>
-
-
-                    <!-- GRAND TOTAL -->
 
                     <div class="col-md-3">
-
-                        <label class="form-label fw-bold">
-
-                            Grand Total
-
+                        <label asp-for="GrandTotal" class="form-label">
+                            Grand Total (₹)
                         </label>
-
                         <input asp-for="GrandTotal"
                                id="GrandTotal"
-                               class="form-control fw-bold"
+                               class="form-control summary-total"
                                readonly />
-
                     </div>
 
-
-                    <!-- REMARKS -->
-
                     <div class="col-12">
-
-                        <label asp-for="Remarks"
-                               class="form-label">
-
-                        </label>
-
+                        <label asp-for="Remarks" class="form-label"></label>
                         <textarea asp-for="Remarks"
                                   class="form-control"
                                   rows="4"
-                                  placeholder="Enter remarks...">
-                        </textarea>
-
+                                  placeholder="Enter remarks..."></textarea>
+                        <span asp-validation-for="Remarks"
+                              class="text-danger"></span>
                     </div>
 
                 </div>
-
             </div>
-
         </div>
 
+        <!-- SAVE BUTTONS -->
 
-        <!-- =================================================
-             SAVE
-             ================================================= -->
-
-        <div class="d-flex justify-content-between mb-5">
-
-            <a asp-action="Index"
-               class="btn btn-secondary">
-
-                <i class="bi bi-arrow-left me-1"></i>
-
-                Cancel
-
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-5">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Cancel
             </a>
 
-
-            <button type="submit"
-                    class="btn btn-primary px-4">
-
+            <button type="submit" class="btn btn-primary px-4">
                 <i class="bi bi-save me-1"></i>
-
                 Update Purchase Order
-
             </button>
-
         </div>
 
     </form>
-
 </div>
 
-
 @section Scripts {
-
     <partial name="_ValidationScriptsPartial" />
 
-
     <script>
-
-        // =====================================================
-        // PRODUCT OPTIONS
-        // =====================================================
-
-        const productOptions = `
-            <option value="">
-                -- Select Product --
-            </option>
-
-            @foreach (var product in Model.Products)
-            {
-                    <option value="@product.Value">
-                        @product.Text
-                    </option>
-            }
-        `;
-
-
-        // =====================================================
-        // ADD ROW
-        // =====================================================
-
-        document
-            .getElementById("addRow")
-            .addEventListener("click", function () {
-
-                const tbody =
-                    document.querySelector(
-                        "#itemTable tbody"
-                    );
-
-
-                const index =
-                    tbody.querySelectorAll("tr").length;
-
-
-                const row =
-                    document.createElement("tr");
-
-
-                row.innerHTML = `
-
-                    <td>
-
-                        <select
-                            name="Items[${index}].ProductId"
-                            class="form-select product">
-
-                            ${productOptions}
-
-                        </select>
-
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            name="Items[${index}].Quantity"
-                            class="form-control qty"
-                            value="1"
-                            min="0.01"
-                            step="0.01" />
-
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            name="Items[${index}].UnitPrice"
-                            class="form-control price"
-                            value="0"
-                            min="0"
-                            step="0.01" />
-
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            name="Items[${index}].Discount"
-                            class="form-control discount"
-                            value="0"
-                            min="0"
-                            step="0.01" />
-
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            name="Items[${index}].TaxAmount"
-                            class="form-control tax"
-                            value="0"
-                            min="0"
-                            step="0.01" />
-
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            name="Items[${index}].Total"
-                            class="form-control total"
-                            value="0"
-                            readonly />
-
-                    </td>
-
-
-                    <td class="text-center">
-
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-danger removeRow">
-
-                            <i class="bi bi-trash"></i>
-
-                        </button>
-
-                    </td>
-
-                `;
-
-
-                tbody.appendChild(row);
-
-            });
-
-
-        // =====================================================
-        // REMOVE ROW
-        // =====================================================
-
-        document.addEventListener(
-            "click",
-            function (event) {
-
-                const button =
-                    event.target.closest(".removeRow");
-
-
-                if (!button)
-                    return;
-
-
-                const rows =
-                    document.querySelectorAll(
-                        "#itemTable tbody tr"
-                    );
-
-
-                if (rows.length <= 1)
-                {
-                    alert(
-                        "At least one product is required."
-                    );
-
-                    return;
-                }
-
-
-                button
-                    .closest("tr")
-                    .remove();
-
-
-                reindexRows();
-
-                calculateTotals();
-
-            }
-        );
-
-
-        // =====================================================
-        // INPUT CHANGE
-        // =====================================================
-
-        document.addEventListener(
-            "input",
-            function (event) {
-
-                if (
-                    event.target.classList.contains("qty") ||
-                    event.target.classList.contains("price") ||
-                    event.target.classList.contains("discount") ||
-                    event.target.classList.contains("tax")
-                )
-                {
-                    calculateRow(
-                        event.target.closest("tr")
-                    );
-                }
-
-            }
-        );
-
-
-        // =====================================================
-        // PRODUCT CHANGE
-        // =====================================================
-
-        document.addEventListener(
-            "change",
-            function (event) {
-
-                if (!event.target.classList.contains("product"))
-                    return;
-
-
-                const productId =
-                    event.target.value;
-
-
-                if (!productId)
-                    return;
-
-
-                const row =
-                    event.target.closest("tr");
-
-
-                fetch(
-                    '@Url.Action("GetProductInfo", "PurchaseOrder")'
-                    + '?productId='
-                    + productId
-                )
-                .then(function (response) {
-
-                    if (!response.ok)
-                    {
-                        throw new Error(
-                            "Unable to load product."
-                        );
-                    }
-
-                    return response.json();
-
-                })
-                .then(function (data) {
-
-                    row.querySelector(".price").value =
-                        data.purchasePrice ?? 0;
-
-
-                    row.querySelector(".qty").value =
-                        1;
-
-
-                    calculateRow(row);
-
-                })
-                .catch(function (error) {
-
-                    console.error(error);
-
-                    alert(
-                        "Unable to load product information."
-                    );
-
-                });
-
-            }
-        );
-
-
-        // =====================================================
-        // CALCULATE ROW
-        // =====================================================
-
-        function calculateRow(row)
-        {
-            if (!row)
+        "use strict";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("purchaseOrderForm");
+            const tbody = document.querySelector("#itemTable tbody");
+            const addButton = document.getElementById("addRow");
+            const optionsTemplate = document.getElementById("productOptionsTemplate");
+
+            if (!form || !tbody || !addButton || !optionsTemplate) {
                 return;
+            }
 
+            const productInfoUrl = form.dataset.productInfoUrl;
 
-            const qty =
-                parseFloat(
-                    row.querySelector(".qty").value
-                ) || 0;
+            function numberValue(row, selector) {
+                const input = row.querySelector(selector);
+                const value = input ? parseFloat(input.value) : 0;
+                return Number.isFinite(value) ? value : 0;
+            }
 
+            function setValue(row, selector, value) {
+                const input = row.querySelector(selector);
+                if (input) {
+                    input.value = value;
+                }
+            }
 
-            const price =
-                parseFloat(
-                    row.querySelector(".price").value
-                ) || 0;
+            function calculateRow(row) {
+                if (!row) return;
 
+                const quantity = numberValue(row, ".qty");
+                const price = numberValue(row, ".price");
+                const discount = numberValue(row, ".discount");
+                const tax = numberValue(row, ".tax");
 
-            const discount =
-                parseFloat(
-                    row.querySelector(".discount").value
-                ) || 0;
-
-
-            const tax =
-                parseFloat(
-                    row.querySelector(".tax").value
-                ) || 0;
-
-
-            const subtotal =
-                qty * price;
-
-
-            const total =
-                Math.max(
-                    subtotal
-                    - discount
-                    + tax,
+                const total = Math.max(
+                    quantity * price - discount + tax,
                     0
                 );
 
+                setValue(row, ".total", total.toFixed(2));
+                calculateTotals();
+            }
 
-            row.querySelector(".total").value =
-                total.toFixed(2);
+            function calculateTotals() {
+                let subtotal = 0;
+                let discount = 0;
+                let tax = 0;
+                let grandTotal = 0;
 
+                tbody.querySelectorAll("tr").forEach(function (row) {
+                    const quantity = numberValue(row, ".qty");
+                    const price = numberValue(row, ".price");
+                    const rowDiscount = numberValue(row, ".discount");
+                    const rowTax = numberValue(row, ".tax");
 
-            calculateTotals();
-        }
-
-
-        // =====================================================
-        // CALCULATE TOTALS
-        // =====================================================
-
-        function calculateTotals()
-        {
-            let subtotal = 0;
-
-            let discount = 0;
-
-            let tax = 0;
-
-            let grandTotal = 0;
-
-
-            document
-                .querySelectorAll(
-                    "#itemTable tbody tr"
-                )
-                .forEach(function (row) {
-
-                    const qty =
-                        parseFloat(
-                            row.querySelector(".qty").value
-                        ) || 0;
-
-
-                    const price =
-                        parseFloat(
-                            row.querySelector(".price").value
-                        ) || 0;
-
-
-                    const rowDiscount =
-                        parseFloat(
-                            row.querySelector(".discount").value
-                        ) || 0;
-
-
-                    const rowTax =
-                        parseFloat(
-                            row.querySelector(".tax").value
-                        ) || 0;
-
-
-                    const rowSubtotal =
-                        qty * price;
-
-
-                    const rowTotal =
-                        Math.max(
-                            rowSubtotal
-                            - rowDiscount
-                            + rowTax,
-                            0
-                        );
-
-
-                    subtotal +=
-                        rowSubtotal;
-
-
-                    discount +=
-                        rowDiscount;
-
-
-                    tax +=
-                        rowTax;
-
-
-                    grandTotal +=
-                        rowTotal;
-
+                    subtotal += quantity * price;
+                    discount += rowDiscount;
+                    tax += rowTax;
+                    grandTotal += Math.max(
+                        quantity * price - rowDiscount + rowTax,
+                        0
+                    );
                 });
 
+                document.getElementById("SubTotal").value = subtotal.toFixed(2);
+                document.getElementById("Discount").value = discount.toFixed(2);
+                document.getElementById("TaxAmount").value = tax.toFixed(2);
+                document.getElementById("GrandTotal").value = grandTotal.toFixed(2);
+            }
 
-            document.getElementById(
-                "SubTotal"
-            ).value =
-                subtotal.toFixed(2);
+            function reindexRows() {
+                tbody.querySelectorAll("tr").forEach(function (row, index) {
+                    const fieldNames = {
+                        ".product": "ProductId",
+                        ".qty": "Quantity",
+                        ".price": "UnitPrice",
+                        ".discount": "Discount",
+                        ".tax": "TaxAmount",
+                        ".total": "Total"
+                    };
 
-
-            document.getElementById(
-                "Discount"
-            ).value =
-                discount.toFixed(2);
-
-
-            document.getElementById(
-                "TaxAmount"
-            ).value =
-                tax.toFixed(2);
-
-
-            document.getElementById(
-                "GrandTotal"
-            ).value =
-                grandTotal.toFixed(2);
-        }
-
-
-        // =====================================================
-        // REINDEX
-        // =====================================================
-
-        function reindexRows()
-        {
-            document
-                .querySelectorAll(
-                    "#itemTable tbody tr"
-                )
-                .forEach(function (row, index) {
-
-                    row.querySelector(".product").name =
-                        `Items[${index}].ProductId`;
-
-
-                    row.querySelector(".qty").name =
-                        `Items[${index}].Quantity`;
-
-
-                    row.querySelector(".price").name =
-                        `Items[${index}].UnitPrice`;
-
-
-                    row.querySelector(".discount").name =
-                        `Items[${index}].Discount`;
-
-
-                    row.querySelector(".tax").name =
-                        `Items[${index}].TaxAmount`;
-
-
-                    row.querySelector(".total").name =
-                        `Items[${index}].Total`;
-
+                    Object.entries(fieldNames).forEach(function ([selector, name]) {
+                        const input = row.querySelector(selector);
+                        if (input) {
+                            input.name = `Items[${index}].${name}`;
+                        }
+                    });
                 });
-        }
+            }
 
+            function createNumberInput(cssClass, value, min, readOnly) {
+                const input = document.createElement("input");
+                input.type = "number";
+                input.className = `form-control ${cssClass}`;
+                input.value = value;
+                input.min = min;
+                input.step = "0.01";
+                input.required = true;
+                input.readOnly = Boolean(readOnly);
+                return input;
+            }
 
-        // =====================================================
-        // INITIAL CALCULATION
-        // =====================================================
+            function addProductRow() {
+                const row = document.createElement("tr");
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+                const titleCell = document.createElement("td");
+                const productSelect = document.createElement("select");
+                productSelect.className = "form-select product";
+                productSelect.required = true;
+                productSelect.innerHTML = optionsTemplate.innerHTML.trim();
+                titleCell.appendChild(productSelect);
+                row.appendChild(titleCell);
 
-                document
-                    .querySelectorAll(
-                        "#itemTable tbody tr"
-                    )
-                    .forEach(function (row) {
+                const skuCell = document.createElement("td");
+                const skuInput = document.createElement("input");
+                skuInput.type = "text";
+                skuInput.className = "form-control sku";
+                skuInput.readOnly = true;
+                skuInput.placeholder = "SKU";
+                skuCell.appendChild(skuInput);
+                row.appendChild(skuCell);
 
-                        calculateRow(row);
+                const fields = [
+                    ["qty", "1", "0.01", false],
+                    ["price", "0", "0", false],
+                    ["discount", "0", "0", false],
+                    ["tax", "0", "0", false],
+                    ["total", "0", "0", true]
+                ];
 
+                fields.forEach(function (field) {
+                    const cell = document.createElement("td");
+                    cell.appendChild(
+                        createNumberInput(field[0], field[1], field[2], field[3])
+                    );
+                    row.appendChild(cell);
+                });
+
+                const actionCell = document.createElement("td");
+                actionCell.className = "action-cell";
+
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "btn btn-sm btn-outline-danger removeRow";
+                removeButton.title = "Remove product";
+                removeButton.setAttribute("aria-label", "Remove product");
+                removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+                actionCell.appendChild(removeButton);
+                row.appendChild(actionCell);
+
+                tbody.appendChild(row);
+                reindexRows();
+                calculateRow(row);
+            }
+
+            async function loadProductInfo(select) {
+                const row = select.closest("tr");
+                if (!row) return;
+
+                const productId = select.value;
+
+                if (!productId) {
+                    setValue(row, ".sku", "");
+                    setValue(row, ".price", "0");
+                    calculateRow(row);
+                    return;
+                }
+
+                if (!productInfoUrl) {
+                    console.error("GetProductInfo URL is missing.");
+                    return;
+                }
+
+                try {
+                    const url = new URL(productInfoUrl, window.location.origin);
+                    url.searchParams.set("productId", productId);
+
+                    const response = await fetch(url.toString(), {
+                        method: "GET",
+                        credentials: "same-origin",
+                        headers: { "Accept": "application/json" }
                     });
 
+                    if (!response.ok) {
+                        throw new Error("Product information request failed.");
+                    }
+
+                    const data = await response.json();
+
+                    setValue(row, ".sku", data.sku ?? data.SKU ?? "");
+
+                    const price = Number(
+                        data.purchasePrice ?? data.PurchasePrice ?? 0
+                    );
+
+                    setValue(
+                        row,
+                        ".price",
+                        Number.isFinite(price) ? price : 0
+                    );
+
+                    calculateRow(row);
+                } catch (error) {
+                    console.error(error);
+                    window.alert(
+                        "Unable to load product information. Please try again."
+                    );
+                }
+            }
+
+            addButton.addEventListener("click", addProductRow);
+
+            tbody.addEventListener("click", function (event) {
+                const button = event.target.closest(".removeRow");
+                if (!button) return;
+
+                if (tbody.querySelectorAll("tr").length <= 1) {
+                    window.alert("At least one product is required.");
+                    return;
+                }
+
+                button.closest("tr").remove();
+                reindexRows();
+                calculateTotals();
+            });
+
+            tbody.addEventListener("input", function (event) {
+                if (event.target.matches(".qty, .price, .discount, .tax")) {
+                    calculateRow(event.target.closest("tr"));
+                }
+            });
+
+            tbody.addEventListener("change", function (event) {
+                if (event.target.matches(".product")) {
+                    loadProductInfo(event.target);
+                }
+            });
+
+            form.addEventListener("submit", function (event) {
+                reindexRows();
+
+                if (tbody.querySelectorAll("tr").length === 0) {
+                    event.preventDefault();
+                    window.alert("Add at least one product before saving.");
+                    return;
+                }
 
                 calculateTotals();
+            });
 
-            }
-        );
+            // Populate the SKU for already-selected products when editing.
+            // This uses the same endpoint used when selecting a new product.
+            tbody.querySelectorAll("tr").forEach(function (row) {
+                const select = row.querySelector(".product");
 
+                if (select && select.value && !row.querySelector(".sku").value) {
+                    loadProductInfo(select);
+                }
+
+                calculateRow(row);
+            });
+
+            reindexRows();
+            calculateTotals();
+        });
     </script>
 }
-

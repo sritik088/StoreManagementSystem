@@ -25,7 +25,8 @@ namespace StoreManagementSystem.Web.ViewModels.Damage
         public int WarehouseId { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Quantity must be greater than zero.")]
+        [Range(0.01, double.MaxValue,
+            ErrorMessage = "Quantity must be greater than zero.")]
         public decimal Quantity { get; set; }
 
         [Display(Name = "Unit Cost")]
@@ -48,18 +49,22 @@ namespace StoreManagementSystem.Web.ViewModels.Damage
     public class DamageDropdownItem
     {
         public int Id { get; set; }
+
         public string Name { get; set; } = string.Empty;
     }
 
     public class ProductDropdownItem
     {
         public int Id { get; set; }
-        public string SKU { get; set; } = string.Empty;
+
+        [Display(Name = "Product Title")]
+        public string Title { get; set; } = string.Empty;
     }
 
     public class WarehouseDropdownItem
     {
         public int Id { get; set; }
+
         public string Name { get; set; } = string.Empty;
     }
 }

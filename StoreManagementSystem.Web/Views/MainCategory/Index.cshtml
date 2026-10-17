@@ -205,13 +205,13 @@
 
                                 <td>
 
-                                    <a asp-action="Details"
+                                    @* <a asp-action="Details"
                                        asp-route-id="@item.Id"
                                        class="btn btn-info btn-sm">
 
                                         <i class="bi bi-eye"></i>
 
-                                    </a>
+                                    </a> *@
 
 
                                     <a asp-action="Edit"
@@ -272,24 +272,24 @@
             // DATATABLE
             // =====================================================
 
-            $("#mainCategoryTable").DataTable({
+            // $("#mainCategoryTable").DataTable({
 
-                responsive: true,
+            //     responsive: true,
 
-                pageLength: 10,
+            //     pageLength: 10,
 
-                lengthMenu: [10, 25, 50, 100],
+            //     lengthMenu: [10, 25, 50, 100],
 
-                dom: "Bfrtip",
+            //     dom: "Bfrtip",
 
-                buttons: [
-                    "copy",
-                    "excel",
-                    "pdf",
-                    "print"
-                ]
+            //     buttons: [
+            //         "copy",
+            //         "excel",
+            //         "pdf",
+            //         "print"
+            //     ]
 
-            });
+            // });
 
 
             // =====================================================

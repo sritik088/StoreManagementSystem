@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace StoreManagementSystem.Web.ViewModels.Product
@@ -6,6 +7,15 @@ namespace StoreManagementSystem.Web.ViewModels.Product
     public class ProductViewModel
     {
         public int Id { get; set; }
+
+        // =========================
+        // Product Title
+        // =========================
+
+        [Required(ErrorMessage = "Product Title is required.")]
+        [StringLength(150, ErrorMessage = "Product Title cannot exceed 150 characters.")]
+        [Display(Name = "Product Title")]
+        public string Title { get; set; } = string.Empty;
 
         // =========================
         // Main Category
@@ -44,11 +54,13 @@ namespace StoreManagementSystem.Web.ViewModels.Product
         // Identification
         // =========================
 
-        [Required]
-        [StringLength(50)]
+        [Required(ErrorMessage = "SKU is required.")]
+        [StringLength(50, ErrorMessage = "SKU cannot exceed 50 characters.")]
+        [Display(Name = "SKU")]
         public string SKU { get; set; } = string.Empty;
 
-        [StringLength(50)]
+        [StringLength(50, ErrorMessage = "Barcode cannot exceed 50 characters.")]
+        [Display(Name = "Barcode")]
         public string? Barcode { get; set; }
 
         // =========================
@@ -72,7 +84,5 @@ namespace StoreManagementSystem.Web.ViewModels.Product
 
         public IEnumerable<SelectListItem> Warehouses { get; set; }
             = new List<SelectListItem>();
-
-
     }
 }

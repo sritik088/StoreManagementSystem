@@ -1,17 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace StoreManagementSystem.Web.ViewModels.SalesOrder
 {
     public class SalesOrderItemViewModel
     {
+        // =========================================================
+        // IDENTIFICATION
+        // =========================================================
+
         public int Id { get; set; }
 
         // =========================================================
-        // PRODUCT
+        // PRODUCT INFORMATION
         // =========================================================
 
         public int ProductId { get; set; }
 
+        // Preferred product display field
+        public string ProductTitle { get; set; } = string.Empty;
+
+        // Retained for compatibility with existing views/code
         public string ProductSKU { get; set; } = string.Empty;
 
         public string ProductName { get; set; } = string.Empty;
@@ -20,22 +29,16 @@ namespace StoreManagementSystem.Web.ViewModels.SalesOrder
         // QUANTITY
         // =========================================================
 
-        public decimal Quantity { get; set; } = 1;
+        public decimal Quantity { get; set; } = 1m;
 
         // =========================================================
         // COST / PURCHASE PRICE
-        //
-        // This is the price at which the stock was purchased.
-        // Example: ₹900
         // =========================================================
 
         public decimal UnitPrice { get; set; }
 
         // =========================================================
         // SELLING PRICE
-        //
-        // This is YOUR selling price.
-        // Example: ₹1,100
         // =========================================================
 
         public decimal SalePrice { get; set; }
@@ -60,38 +63,26 @@ namespace StoreManagementSystem.Web.ViewModels.SalesOrder
             Quantity * SalePrice;
 
         public decimal DiscountAmount =>
-            SubTotal *
-            DiscountPercent /
-            100m;
+            SubTotal * DiscountPercent / 100m;
 
         public decimal TaxableAmount =>
             Math.Max(
-                SubTotal -
-                DiscountAmount,
+                SubTotal - DiscountAmount,
                 0m);
 
         public decimal TaxAmount =>
-            TaxableAmount *
-            TaxPercent /
-            100m;
+            TaxableAmount * TaxPercent / 100m;
 
         public decimal LineTotal =>
-            TaxableAmount +
-            TaxAmount;
+            TaxableAmount + TaxAmount;
 
         // =========================================================
         // GROSS PROFIT
-        //
-        // Tax is not profit.
-        //
-        // Gross Profit =
-        // Net Selling Value - Cost Value
+        // Excludes tax and deducts the purchase cost.
         // =========================================================
 
         public decimal GrossProfit =>
-            (SubTotal - DiscountAmount)
-            -
-            (Quantity * UnitPrice);
+            TaxableAmount - (Quantity * UnitPrice);
 
         // =========================================================
         // PRODUCT DROPDOWN

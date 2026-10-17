@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
-
 using StoreManagementSystem.Domain.Enums;
 
 namespace StoreManagementSystem.Web.ViewModels.SalesOrder
@@ -14,19 +13,15 @@ namespace StoreManagementSystem.Web.ViewModels.SalesOrder
 
         public string OrderNumber { get; set; } = string.Empty;
 
-        public DateTime OrderDate { get; set; }
-            = DateTime.Today;
+        public DateTime OrderDate { get; set; } = DateTime.Today;
 
         public int WarehouseId { get; set; }
 
-        public string CustomerName { get; set; }
-            = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
 
-        public string CustomerPhone { get; set; }
-            = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
 
-        public string Remarks { get; set; }
-            = string.Empty;
+        public string Remarks { get; set; } = string.Empty;
 
         // =========================================================
         // STATUS
@@ -50,7 +45,7 @@ namespace StoreManagementSystem.Web.ViewModels.SalesOrder
         public decimal GrossProfit { get; set; }
 
         // =========================================================
-        // ITEMS
+        // SALES ORDER ITEMS
         // =========================================================
 
         public List<SalesOrderItemViewModel> Items { get; set; }
